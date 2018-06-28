@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <usb-device vendor-id="4292" />
+    <!-- silicon labs cp210x vendor id used -->
+    <!-- stm32 vendor id, decimal number, vendor-id="1155" -->
+</resources>
