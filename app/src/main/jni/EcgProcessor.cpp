@@ -33,6 +33,7 @@
 
 const int DECOMPRESS_BUFFER_STRIDE = ECG_MAX_SEND_SIZE/3+1;
 static GLfloat decompressBuffer[12][DECOMPRESS_BUFFER_STRIDE];
+// testing
 
 EcgProcessor::EcgProcessor(){
     samplingFrequency=500.0;
