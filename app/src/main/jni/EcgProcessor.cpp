@@ -20,9 +20,11 @@
  
 #include "EcgProcessor.h"
 
+#include <stdio.h>
 #include <GLES2/gl2.h>
-#include "EcgArea.h"
+#include <time.h>
 
+#include "EcgArea.h"
 #include "log.h"
 #include "../res/Common/DataFormat/EcgHeaderCommon.h"
 #include "../res/Common/DataFormat/BitFifo.cpp"
@@ -33,10 +35,46 @@
 
 const int DECOMPRESS_BUFFER_STRIDE = ECG_MAX_SEND_SIZE/3+1;
 static GLfloat decompressBuffer[12][DECOMPRESS_BUFFER_STRIDE];
-// testing
+static GLfloat unFilteredBuffer[12][DECOMPRESS_BUFFER_STRIDE];
+
+FILE *af;
+FILE *bf;
+char filePath[64];
+
+char *getCurrentTime() {
+    timeval curTime;
+    gettimeofday(&curTime, NULL);
+    int milli = curTime.tv_usec / 1000;
+    char timeBuffer [80];
+    strftime(timeBuffer, 80, "%H:%M:%S", localtime(&curTime.tv_sec));
+    static char currentTime[84] = "";
+    sprintf(currentTime, "%s.%d", timeBuffer, milli);
+    return currentTime;
+}
 
 EcgProcessor::EcgProcessor(){
     samplingFrequency=500.0;
+
+    strcpy(filePath, EcgArea::instance().internalStoragePath);
+    strcat(filePath, "/after_filters.txt");
+    LOGI("path: %s", filePath);
+    if ((af = fopen(filePath, "w+")) == NULL) {
+        LOGE("After filters: Error writing to file!");
+    }
+    fprintf(af, "timestamp,I,II,V1,V2,V3,V4,V5,V6\n");
+    filePath[0] = 0;
+    strcpy(filePath, EcgArea::instance().internalStoragePath);
+    strcat(filePath, "/before_filters.txt");
+    LOGI("path: %s", filePath);
+    if ((bf = fopen(filePath, "w+")) == NULL) {
+        LOGE("Before filters: Error writing to file!");
+    }
+    fprintf(bf, "timestamp,I,II,V1,V2,V3,V4,V5,V6\n");
+}
+
+EcgProcessor::~EcgProcessor() {
+    fclose(af);
+    fclose(bf);
 }
 
 EcgProcessor &EcgProcessor::instance(){
@@ -85,6 +123,7 @@ void EcgProcessor::receivePacket(char *data, int len){
 
         for (int c=0; c<header->channelCount; c++){
             decompressBuffer[c][a] = timesample[c] * header->lsbInMv;
+            unFilteredBuffer[c][a] = decompressBuffer[c][a];
             if(c <= MAX_NUM_CHANNELS) {
                 ecgFilter[c].putSample(decompressBuffer[c][a]);
                 if(ecgFilter[c].isOutputAvailable()) {
@@ -97,13 +136,23 @@ void EcgProcessor::receivePacket(char *data, int len){
     }
 
     for(int a = 0; a < filteredSampleNum[0]; a++) {
+        float *input = &unFilteredBuffer[0][a];
+        int stride = DECOMPRESS_BUFFER_STRIDE;
+        float I = input[1*stride];
+        float II = input[2*stride];
+        float V1 = input[7*stride];
+        float V2 = input[3*stride];
+        float V3 = input[4*stride];
+        float V4 = input[5*stride];
+        float V5 = input[6*stride];
+        float V6 = input[0*stride];
+        fprintf(bf, "%s,%f,%f,%f,%f,%f,%f,%f,%f\n", getCurrentTime(), I, II, V1, V2, V3, V4, V5, V6);
+
         EcgProcessor::calculate12Channels(&decompressBuffer[0][a], &decompressBuffer[0][a], DECOMPRESS_BUFFER_STRIDE);
     }
 
     EcgArea::instance().putData((GLfloat*)decompressBuffer, header->channelCount, filteredSampleNum[0], DECOMPRESS_BUFFER_STRIDE);
-
 }
-
 
 float EcgProcessor::getSamplingFrequency(){
     return samplingFrequency;
@@ -122,6 +171,9 @@ void EcgProcessor::calculate12Channels(float *input, float *output, int stride) 
     float aVR = (-II-I)/3;
     float aVL = (I-III)/3;
     float aVF = (II+III)/3;
+
+    fprintf(af, "%s,%f,%f,%f,%f,%f,%f,%f,%f\n", getCurrentTime(), I, II, V1, V2, V3, V4, V5, V6);
+
     output[0*stride] = I;
     output[1*stride] = II;
     output[2*stride] = III;

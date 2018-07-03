@@ -40,4 +40,5 @@ public class EcgJNI {
      public static native void processEcgData(byte[] data, int size);
      public static native void onDeviceConnected();
      public static native void onDeviceDisconnected();
+     public static native void initNDK(String msg);
 }

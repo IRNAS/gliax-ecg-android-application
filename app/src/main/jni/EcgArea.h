@@ -71,6 +71,7 @@ public:
         const Rect &getActiveArea();
         const Vec2<float> &getPixelDensity();
 
+        const char * internalStoragePath;
 
         void redraw();
         bool isRedrawNeeded();

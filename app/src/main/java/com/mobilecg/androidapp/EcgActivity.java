@@ -56,19 +56,13 @@ import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import static android.R.attr.path;
-import static android.os.Build.VERSION_CODES.M;
-import static com.hoho.android.usbserial.driver.UsbSerialPort.STOPBITS_1;
-import static com.mobilecg.androidapp.R.id.btnOK;
-import static com.mobilecg.androidapp.R.id.spinnerStopBits;
 
 /**
  * Reading data from ECG board over USB
@@ -93,6 +87,7 @@ public class EcgActivity extends Activity {
     private IntentFilter intentFilter = null;
     private File outputFile = null;
     private FileOutputStream outputStream = null;
+    private String debugFilePath = null;
 
     // initial values for usb communication parameters
     private int BAUD_RATE = 115200;
@@ -103,6 +98,7 @@ public class EcgActivity extends Activity {
     @Override
     protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
+        debugFilePath = this.getFilesDir().getAbsolutePath();
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         // Hide both the navigation bar and the status bar.
@@ -163,6 +159,7 @@ public class EcgActivity extends Activity {
             @Override
             public void run() {
                 EcgJNI.init(getAssets());
+                EcgJNI.initNDK(debugFilePath);
             }
         });
 
@@ -195,6 +192,12 @@ public class EcgActivity extends Activity {
                 EcgJNI.resume();
             }
         });
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        CopyDebugFiles();
     }
 
     @Override
@@ -294,15 +297,33 @@ public class EcgActivity extends Activity {
         return probeTable;
     }
 
-    private void CreateFileForOutput() {
+    private void CopyDebugFiles() {
         if (isExternalStorageReadable()) {
-            File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
-            outputFile = new File(path, "ecg_data.bin");
+            File outPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+            File outFile = new File(outPath, "after_filters.txt");
+            String inPath = debugFilePath + "/" + "after_filters.txt";
+            File outFile2 = new File(outPath, "before_filters.txt");
+            String inPath2 = debugFilePath + "/" + "before_filters.txt";
             try {
-                outputStream = new FileOutputStream(outputFile);
+                // Copying file after filters
+                FileInputStream inStream = new FileInputStream(inPath);
+                byte[] buffer = new byte[inStream.available()];
+                inStream.read(buffer);
+                FileOutputStream outStream = new FileOutputStream(outFile);
+                outStream.write(buffer);
+                inStream.close();
+                outStream.close();
+                // Copying file before filters
+                FileInputStream inStream2 = new FileInputStream(inPath2);
+                byte[] buffer2 = new byte[inStream2.available()];
+                inStream2.read(buffer2);
+                FileOutputStream outStream2 = new FileOutputStream(outFile2);
+                outStream2.write(buffer2);
+                inStream2.close();
+                outStream2.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                Log.e(TAG, "ERROR: Opening the file to write failed.");
+                Log.e(TAG, "ERROR: Copying debug files failed.");
             }
         }
         else {
@@ -352,7 +373,6 @@ public class EcgActivity extends Activity {
             try {
                 serialPort.open(deviceConnection);
                 serialPort.setParameters(BAUD_RATE, DATA_BITS, GetSelectedStopBits(), GetSelectedParity());
-                CreateFileForOutput();
 
             } catch (IOException e) {
                 Log.e(TAG, "Error setting up device: " + e.getMessage(), e);
@@ -398,26 +418,10 @@ public class EcgActivity extends Activity {
         int length = data.length;
         //Log.i(TAG, "Read " + length + " bytes");
         try {
-            SaveDataToFile(data);
             EcgJNI.processEcgData(data, length);
         } catch (Exception e) {
             e.printStackTrace();
             Log.e(TAG, "ERROR: Reading data failed!");
-        }
-    }
-
-    private void SaveDataToFile(byte[] data) {
-        try {
-            outputStream.write(data);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.e(TAG, "ERROR: Writing data to file failed!");
-            try {
-                outputStream.close();
-            } catch (Exception x) {
-                x.printStackTrace();
-                Log.e(TAG, "ERROR: Closing output stream failed.");
-            }
         }
     }
 

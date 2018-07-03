@@ -20,6 +20,9 @@
  
 #include <jni.h>
 #include <GLES2/gl2.h>
+#include <sys/errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <android/log.h>
 
@@ -41,7 +44,6 @@ class ecg {
 
  public:
     ecg() {}
-
 
     void init(AAssetManager *assetManager) {
         EcgArea::instance().init(assetManager);
@@ -188,5 +190,19 @@ extern "C" {
         (void)env;
         (void)type;
         gEcg.onEcgDisconnected();
+    }
+
+    JNIEXPORT void JNICALL
+    Java_com_mobilecg_androidapp_EcgJNI_initNDK(JNIEnv *env, jclass type, jstring str) {
+        (void)type;
+        EcgArea::instance().internalStoragePath = env->GetStringUTFChars(str, 0);
+        struct stat sb;
+        int32_t res = stat(EcgArea::instance().internalStoragePath, &sb);
+        if (0 == res && sb.st_mode && S_IFDIR){
+            LOGD("'%s' dir already in app's internal data storage.",EcgArea::instance().internalStoragePath);
+        }
+        else if (ENOENT == errno){
+            res = mkdir(EcgArea::instance().internalStoragePath, 0770);
+        }
     }
 }

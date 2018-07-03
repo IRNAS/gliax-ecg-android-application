@@ -26,6 +26,7 @@
 class EcgProcessor {
     private:
         EcgProcessor();
+        ~EcgProcessor();
         static const int MAX_NUM_CHANNELS = 8;
         EcgFilter ecgFilter[MAX_NUM_CHANNELS];
 

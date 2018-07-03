@@ -108,7 +108,6 @@ void EcgArea::constructLayout(){
     const int yStep = activeArea.height()/r;
     const int xStep = curveWidth+padInPixels;
 
-
     const int bottomCurves = r % 3;
     const int topCurves = r - bottomCurves;
 
