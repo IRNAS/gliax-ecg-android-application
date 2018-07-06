@@ -44,6 +44,7 @@ class EcgArea: public DrawableGroup{
         TextDrawer labels[ECG_CURVE_COUNT];
         TextDrawer devLabel;
         TextDrawer disconnectedLabel;
+        TextDrawer outOfRangeLabels[ECG_CURVE_COUNT];
 
         Curve ecgCurves[ECG_CURVE_COUNT];
         //It is somewhat ugly to use endpoint circles separated from their
@@ -62,6 +63,10 @@ class EcgArea: public DrawableGroup{
         float ecgCmPerSec;
 
         Vec2<int> screenSize;
+
+        int availableHeight;
+        int curvePositions[12];
+        int timers[12];
 
         void setContentVisible(bool visible);
 public:

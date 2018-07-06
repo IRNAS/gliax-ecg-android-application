@@ -41,6 +41,7 @@ public:
     void redraw(Image *image);
     int getWidth();
     int getHeight();
+    int getYPosition();
 private:
     std::string vertexShader;
     std::string fragmentShader;

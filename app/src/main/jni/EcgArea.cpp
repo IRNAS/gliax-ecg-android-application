@@ -45,6 +45,14 @@ EcgArea::EcgArea():
         labels[a]
                 .setColor(Image::BLACK)
                 .setTextSizeMM(2.5);
+
+
+    }
+    for (int a=0; a<ECG_CURVE_COUNT; a++) {
+        drawableList.push_back(&outOfRangeLabels[a]);
+        outOfRangeLabels[a]
+                .setColor(Image::BLACK)
+                .setTextSizeMM(3.5);
     }
 
     drawableList.push_back(&devLabel);
@@ -83,7 +91,9 @@ void EcgArea::rescale(){
     for (int a=0; a<ECG_CURVE_COUNT; a++) {
         ecgCurves[a].setScale(xScale, yScale);
         labels[a].drawText(labelText[a]);
+        outOfRangeLabels[a].drawText("OUT OF RANGE");
     }
+    availableHeight = labels[1].getYPosition() - labels[0].getYPosition();
 
     disconnectedLabel.drawText("DISCONNECTED");
     devLabel.drawText("DEVELOPMENT VERSION " GIT_HASH " - " __DATE__ );
@@ -126,7 +136,12 @@ void EcgArea::constructLayout(){
 
         ecgCurves[a].setPosition(xCoord, yCoord);
         labels[a].setPosition(xCoord, yCoord - 0.8*pixelDensity.y);
+        outOfRangeLabels[a].setPosition(xCoord + 20, yCoord - 0.4*pixelDensity.y);
+        curvePositions[a] = yCoord;
+        timers[a] = 0;
     }
+    availableHeight = labels[1].getYPosition() - labels[0].getYPosition();
+    //LOGI("Available height: %d\n", availableHeight);
 
     devLabel.setPosition(
             pixelDensity.x*0.0,
@@ -178,6 +193,31 @@ void EcgArea::draw(){
     if (lastSampleFrequency!=EcgProcessor::instance().getSamplingFrequency()){
         rescale();
     }
+
+    for (int i=0; i<12; i++) {
+        int circlePosition = endpointCircles[i].getYPosition();
+        int min = curvePositions[i] - (availableHeight / 2);
+        int max = curvePositions[i] + (availableHeight / 2);
+        timers[i]++;
+
+        //LOGI("Drawing Curves - Circle: %d, Curve: %d, Min: %d, Max %d\n", circlePosition, curvePositions[i], min, max);
+        if (circlePosition < min || circlePosition > max) {
+            timers[i] = 0;
+            if (ecgCurves[i].getVisible()) {
+                endpointCircles[i].setVisible(false);
+                ecgCurves[i].setVisible(false);
+                outOfRangeLabels[i].setVisible(true);
+            }
+        }
+        else {
+            if (!ecgCurves[i].getVisible() && timers[i] > 50) {
+                endpointCircles[i].setVisible(true);
+                ecgCurves[i].setVisible(true);
+                outOfRangeLabels[i].setVisible(false);
+            }
+        }
+    }
+
     DrawableGroup::draw();
     redrawNeeded=false;
 }
@@ -195,6 +235,7 @@ void EcgArea::setContentVisible(bool visible){
         endpointCircles[a].setVisible(visible);
         ecgCurves[a].setVisible(visible);
         labels[a].setVisible(visible);
+        outOfRangeLabels[a].setVisible(false);
     }
 }
 

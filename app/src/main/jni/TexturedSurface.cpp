@@ -121,3 +121,5 @@ void TexturedSurface::redraw(Image *pimage){
 int TexturedSurface::getHeight() { return height; }
 
 int TexturedSurface::getWidth() { return width; }
+
+int TexturedSurface::getYPosition() { return position[1]; }

@@ -85,9 +85,8 @@ public class EcgActivity extends Activity {
     private static final String ACTION_USB_PERMISSION = "com.mobileecg.androidapp.USB_PERMISSION";
     private final String TAG = EcgActivity.class.getSimpleName();
     private IntentFilter intentFilter = null;
-    private File outputFile = null;
-    private FileOutputStream outputStream = null;
     private String debugFilePath = null;
+    private boolean debugFileWrite = true;
 
     // initial values for usb communication parameters
     private int BAUD_RATE = 115200;
@@ -98,7 +97,9 @@ public class EcgActivity extends Activity {
     @Override
     protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
-        debugFilePath = this.getFilesDir().getAbsolutePath();
+        if (debugFileWrite == true) {
+            debugFilePath = this.getFilesDir().getAbsolutePath();
+        }
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         // Hide both the navigation bar and the status bar.
@@ -197,7 +198,9 @@ public class EcgActivity extends Activity {
     @Override
     protected void onStop() {
         super.onStop();
-        CopyDebugFiles();
+        if (debugFileWrite == true) {
+            CopyDebugFiles();
+        }
     }
 
     @Override

@@ -37,6 +37,7 @@ public:
     virtual void contextResized(int w, int h);
 
     void setPosition(const Vec2<int> &position);
+    int getYPosition();
     void setSize(float d);
 
     void setColor(float r, float g, float b);

@@ -32,14 +32,17 @@
 #include "../res/Common/DataFormat/DifferenceEcgCompressor.cpp"
 
 //#define DEBUG
+#define DEBUGFILE
 
 const int DECOMPRESS_BUFFER_STRIDE = ECG_MAX_SEND_SIZE/3+1;
 static GLfloat decompressBuffer[12][DECOMPRESS_BUFFER_STRIDE];
 static GLfloat unFilteredBuffer[12][DECOMPRESS_BUFFER_STRIDE];
 
-FILE *af;
-FILE *bf;
 char filePath[64];
+#ifdef DEBUGFILE
+    FILE *af;
+    FILE *bf;
+#endif
 
 char *getCurrentTime() {
     timeval curTime;
@@ -55,26 +58,30 @@ char *getCurrentTime() {
 EcgProcessor::EcgProcessor(){
     samplingFrequency=500.0;
 
-    strcpy(filePath, EcgArea::instance().internalStoragePath);
-    strcat(filePath, "/after_filters.txt");
-    LOGI("path: %s", filePath);
-    if ((af = fopen(filePath, "w+")) == NULL) {
-        LOGE("After filters: Error writing to file!");
-    }
-    fprintf(af, "timestamp,I,II,V1,V2,V3,V4,V5,V6\n");
-    filePath[0] = 0;
-    strcpy(filePath, EcgArea::instance().internalStoragePath);
-    strcat(filePath, "/before_filters.txt");
-    LOGI("path: %s", filePath);
-    if ((bf = fopen(filePath, "w+")) == NULL) {
-        LOGE("Before filters: Error writing to file!");
-    }
-    fprintf(bf, "timestamp,I,II,V1,V2,V3,V4,V5,V6\n");
+    #ifdef DEBUGFILE
+        strcpy(filePath, EcgArea::instance().internalStoragePath);
+        strcat(filePath, "/after_filters.txt");
+        LOGI("path: %s", filePath);
+        if ((af = fopen(filePath, "w+")) == NULL) {
+            LOGE("After filters: Error writing to file!");
+        }
+        fprintf(af, "timestamp,I,II,V1,V2,V3,V4,V5,V6\n");
+        filePath[0] = 0;
+        strcpy(filePath, EcgArea::instance().internalStoragePath);
+        strcat(filePath, "/before_filters.txt");
+        LOGI("path: %s", filePath);
+        if ((bf = fopen(filePath, "w+")) == NULL) {
+            LOGE("Before filters: Error writing to file!");
+        }
+        fprintf(bf, "timestamp,I,II,V1,V2,V3,V4,V5,V6\n");
+    #endif
 }
 
 EcgProcessor::~EcgProcessor() {
-    fclose(af);
-    fclose(bf);
+    #ifdef DEBUGFILE
+        fclose(af);
+        fclose(bf);
+    #endif
 }
 
 EcgProcessor &EcgProcessor::instance(){
@@ -136,17 +143,19 @@ void EcgProcessor::receivePacket(char *data, int len){
     }
 
     for(int a = 0; a < filteredSampleNum[0]; a++) {
-        float *input = &unFilteredBuffer[0][a];
-        int stride = DECOMPRESS_BUFFER_STRIDE;
-        float I = input[1*stride];
-        float II = input[2*stride];
-        float V1 = input[7*stride];
-        float V2 = input[3*stride];
-        float V3 = input[4*stride];
-        float V4 = input[5*stride];
-        float V5 = input[6*stride];
-        float V6 = input[0*stride];
-        fprintf(bf, "%s,%f,%f,%f,%f,%f,%f,%f,%f\n", getCurrentTime(), I, II, V1, V2, V3, V4, V5, V6);
+        #ifdef DEBUGFILE
+            float *input = &unFilteredBuffer[0][a];
+            int stride = DECOMPRESS_BUFFER_STRIDE;
+            float I = input[1*stride];
+            float II = input[2*stride];
+            float V1 = input[7*stride];
+            float V2 = input[3*stride];
+            float V3 = input[4*stride];
+            float V4 = input[5*stride];
+            float V5 = input[6*stride];
+            float V6 = input[0*stride];
+            fprintf(bf, "%s,%f,%f,%f,%f,%f,%f,%f,%f\n", getCurrentTime(), I, II, V1, V2, V3, V4, V5, V6);
+        #endif
 
         EcgProcessor::calculate12Channels(&decompressBuffer[0][a], &decompressBuffer[0][a], DECOMPRESS_BUFFER_STRIDE);
     }
@@ -172,7 +181,9 @@ void EcgProcessor::calculate12Channels(float *input, float *output, int stride) 
     float aVL = (I-III)/3;
     float aVF = (II+III)/3;
 
-    fprintf(af, "%s,%f,%f,%f,%f,%f,%f,%f,%f\n", getCurrentTime(), I, II, V1, V2, V3, V4, V5, V6);
+    #ifdef DEBUGFILE
+        fprintf(af, "%s,%f,%f,%f,%f,%f,%f,%f,%f\n", getCurrentTime(), I, II, V1, V2, V3, V4, V5, V6);
+    #endif
 
     output[0*stride] = I;
     output[1*stride] = II;
