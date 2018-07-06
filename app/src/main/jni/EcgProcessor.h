@@ -40,6 +40,7 @@ class EcgProcessor {
         static void calculate12Channels(float* input, float* output, int stride = 1);
 
         void receivePacket(char *data, int len);
+        void writeDebugDataToFile(float *inputBefore, float *inputAfter);
 };
 
 

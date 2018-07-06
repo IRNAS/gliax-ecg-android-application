@@ -49,9 +49,9 @@ char *getCurrentTime() {
     gettimeofday(&curTime, NULL);
     int milli = curTime.tv_usec / 1000;
     char timeBuffer [80];
-    strftime(timeBuffer, 80, "%H:%M:%S", localtime(&curTime.tv_sec));
+    strftime(timeBuffer, 80, "%H%M%S", localtime(&curTime.tv_sec));
     static char currentTime[84] = "";
-    sprintf(currentTime, "%s.%d", timeBuffer, milli);
+    sprintf(currentTime, "%s%d", timeBuffer, milli);
     return currentTime;
 }
 
@@ -144,17 +144,7 @@ void EcgProcessor::receivePacket(char *data, int len){
 
     for(int a = 0; a < filteredSampleNum[0]; a++) {
         #ifdef DEBUGFILE
-            float *input = &unFilteredBuffer[0][a];
-            int stride = DECOMPRESS_BUFFER_STRIDE;
-            float I = input[1*stride];
-            float II = input[2*stride];
-            float V1 = input[7*stride];
-            float V2 = input[3*stride];
-            float V3 = input[4*stride];
-            float V4 = input[5*stride];
-            float V5 = input[6*stride];
-            float V6 = input[0*stride];
-            fprintf(bf, "%s,%f,%f,%f,%f,%f,%f,%f,%f\n", getCurrentTime(), I, II, V1, V2, V3, V4, V5, V6);
+            EcgProcessor::writeDebugDataToFile(&unFilteredBuffer[0][a], &decompressBuffer[0][a]);
         #endif
 
         EcgProcessor::calculate12Channels(&decompressBuffer[0][a], &decompressBuffer[0][a], DECOMPRESS_BUFFER_STRIDE);
@@ -181,10 +171,6 @@ void EcgProcessor::calculate12Channels(float *input, float *output, int stride) 
     float aVL = (I-III)/3;
     float aVF = (II+III)/3;
 
-    #ifdef DEBUGFILE
-        fprintf(af, "%s,%f,%f,%f,%f,%f,%f,%f,%f\n", getCurrentTime(), I, II, V1, V2, V3, V4, V5, V6);
-    #endif
-
     output[0*stride] = I;
     output[1*stride] = II;
     output[2*stride] = III;
@@ -197,4 +183,28 @@ void EcgProcessor::calculate12Channels(float *input, float *output, int stride) 
     output[9*stride] = V4;
     output[10*stride] = V5;
     output[11*stride] = V6;
+}
+
+void EcgProcessor::writeDebugDataToFile(float *inputBefore, float *inputAfter) {
+    int stride = DECOMPRESS_BUFFER_STRIDE;
+    float I = inputBefore[1*stride];
+    float II = inputBefore[2*stride];
+    float V1 = inputBefore[7*stride];
+    float V2 = inputBefore[3*stride];
+    float V3 = inputBefore[4*stride];
+    float V4 = inputBefore[5*stride];
+    float V5 = inputBefore[6*stride];
+    float V6 = inputBefore[0*stride];
+
+    float Ia = inputAfter[1*stride];
+    float IIa = inputAfter[2*stride];
+    float V1a = inputAfter[7*stride];
+    float V2a = inputAfter[3*stride];
+    float V3a = inputAfter[4*stride];
+    float V4a = inputAfter[5*stride];
+    float V5a = inputAfter[6*stride];
+    float V6a = inputAfter[0*stride];
+
+    fprintf(bf, "%s,%f,%f,%f,%f,%f,%f,%f,%f\n", getCurrentTime(), I, II, V1, V2, V3, V4, V5, V6);
+    fprintf(af, "%s,%f,%f,%f,%f,%f,%f,%f,%f\n", getCurrentTime(), Ia, IIa, V1a, V2a, V3a, V4a, V5a, V6a);
 }
