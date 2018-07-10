@@ -32,7 +32,7 @@
 #include "../res/Common/DataFormat/DifferenceEcgCompressor.cpp"
 
 //#define DEBUG
-#define DEBUGFILE
+//#define DEBUGFILE // uncomment this to write signal data to files
 
 const int DECOMPRESS_BUFFER_STRIDE = ECG_MAX_SEND_SIZE/3+1;
 static GLfloat decompressBuffer[12][DECOMPRESS_BUFFER_STRIDE];
@@ -134,7 +134,6 @@ void EcgProcessor::receivePacket(char *data, int len){
             if(c <= MAX_NUM_CHANNELS) {
                 ecgFilter[c].putSample(decompressBuffer[c][a]);
                 if(ecgFilter[c].isOutputAvailable()) {
-                    int index = filteredSampleNum[c];
                     filteredSampleNum[c]++;
                     decompressBuffer[c][a] = ecgFilter[c].getSample();
                 }
@@ -186,6 +185,7 @@ void EcgProcessor::calculate12Channels(float *input, float *output, int stride) 
 }
 
 void EcgProcessor::writeDebugDataToFile(float *inputBefore, float *inputAfter) {
+    #ifdef DEBUGFILE
     int stride = DECOMPRESS_BUFFER_STRIDE;
     float I = inputBefore[1*stride];
     float II = inputBefore[2*stride];
@@ -207,4 +207,5 @@ void EcgProcessor::writeDebugDataToFile(float *inputBefore, float *inputAfter) {
 
     fprintf(bf, "%s,%f,%f,%f,%f,%f,%f,%f,%f\n", getCurrentTime(), I, II, V1, V2, V3, V4, V5, V6);
     fprintf(af, "%s,%f,%f,%f,%f,%f,%f,%f,%f\n", getCurrentTime(), Ia, IIa, V1a, V2a, V3a, V4a, V5a, V6a);
+    #endif
 }

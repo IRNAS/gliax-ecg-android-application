@@ -72,6 +72,8 @@ import java.util.concurrent.Executors;
 
 public class EcgActivity extends Activity {
 
+    private boolean debugFileWrite = false; // set this to true to write signal data to files (do it also in EcgProcessor.cpp file)
+
     private GLSurfaceView mView;
     private DisplayMetrics displayMetrics;
 
@@ -85,8 +87,7 @@ public class EcgActivity extends Activity {
     private static final String ACTION_USB_PERMISSION = "com.mobileecg.androidapp.USB_PERMISSION";
     private final String TAG = EcgActivity.class.getSimpleName();
     private IntentFilter intentFilter = null;
-    private String debugFilePath = null;
-    private boolean debugFileWrite = true;
+    private String debugFilePath = "";
 
     // initial values for usb communication parameters
     private int BAUD_RATE = 115200;

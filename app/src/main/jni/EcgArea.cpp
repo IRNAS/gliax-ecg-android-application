@@ -196,8 +196,9 @@ void EcgArea::draw(){
 
     for (int i=0; i<12; i++) {
         int circlePosition = endpointCircles[i].getYPosition();
-        int min = curvePositions[i] - (availableHeight / 2);
-        int max = curvePositions[i] + (availableHeight / 2);
+        int offset = 10;
+        int min = curvePositions[i] - (availableHeight / 2) - offset;
+        int max = curvePositions[i] + (availableHeight / 2) + offset;
         timers[i]++;
 
         //LOGI("Drawing Curves - Circle: %d, Curve: %d, Min: %d, Max %d\n", circlePosition, curvePositions[i], min, max);
