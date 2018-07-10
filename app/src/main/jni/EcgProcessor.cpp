@@ -32,7 +32,7 @@
 #include "../res/Common/DataFormat/DifferenceEcgCompressor.cpp"
 
 //#define DEBUG
-//#define DEBUGFILE // uncomment this to write signal data to files
+#define DEBUGFILE // uncomment this to write signal data to files
 
 const int DECOMPRESS_BUFFER_STRIDE = ECG_MAX_SEND_SIZE/3+1;
 static GLfloat decompressBuffer[12][DECOMPRESS_BUFFER_STRIDE];

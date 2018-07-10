@@ -66,13 +66,13 @@ import java.util.concurrent.Executors;
 
 /**
  * Reading data from ECG board over USB
- * Original code made for bluetooth connection, modified for usb by Vid Rajtmajer
+ * Original code made for bluetooth connection, modified for usb by vid553
  * Using modified version of usb-serial-for-android library by mik3y (https://github.com/mik3y/usb-serial-for-android)
  */
 
 public class EcgActivity extends Activity {
 
-    private boolean debugFileWrite = false; // set this to true to write signal data to files (do it also in EcgProcessor.cpp file)
+    private boolean debugFileWrite = true; // set this to true to write signal data to files (do it also in EcgProcessor.cpp file)
 
     private GLSurfaceView mView;
     private DisplayMetrics displayMetrics;
