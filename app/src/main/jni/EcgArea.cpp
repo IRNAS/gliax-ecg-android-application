@@ -97,7 +97,6 @@ void EcgArea::rescale(){
 
     disconnectedLabel.drawText("DISCONNECTED");
     devLabel.drawText("DEVELOPMENT VERSION " GIT_HASH " - " __DATE__ );
-
 }
 
 void EcgArea::constructLayout(){
@@ -196,7 +195,7 @@ void EcgArea::draw(){
 
     for (int i=0; i<12; i++) {
         int circlePosition = endpointCircles[i].getYPosition();
-        int offset = 10;
+        int offset = 100;    // how much can the signal be outside available space
         int min = curvePositions[i] - (availableHeight / 2) - offset;
         int max = curvePositions[i] + (availableHeight / 2) + offset;
         timers[i]++;

@@ -5,19 +5,37 @@
 #include "IIRFilterChain.hpp"
 #include "BidirectionalFilter.hpp"
 
-class NotchFilter: public SecondOrderIIR {
+const int MAINS_FREQUENCY = 60;  // 50 Hz or 60 Hz
+
+class NotchFilter50: public SecondOrderIIR {
 public:
-	NotchFilter(): SecondOrderIIR(
-		0.996786427732597,  -1.594981398988209,  0.996786427732597,
-		1.000000000000000,  -1.594981398988209,  0.993572855465195
+	NotchFilter50(): SecondOrderIIR(
+		0.97898869, -1.56606715, 0.97898869,
+		1.00000000, -1.56606715, 0.95797738
 	) {}
+};
+
+class NotchFilter60: public SecondOrderIIR {
+public:
+    NotchFilter60(): SecondOrderIIR(
+        0.97489028, -1.39633962, 0.97489028,
+        1.00000000, -1.39633962, 0.94978057
+    ) {}
 };
 
 class BaselineFilter: public SecondOrderIIR {
 public:
 	BaselineFilter(): SecondOrderIIR(
-		0.987278499076673, -1.974553728592410,  0.9872784990766,
-		1.000000000000000, -1.974391885326068,  0.9747188414196
+		0.99361509, -1.98722936, 0.99361509,
+		1.00000000, -1.98718860, 0.98727096
+	) {}
+};
+
+class LowPassFilter: public SecondOrderIIR {
+public:
+	LowPassFilter(): SecondOrderIIR(
+		0.13629773, 0.27259545, 0.13629773,
+		1.00000000, -0.71939982, 0.26459073
 	) {}
 };
 
@@ -25,11 +43,19 @@ class HalfEcgFilter: public IIRFilterChain {
 public:
 	HalfEcgFilter(): IIRFilterChain() {
 		add(&baselineFilter);
-		add(&notchFilter);
+        if (MAINS_FREQUENCY == 50) {    // 50 Hz
+            add(&notchFilter50);
+        }
+        else if (MAINS_FREQUENCY == 60) {  // 60 Hz
+            add(&notchFilter60);
+        }
+		add(&lowPassFilter);
 	}
 private:
 	BaselineFilter baselineFilter;
-	NotchFilter notchFilter;
+	NotchFilter50 notchFilter50;
+    NotchFilter60 notchFilter60;
+	LowPassFilter lowPassFilter;
 };
 
 class EcgFilter: public BidirectionalFilter<1200, 240> {
