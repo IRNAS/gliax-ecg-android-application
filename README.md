@@ -1,7 +1,7 @@
 # gliax-ecg-android-application
-Gliax ECG Android application repository
+Gliax ECG project
 
-Android App for ECG project by IRNAS
+www.irnas.eu
 
 Reading data from STM32 MCU over USB
 
