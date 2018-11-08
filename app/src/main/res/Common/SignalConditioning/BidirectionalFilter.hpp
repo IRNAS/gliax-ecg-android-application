@@ -10,8 +10,7 @@ public:
 	BidirectionalFilter(IFilter *forward, IFilter *backward):
 		forward(forward),
 		backward(backward)
-	{
-	}
+	{}
 
 	void putSample(FilterNumberType sample) {
 			sample = forward->filter(sample);

@@ -92,8 +92,8 @@ public class EcgActivity extends Activity {
     // initial values for usb communication parameters
     private int BAUD_RATE = 115200;
     private int DATA_BITS = 8;
-    private int SELECTED_STOP_BITS = 0; // stop bits is 1
-    private int SELECTED_PARITY = 0;    // parity is none
+    private int STOP_BITS = UsbSerialPort.STOPBITS_1;
+    private int PARITY = UsbSerialPort.PARITY_NONE;
 
     @Override
     protected void onCreate(Bundle icicle) {
@@ -157,10 +157,12 @@ public class EcgActivity extends Activity {
                 EcgJNI.drawFrame();
             }
         });
+
         mView.queueEvent(new Runnable() {
             @Override
             public void run() {
-                EcgJNI.init(getAssets());
+                EcgJNI.init(getAssets(), MainScreen.GetSelectedMainsFreq());
+                Log.d(TAG, "run event - onCreate");
                 EcgJNI.initNDK(debugFilePath);
             }
         });
@@ -194,6 +196,7 @@ public class EcgActivity extends Activity {
                 EcgJNI.resume();
             }
         });
+        Log.d(TAG, "run event - onResume");
     }
 
     @Override
@@ -213,83 +216,19 @@ public class EcgActivity extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.reconnect:
-                FindUsbDevice();
+            case R.id.menu_btn1:    // Pause measurement - freeze
+
                 return true;
-            case R.id.scan: // scan renamed into settings
-                EditUsbSettings();
+            case R.id.menu_btn2:    // Stop measurement - exit
+                finish();
+                super.onStop();
+                return true;
+            case R.id.menu_btn3:    // Save to pdf
+
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
-    }
-
-    public void EditUsbSettings() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(EcgActivity.this);
-        View view = getLayoutInflater().inflate(R.layout.settings_usb, null);
-        final EditText baudRate = (EditText) view.findViewById(R.id.baudRate);
-        final EditText dataBits = (EditText) view.findViewById(R.id.dataBits);
-
-        final Spinner stopBitsSpinner = (Spinner) view.findViewById(R.id.spinnerStopBits);
-        final ArrayAdapter<CharSequence> stopBitsAdapter = ArrayAdapter.createFromResource(view.getContext(), R.array.stop_bits, android.R.layout.simple_spinner_item);
-        stopBitsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        stopBitsSpinner.setAdapter(stopBitsAdapter);
-        final Spinner paritySpinner = (Spinner) view.findViewById(R.id.spinnerParity);
-        final ArrayAdapter<CharSequence> parityAdapter = ArrayAdapter.createFromResource(view.getContext(), R.array.parity, android.R.layout.simple_spinner_item);
-        parityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        paritySpinner.setAdapter(parityAdapter);
-
-        baudRate.setText(String.valueOf(BAUD_RATE));
-        dataBits.setText(String.valueOf(DATA_BITS));
-        stopBitsSpinner.setSelection(SELECTED_STOP_BITS);
-        paritySpinner.setSelection(SELECTED_PARITY);
-
-        builder.setView(view);
-        final AlertDialog alertDialog = builder.create();
-
-        Button btnOK = (Button) view.findViewById(R.id.btnOK);
-        btnOK.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (!baudRate.getText().toString().isEmpty()) {
-                    int newBaudRate = Integer.parseInt(baudRate.getText().toString());
-                    BAUD_RATE = newBaudRate;
-                }
-                if (!dataBits.getText().toString().isEmpty()) {
-                    int newDataBits = Integer.parseInt(dataBits.getText().toString());
-                    DATA_BITS = newDataBits;
-                }
-                SELECTED_STOP_BITS = stopBitsSpinner.getSelectedItemPosition();
-                SELECTED_PARITY = paritySpinner.getSelectedItemPosition();
-                alertDialog.dismiss();
-                FindUsbDevice();
-            }
-        });
-        alertDialog.show();
-    }
-
-    private int GetSelectedStopBits() {
-        int selected;
-        switch(SELECTED_STOP_BITS) {
-            case 0: selected = UsbSerialPort.STOPBITS_1; break;
-            case 1: selected = UsbSerialPort.STOPBITS_1_5; break;
-            case 2: selected = UsbSerialPort.STOPBITS_2; break;
-            default: selected = -1;
-        }
-        return selected;
-    }
-
-    private int GetSelectedParity() {
-        int selected;
-        switch(SELECTED_PARITY) {
-            case 0: selected = UsbSerialPort.PARITY_NONE; break;
-            case 1: selected = UsbSerialPort.PARITY_ODD; break;
-            case 2: selected = UsbSerialPort.PARITY_EVEN; break;
-            case 3: selected = UsbSerialPort.PARITY_MARK; break;
-            case 4: selected = UsbSerialPort.PARITY_SPACE; break;
-            default: selected = -1;
-        }
-        return selected;
     }
 
     private ProbeTable CreateDevicesTable() {
@@ -376,7 +315,7 @@ public class EcgActivity extends Activity {
         if (serialPort != null) {
             try {
                 serialPort.open(deviceConnection);
-                serialPort.setParameters(BAUD_RATE, DATA_BITS, GetSelectedStopBits(), GetSelectedParity());
+                serialPort.setParameters(BAUD_RATE, DATA_BITS, STOP_BITS, PARITY);
 
             } catch (IOException e) {
                 Log.e(TAG, "Error setting up device: " + e.getMessage(), e);

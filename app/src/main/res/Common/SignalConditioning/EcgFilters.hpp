@@ -5,7 +5,9 @@
 #include "IIRFilterChain.hpp"
 #include "BidirectionalFilter.hpp"
 
-const int MAINS_FREQUENCY = 60;  // 50 Hz or 60 Hz
+#include "../../../jni/log.h"
+
+extern int mains_frequency;
 
 class NotchFilter50: public SecondOrderIIR {
 public:
@@ -43,11 +45,16 @@ class HalfEcgFilter: public IIRFilterChain {
 public:
 	HalfEcgFilter(): IIRFilterChain() {
 		add(&baselineFilter);
-        if (MAINS_FREQUENCY == 50) {    // 50 Hz
+        if (mains_frequency == 50) {    // 50 Hz
             add(&notchFilter50);
+            LOGD("Mains freq: 50");
         }
-        else if (MAINS_FREQUENCY == 60) {  // 60 Hz
+        else if (mains_frequency == 60) {  // 60 Hz
             add(&notchFilter60);
+            LOGD("Mains freq: 60");
+        }
+        else {
+            LOGD("Error with mains freq");
         }
 		add(&lowPassFilter);
 	}

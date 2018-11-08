@@ -30,7 +30,7 @@ public class EcgJNI {
          System.loadLibrary("ecg");
      }
 
-     public static native void init(AssetManager assetManager);
+     public static native void init(AssetManager assetManager, int mains_freq);
      public static native void surfaceCreated();
      public static native void surfaceChanged(int width, int height);
      public static native void setDotPerCM(float xdpcm, float ydpcm);
@@ -41,4 +41,5 @@ public class EcgJNI {
      public static native void onDeviceConnected();
      public static native void onDeviceDisconnected();
      public static native void initNDK(String msg);
+     public static native void onSettingsChanged(int x_speed);
 }

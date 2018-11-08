@@ -24,27 +24,26 @@
 <resources>
     <!-- Simple strings. -->
     <string name="app_name">MobilECG</string>
-    <string name="rescan_button_text">Rescan</string>
-    <string name="title_activity_bluetooth_device_list">Scanning...</string>
-    <string name="menu_button_1">Reconnect</string>
-    <string name="menu_button_2">Settings</string>
-    <string name="title_settings_usb">USB settings</string>
+    <string name="layout_main">main_layout</string>
+    <string name="menu_button_1">Freeze</string>
+    <string name="menu_button_2">Stop</string>
+    <string name="menu_button_3">Save to pdf</string>
+    <string name="title_settings">ECG Settings</string>
     <string name="settings_button">OK</string>
-    <string name="baud_rate_text">Baud Rate</string>
-    <string name="data_bits_text">Data Bits</string>
-    <string name="stop_bits_text">Stop Bits</string>
-    <string name="parity_text">Parity</string>
-    <string-array name="stop_bits">
-        <item>1</item>
-        <item>1.5</item>
-        <item>2</item>
+    <string name="mains_text">Mains frequency</string>
+    <string name="x_speed_text">Speed selection</string>
+    <string name="in_patient_data">Input patient data</string>
+    <string name="main_btn_1">Start measurement</string>
+    <string name="main_btn_2">Settings</string>
+    <string name="main_btn_3">View old data</string>
+    <string name="main_btn_4">Exit</string>
+    <string-array name="mains">
+        <item>50</item>
+        <item>60</item>
     </string-array>
-    <string-array name="parity">
-        <item>None</item>
-        <item>Odd</item>
-        <item>Even</item>
-        <item>Mark</item>
-        <item>Space</item>
+    <string-array name="x_speed">
+        <item>25 mm/s</item>
+        <item>50 mm/s</item>
     </string-array>
 </resources>
 

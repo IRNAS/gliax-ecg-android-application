@@ -84,7 +84,7 @@ public:
         void setPixelDensity(const Vec2<float> &pixelDensity);
 
         void putData(GLfloat *data, int nChannels, int nPoints, int stride);
-        virtual void init(AAssetManager *assetManager);
+        virtual void init(AAssetManager *assetManager, int mains_freq);
 
         void deviceConnected();
         void deviceDisconnected();

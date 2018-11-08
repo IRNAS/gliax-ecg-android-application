@@ -43,10 +43,11 @@ JavaVM* cachedJVM = 0;
 class ecg {
 
  public:
+
     ecg() {}
 
-    void init(AAssetManager *assetManager) {
-        EcgArea::instance().init(assetManager);
+    void init(AAssetManager *assetManager, int freq) {
+        EcgArea::instance().init(assetManager, freq);
     }
 
     void surfaceCreated() {
@@ -87,7 +88,7 @@ class ecg {
         EcgArea::instance().draw();
     }
 
-    void pause() {
+    void pause() {  // TODO to implement
 
     }
 
@@ -108,10 +109,11 @@ ecg gEcg;
 
 extern "C" {
     JNIEXPORT void JNICALL
-    Java_com_mobilecg_androidapp_EcgJNI_init(JNIEnv *env, jclass type, jobject assetManager) {
+    Java_com_mobilecg_androidapp_EcgJNI_init(JNIEnv *env, jclass type, jobject assetManager, jint mains_freq) {
         (void)type;
         AAssetManager *nativeAssetManager = AAssetManager_fromJava(env, assetManager);
-        gEcg.init(nativeAssetManager);
+        gEcg.init(nativeAssetManager, mains_freq);
+        LOGD("ecgJNI init call");
     }
 
     JNIEXPORT void JNICALL
@@ -204,5 +206,12 @@ extern "C" {
         else if (ENOENT == errno){
             res = mkdir(EcgArea::instance().internalStoragePath, 0770);
         }
+    }
+
+    JNIEXPORT void JNICALL
+    Java_com_mobilecg_androidapp_EcgJNI_onSettingsChanged(JNIEnv *env, jclass type, jint x_spd) {
+        (void)env;
+        (void)type;
+         //= x_spd;
     }
 }

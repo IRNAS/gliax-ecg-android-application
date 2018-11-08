@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/reconnect"
-        android:title="@string/menu_button_1" />
+        android:id="@+id/menu_btn1"
+        android:title="@string/menu_button_1"/>
     <item
-        android:id="@+id/scan"
-        android:title="@string/menu_button_2" />
+        android:id="@+id/menu_btn2"
+        android:title="@string/menu_button_2"/>
+    <item
+        android:id="@+id/menu_btn3"
+        android:title="@string/menu_button_3"/>
 </menu>
