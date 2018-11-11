@@ -25,7 +25,8 @@
     <!-- Simple strings. -->
     <string name="app_name">MobilECG</string>
     <string name="layout_main">main_layout</string>
-    <string name="menu_button_1">Freeze</string>
+    <string name="menu_button_1">Resume</string>
+    <string name="menu_button_1_alt">Pause</string>
     <string name="menu_button_2">Stop</string>
     <string name="menu_button_3">Save to pdf</string>
     <string name="title_settings">ECG Settings</string>

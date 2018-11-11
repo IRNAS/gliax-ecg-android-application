@@ -88,7 +88,7 @@ class ecg {
         EcgArea::instance().draw();
     }
 
-    void pause() {  // TODO to implement
+    void pause() {  // TODO handle this
 
     }
 

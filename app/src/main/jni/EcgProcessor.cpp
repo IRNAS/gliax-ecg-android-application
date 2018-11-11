@@ -55,8 +55,11 @@ char *getCurrentTime() {
     return currentTime;
 }
 
+int pulseCurrentBPM;
+
 EcgProcessor::EcgProcessor(){
     samplingFrequency=500.0;
+    pulseCurrentBPM = 0;
 
     #ifdef DEBUGFILE
         strcpy(filePath, EcgArea::instance().internalStoragePath);
@@ -208,4 +211,8 @@ void EcgProcessor::writeDebugDataToFile(float *inputBefore, float *inputAfter) {
     fprintf(bf, "%s,%f,%f,%f,%f,%f,%f,%f,%f\n", getCurrentTime(), I, II, V1, V2, V3, V4, V5, V6);
     fprintf(af, "%s,%f,%f,%f,%f,%f,%f,%f,%f\n", getCurrentTime(), Ia, IIa, V1a, V2a, V3a, V4a, V5a, V6a);
     #endif
+}
+
+void EcgProcessor::calculateBPM(float value) {
+    pulseCurrentBPM++;
 }

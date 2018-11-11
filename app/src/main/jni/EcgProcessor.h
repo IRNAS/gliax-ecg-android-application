@@ -41,6 +41,7 @@ class EcgProcessor {
 
         void receivePacket(char *data, int len);
         void writeDebugDataToFile(float *inputBefore, float *inputAfter);
+        void calculateBPM(float value);
 };
 
 

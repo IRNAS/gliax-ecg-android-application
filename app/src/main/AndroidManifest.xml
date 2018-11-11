@@ -36,6 +36,7 @@
         <activity
             android:name="com.mobilecg.androidapp.EcgActivity"
             android:configChanges="orientation|keyboardHidden"
+            android:screenOrientation="sensorPortrait"
             android:launchMode="singleTask"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
             <intent-filter>
@@ -45,7 +46,8 @@
                 android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
                 android:resource="@xml/device_filter" />
         </activity>
-        <activity android:name="com.mobilecg.androidapp.MainScreen">
+        <activity android:name="com.mobilecg.androidapp.MainScreen"
+                  android:screenOrientation="sensorPortrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

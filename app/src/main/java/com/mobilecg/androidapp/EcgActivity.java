@@ -33,6 +33,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.SystemClock;
 import android.util.DisplayMetrics;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -64,6 +65,8 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static android.R.attr.id;
+
 /**
  * Reading data from ECG board over USB
  * Original code made for bluetooth connection, modified for usb by vid553
@@ -83,6 +86,7 @@ public class EcgActivity extends Activity {
     private UsbSerialDriver usbDriver = null;
     private UsbSerialPort serialPort = null;
     private ProbeTable customTable = null;
+    private boolean render_paused = false;
 
     private static final String ACTION_USB_PERMISSION = "com.mobileecg.androidapp.USB_PERMISSION";
     private final String TAG = EcgActivity.class.getSimpleName();
@@ -213,18 +217,48 @@ public class EcgActivity extends Activity {
         getMenuInflater().inflate(R.menu.main_menu, menu);//Menu Resource, Menu
         return true;
     }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if (render_paused) {
+            menu.findItem(R.id.menu_btn1).setTitle(R.string.menu_button_1);
+        }
+        else {
+            menu.findItem(R.id.menu_btn1).setTitle(R.string.menu_button_1_alt);
+        }
+        return true;
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.menu_btn1:    // Pause measurement - freeze
-
+            case R.id.menu_btn1:    // Pause or resume measurement - freeze
+                if (render_paused) {
+                    mView.onResume();
+                    mView.queueEvent(new Runnable() {
+                        @Override
+                        public void run() {
+                            EcgJNI.resume();
+                        }
+                    });
+                    render_paused = false;
+                }
+                else {
+                    mView.onPause();
+                    mView.queueEvent(new Runnable() {
+                        @Override
+                        public void run() {
+                            EcgJNI.pause();
+                        }
+                    });
+                    render_paused = true;
+                }
                 return true;
             case R.id.menu_btn2:    // Stop measurement - exit
+                // TODO Save to pdf
                 finish();
+                System.exit(0);
                 super.onStop();
-                return true;
-            case R.id.menu_btn3:    // Save to pdf
-
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

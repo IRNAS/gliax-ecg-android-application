@@ -15,15 +15,19 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 
+import java.util.Calendar;
+
 import static android.R.attr.gravity;
 import static android.R.attr.height;
 import static android.R.attr.width;
 import static android.content.ContentValues.TAG;
+import static com.mobilecg.androidapp.R.id.btnOK;
 
 /**
  * Created by vidra on 6. 11. 2018.
@@ -35,6 +39,10 @@ public class MainScreen extends Activity {
     private static int SELECTED_X_SPEED = 0;    // speed is 25 mm/s
     private static boolean PATIENT_DATA = true; // we request patient data
 
+    // patient data values
+    private String patientName, patientSurname, patientAge, patientBirth;
+    private String measurementId, timestamp;
+
     @Override
     protected void onCreate (Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,35 +53,33 @@ public class MainScreen extends Activity {
         if (v.getId() == R.id.StartBtn) {
             final Intent i = new Intent(this, EcgActivity.class);
             if (PATIENT_DATA) {
-                LayoutInflater layoutInflater = (LayoutInflater) getApplicationContext().getSystemService(LAYOUT_INFLATER_SERVICE);
-                ViewGroup container = (ViewGroup) layoutInflater.inflate(R.layout.input_data_popup, null);
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                View view = getLayoutInflater().inflate(R.layout.input_data_popup, null);
 
-                DisplayMetrics displayMetrics = new DisplayMetrics();
-                getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-                int width = displayMetrics.widthPixels;
-                int height = displayMetrics.heightPixels;
+                builder.setView(view);
+                final AlertDialog alertDialog = builder.create();
 
-                final PopupWindow popupWindow = new PopupWindow(container,(int)(width * .8), (int)(height * .6));
-                LinearLayout linearLayout = (LinearLayout) findViewById(R.id.layout_main);
-                popupWindow.showAtLocation(linearLayout, Gravity.NO_GRAVITY, width/10, height/5);
+                final EditText etName = (EditText) view.findViewById(R.id.popup_name);
+                final EditText etSurname = (EditText) view.findViewById(R.id.popup_surname);
+                final EditText etAge = (EditText) view.findViewById(R.id.age);
+                final EditText etBirth = (EditText) view.findViewById(R.id.birth_date);
+                final EditText etMeasurementID = (EditText) view.findViewById(R.id.measurement_id);
 
-                linearLayout.setOnTouchListener(new View.OnTouchListener() {
+                Button btnOK = (Button) view.findViewById(R.id.buttonPopUp);
+                btnOK.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public boolean onTouch(View view, MotionEvent motionEvent) {
-                        popupWindow.dismiss();
-                        return true;
+                    public void onClick(View view) {
+                        patientName = etName.getText().toString().trim();
+                        patientSurname = etSurname.getText().toString().trim();
+                        patientAge = etAge.getText().toString().trim();
+                        patientBirth = etBirth.getText().toString().trim();
+                        measurementId  = etMeasurementID.getText().toString().trim();
+                        timestamp = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
+                        startActivity(i);
+                        alertDialog.dismiss();
                     }
                 });
-
-                Button ok_btn = (Button) findViewById(R.id.buttonPopUp);    // TODO fix it
-                if (ok_btn != null) {
-                    ok_btn.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            startActivity(i);
-                        }
-                    });
-                }
+                alertDialog.show();
             }
             else {
                 startActivity(i);
@@ -87,7 +93,6 @@ public class MainScreen extends Activity {
         }
         else if (v.getId() == R.id.ExitBtn) {
             finish();
-            System.exit(0);
         }
     }
 
@@ -120,14 +125,14 @@ public class MainScreen extends Activity {
             public void onClick(View view) {
                 if (SELECTED_MAINS_FREQ != mainsFreqSpinner.getSelectedItemPosition()) {
                     SELECTED_MAINS_FREQ = mainsFreqSpinner.getSelectedItemPosition();
-                    Log.i(TAG, "Mains: " + GetSelectedMainsFreq());
+                    //Log.i(TAG, "Mains: " + GetSelectedMainsFreq());
                 }
                 if (SELECTED_X_SPEED != xSpeedSpinner.getSelectedItemPosition()) {
                     SELECTED_X_SPEED = xSpeedSpinner.getSelectedItemPosition();
                     Log.i(TAG, "X speed: " + GetSelectedXspeed());
                 }
                 PATIENT_DATA = patientDataBox.isChecked();
-                Log.i(TAG, "Patient data: " + PATIENT_DATA);
+                //Log.i(TAG, "Patient data: " + PATIENT_DATA);
                 alertDialog.dismiss();
             }
         });
