@@ -99,7 +99,7 @@ void EcgArea::rescale(){
     availableHeight = labels[1].getYPosition() - labels[0].getYPosition();
 
     disconnectedLabel.drawText("DISCONNECTED");
-    devLabel.drawText("DEVELOPMENT VERSION " GIT_HASH " - " __DATE__ );
+    devLabel.drawText("BPM: 100/min - DEV VERSION " GIT_HASH " - " __DATE__ );
 }
 
 void EcgArea::constructLayout(){
@@ -223,6 +223,7 @@ void EcgArea::draw(){
 
     DrawableGroup::draw();
     redrawNeeded=false;
+
 }
 
 void EcgArea::redraw(){

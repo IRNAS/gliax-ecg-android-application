@@ -33,6 +33,7 @@ class EcgProcessor {
         int pga;
         float currScale;
         float samplingFrequency;
+        int pulseCurrentBPM;
 
     public:
         float getSamplingFrequency();
@@ -41,7 +42,7 @@ class EcgProcessor {
 
         void receivePacket(char *data, int len);
         void writeDebugDataToFile(float *inputBefore, float *inputAfter);
-        void calculateBPM(float value);
+        static int calculateBPM(float input);
 };
 
 

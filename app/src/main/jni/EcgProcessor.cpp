@@ -34,6 +34,14 @@
 //#define DEBUG
 #define DEBUGFILE // uncomment this to write signal data to files
 
+#define PULSE_THRESHOLD 0.5 // Pulse detection threshold
+// Number of beats required for initial pulse detection.
+#define PULSE_INITIAL_BEATS 3
+// Pulse reset threshold.
+#define PULSE_RESET_THRESHOLD 500.0
+// Pulse timeout (in ms). If no pulse detected for this time, reset readings
+#define PULSE_RESET_TIMEOUT 5000
+
 const int DECOMPRESS_BUFFER_STRIDE = ECG_MAX_SEND_SIZE/3+1;
 static GLfloat decompressBuffer[12][DECOMPRESS_BUFFER_STRIDE];
 static GLfloat unFilteredBuffer[12][DECOMPRESS_BUFFER_STRIDE];
@@ -55,11 +63,30 @@ char *getCurrentTime() {
     return currentTime;
 }
 
-int pulseCurrentBPM;
+int getClock() {
+    timeval curTime;
+    int milli = curTime.tv_usec / 1000;
+    return milli;
+}
+
+// Pulse detection state.
+enum {
+    PULSE_IDLE = 0,
+    PULSE_FALLING = 1,
+    PULSE_RISING = 2,
+};
+
+uint8_t pulse_state = PULSE_IDLE;
+clock_t pulse_current_timestamp = 0;
+clock_t pulse_last_timestamp = 0;
+uint8_t pulse_beats = 0;
+uint8_t pulse_present = 0;
+float pulse_previous_value = 0.0;
+float pulse_current_bpm = 0.0;
 
 EcgProcessor::EcgProcessor(){
     samplingFrequency=500.0;
-    pulseCurrentBPM = 0;
+    pulseCurrentBPM = 420;
 
     #ifdef DEBUGFILE
         strcpy(filePath, EcgArea::instance().internalStoragePath);
@@ -153,6 +180,8 @@ void EcgProcessor::receivePacket(char *data, int len){
     }
 
     EcgArea::instance().putData((GLfloat*)decompressBuffer, header->channelCount, filteredSampleNum[0], DECOMPRESS_BUFFER_STRIDE);
+    pulseCurrentBPM = (int)pulse_current_bpm;
+    LOGD("BPM: %d ", pulseCurrentBPM);
 }
 
 float EcgProcessor::getSamplingFrequency(){
@@ -172,6 +201,8 @@ void EcgProcessor::calculate12Channels(float *input, float *output, int stride) 
     float aVR = (-II-I)/3;
     float aVL = (I-III)/3;
     float aVF = (II+III)/3;
+
+    EcgProcessor::calculateBPM(II);
 
     output[0*stride] = I;
     output[1*stride] = II;
@@ -213,6 +244,70 @@ void EcgProcessor::writeDebugDataToFile(float *inputBefore, float *inputAfter) {
     #endif
 }
 
-void EcgProcessor::calculateBPM(float value) {
-    pulseCurrentBPM++;
+int EcgProcessor::calculateBPM(float value) {
+    if (value >= PULSE_RESET_THRESHOLD) {
+        pulse_state = PULSE_IDLE;
+        pulse_current_timestamp = 0;
+        pulse_last_timestamp = 0;
+        pulse_previous_value = 0;
+        pulse_current_bpm = 0.0;
+        pulse_beats = 0;
+        pulse_present = 0;
+        return 0;
+    }
+
+    // If no pulse detected for some time, reset.
+    if (pulse_beats > 0 && getClock() - pulse_last_timestamp > PULSE_RESET_TIMEOUT) {
+        pulse_current_bpm = 0.0;
+        pulse_beats = 0;
+        pulse_present = 0;
+    }
+
+    switch (pulse_state) {
+        case PULSE_IDLE: {
+            // Idle state: we wait for the value to cross the threshold.
+            if (value >= PULSE_THRESHOLD) {
+                pulse_state = PULSE_RISING;
+            }
+            break;
+        }
+        case PULSE_FALLING: {
+            // Move into idle state when under the threshold.
+            if (value < PULSE_THRESHOLD) {
+                pulse_state = PULSE_IDLE;
+            }
+            break;
+        }
+        case PULSE_RISING: {
+            if (value > pulse_previous_value) {
+                // Still rising.
+                pulse_current_timestamp = getClock();
+            }
+            else {
+                // Reached the top.
+                uint32_t beat_duration = pulse_current_timestamp - pulse_last_timestamp;
+                pulse_last_timestamp = pulse_current_timestamp;
+
+                // Compute BPM.
+                float raw_bpm = 60000.0 / (float) beat_duration;
+                if (raw_bpm > 10.0 && raw_bpm < 300.0) {
+                    pulse_beats++;
+                    //float bpm = filter_mean(&rolling_mean_pulse, raw_bpm, 0);
+                    float bpm = raw_bpm;
+                    if (pulse_beats > PULSE_INITIAL_BEATS) {
+                        pulse_current_bpm = bpm;
+                        pulse_beats = PULSE_INITIAL_BEATS;
+                        pulse_present = 1;
+                    }
+                }
+
+                pulse_state = PULSE_FALLING;
+                return 1;
+            }
+            break;
+        }
+    }
+
+    pulse_previous_value = value;
+    return 0;
 }
