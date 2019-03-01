@@ -64,7 +64,7 @@ Curve::Curve(): DrawableObject(){
     position.y=100;
     currNumOfPoints=0;
     requiredNumOfPoints=1;
-    clearWidthInPoints=100;
+    clearWidthInPoints=50;  // was set to 100
     endCoordinates.x=0;
     endCoordinates.y=0;
 
@@ -113,9 +113,27 @@ void Curve::glInit(){
     getXCoordinates(currNumOfPoints);
 }
 
-void Curve::put(GLfloat *data, int n){
+int Curve::put(GLfloat *data, int n){
     if (n<=0)
-        return;
+        return -1;
+
+    newPointBuffer.add(data, n);
+    int new_position = currWritePos+newPointBuffer.used();
+    LOGI("TEST: requiredNumOfPoints: %d, currWritePos: %d, newPos: %d\n", requiredNumOfPoints, currWritePos, new_position);
+    endCoordinates.y=data[n-1];
+    if (new_position < requiredNumOfPoints) {
+        endCoordinates.x= new_position % requiredNumOfPoints;
+        return 0;
+    }
+    else {
+        endCoordinates.x = requiredNumOfPoints;
+        return 1;
+    }
+}
+
+int Curve::put_rhythm(GLfloat *data, int n) {
+    if (n<=0)
+        return -1;
 
     newPointBuffer.add(data, n);
     endCoordinates.x=(currWritePos+newPointBuffer.used()) % requiredNumOfPoints;
@@ -211,4 +229,10 @@ void Curve::setScale(float x, float y){
 
 const Vec2 <int> Curve::endpointCoordinates(){
     return Vec2<int>(position.x + scale[0]*endCoordinates.x, position.y - scale[1]*endCoordinates.y );
+}
+
+void Curve::resetCurrWritePos() {
+    currNumOfPoints = requiredNumOfPoints;
+    currWritePos=0;
+    //clear();
 }

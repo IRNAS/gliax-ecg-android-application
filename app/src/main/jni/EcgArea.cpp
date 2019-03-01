@@ -30,35 +30,52 @@ EcgArea::EcgArea():
     grid.setZOrder(10);
     drawableList.push_back(&grid);
 
-    //Use separater for loops to avoid mixing the order of
+    //Use separator for loops to avoid mixing the order of
     //curves, circles and texts to eliminate unnecessary shader switches.
     for (int a=0; a<ECG_CURVE_COUNT; a++) {
         drawableList.push_back(&ecgCurves[a]);
         ecgCurves[a].setZOrder(1);
     }
 
+    drawableList.push_back(&rhythm);
+    rhythm.setZOrder(1);
+
     for (int a=0; a<ECG_CURVE_COUNT; a++) {
         drawableList.push_back(&endpointCircles[a]);
         endpointCircles[a].setZOrder(0);
     }
+
+    drawableList.push_back(&rhythm_circle);
+    rhythm_circle.setZOrder(0);
 
     for (int a=0; a<ECG_CURVE_COUNT; a++) {
         drawableList.push_back(&labels[a]);
         labels[a]
                 .setColor(Image::BLACK)
                 .setTextSizeMM(2.5);
-
-
     }
+
+    drawableList.push_back(&rhythm_label);
+    rhythm_label
+            .setColor(Image::BLACK)
+            .setTextSizeMM(2.5);
+
+    /*
     for (int a=0; a<ECG_CURVE_COUNT; a++) {
         drawableList.push_back(&outOfRangeLabels[a]);
         outOfRangeLabels[a]
                 .setColor(Image::BLACK)
                 .setTextSizeMM(3.5);
     }
+    */
 
     drawableList.push_back(&devLabel);
     devLabel
+        .setColor(Image::GREY)
+        .setTextSizeMM(3.5);
+
+    drawableList.push_back(&bpm_label);
+    bpm_label
         .setColor(Image::GREY)
         .setTextSizeMM(3.5);
 
@@ -66,10 +83,12 @@ EcgArea::EcgArea():
     ecgCmPerMv = 2.0;
     ecgCmPerSec = 2.5;
     lastSampleFrequency=0;
+    cur_column = 0;
 
     drawableList.push_back(&disconnectedLabel);
-    disconnectedLabel.setColor(Image::GREY);
-    disconnectedLabel.setTextSizeMM(3.5);
+    disconnectedLabel
+            .setColor(Image::GREY)
+            .setTextSizeMM(3.5);
 
     deviceDisconnected();
 }
@@ -94,23 +113,28 @@ void EcgArea::rescale(){
     for (int a=0; a<ECG_CURVE_COUNT; a++) {
         ecgCurves[a].setScale(xScale, yScale);
         labels[a].drawText(labelText[a]);
-        outOfRangeLabels[a].drawText("OUT OF RANGE");
+        rhythm.setScale(xScale, yScale);
+        rhythm_label.drawText(rhythm_text);
+        //outOfRangeLabels[a].drawText("OUT OF RANGE");
     }
-    availableHeight = labels[1].getYPosition() - labels[0].getYPosition();
+    //availableHeight = labels[1].getYPosition() - labels[0].getYPosition();
 
     disconnectedLabel.drawText("DISCONNECTED");
-    devLabel.drawText("BPM: 100/min - DEV VERSION " GIT_HASH " - " __DATE__ );
+    devLabel.drawText("DEV VERSION " GIT_HASH " - " __DATE__ );
+    bpm_label.drawText("HR: 100");
 }
 
 void EcgArea::constructLayout(){
     int r,c;
+    /*  // app orientation is locked to landscape
     if (activeArea.width()<activeArea.height()){
         c=2;
     } else {
-        c=3;
+        c=4;
     }
-
-    r=(ECG_CURVE_COUNT+c-1)/c;
+    */
+    c = ECG_COLUMN_COUNT;  // num of columns
+    r = (ECG_CURVE_COUNT+c-1)/c + 1;  // num of rows (3 for all 12 signals + 1 for rhythm)
 
     disconnectedLabel.setPosition((screenSize.w - disconnectedLabel.getWidth())/2, screenSize.h/2 - disconnectedLabel.getHeight());
 
@@ -130,7 +154,7 @@ void EcgArea::constructLayout(){
 
         const bool bottom = a >= topCurveCount;
 
-        const int x=bottom ? (c -1  - ((a - topCurveCount) / bottomCurves)) : (a / topCurves);
+        const int x=bottom ? (c - 1 - ((a - topCurveCount) / bottomCurves)) : (a / topCurves);
         const int y=bottom ? ((a - topCurveCount) % bottomCurves + topCurves) : (a % topCurves);
 
         const int xCoord=activeArea.left() + x*xStep;
@@ -138,17 +162,21 @@ void EcgArea::constructLayout(){
 
         ecgCurves[a].setPosition(xCoord, yCoord);
         labels[a].setPosition(xCoord, yCoord - 0.8*pixelDensity.y);
-        outOfRangeLabels[a].setPosition(xCoord + 20, yCoord - 0.4*pixelDensity.y);
-        curvePositions[a] = yCoord;
-        timers[a] = 0;
+        //outOfRangeLabels[a].setPosition(xCoord + 20, yCoord - 0.4*pixelDensity.y);
+        //curvePositions[a] = yCoord;
+        //timers[a] = 0;
     }
-    availableHeight = labels[1].getYPosition() - labels[0].getYPosition();
+    rhythm.setLength(curveWidth*c);
+    const int rhy_x = activeArea.left();
+    const int rhy_y = activeArea.top() + 3*yStep + yStep/2;
+    rhythm.setPosition(rhy_x, rhy_y);
+    rhythm_label.setPosition(rhy_x, rhy_y - 0.8*pixelDensity.y);
+
+    //availableHeight = labels[1].getYPosition() - labels[0].getYPosition();
     //LOGI("Available height: %d\n", availableHeight);
 
-    devLabel.setPosition(
-            pixelDensity.x*0.0,
-            screenSize.h - devLabel.getHeight()
-    );
+    devLabel.setPosition(pixelDensity.x*0.0, 0);
+    bpm_label.setPosition(screenSize.w - bpm_label.getWidth() - 10, 0);
 }
 
 void EcgArea::contextResized(int w, int h){
@@ -185,17 +213,32 @@ void EcgArea::setPixelDensity(const Vec2<float> &pPixelDensity){
 }
 
 void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride){
-    for (int a=0; a<12; a++) {
-        ecgCurves[a].put(data + stride*a, nPoints);
-        endpointCircles[a].setPosition(ecgCurves[a].endpointCoordinates());
+    int remains = nPoints;
+    for (int a=0; a<3; a++) {
+        remains = ecgCurves[cur_column*3 + a].put(data + stride*a, nPoints);
+        endpointCircles[cur_column*3 + a].setPosition(ecgCurves[cur_column*3 + a].endpointCoordinates());
     }
+    LOGI("TEST: Num of points: %d, remains: %d, col: %d\n", nPoints, remains, cur_column);
+    if (remains == 1) {
+        cur_column++;
+        if (cur_column == ECG_COLUMN_COUNT) {
+            cur_column = 0;
+        }
+
+        for (int a=0; a<3; a++) {
+            ecgCurves[cur_column*3 + a].resetCurrWritePos();
+        }
+    }
+
+    rhythm.put_rhythm(data + stride*1, nPoints);
+    rhythm_circle.setPosition(rhythm.endpointCoordinates());
 }
 
 void EcgArea::draw(){
     if (lastSampleFrequency!=EcgProcessor::instance().getSamplingFrequency()){
         rescale();
     }
-
+    /* // Out of range - not used anymore
     for (int i=0; i<12; i++) {
         int circlePosition = endpointCircles[i].getYPosition();
         int offset = 100;    // how much can the signal be outside available space
@@ -204,6 +247,7 @@ void EcgArea::draw(){
         timers[i]++;
 
         //LOGI("Drawing Curves - Circle: %d, Curve: %d, Min: %d, Max %d\n", circlePosition, curvePositions[i], min, max);
+
         if (circlePosition < min || circlePosition > max) {
             timers[i] = 0;
             if (ecgCurves[i].getVisible()) {
@@ -220,10 +264,9 @@ void EcgArea::draw(){
             }
         }
     }
-
+    */
     DrawableGroup::draw();
     redrawNeeded=false;
-
 }
 
 void EcgArea::redraw(){
@@ -239,8 +282,11 @@ void EcgArea::setContentVisible(bool visible){
         endpointCircles[a].setVisible(visible);
         ecgCurves[a].setVisible(visible);
         labels[a].setVisible(visible);
-        outOfRangeLabels[a].setVisible(false);
+        //outOfRangeLabels[a].setVisible(false);
     }
+    rhythm_circle.setVisible(visible);
+    rhythm.setVisible(visible);
+    rhythm_label.setVisible(visible);
 }
 
 void EcgArea::deviceConnected(){

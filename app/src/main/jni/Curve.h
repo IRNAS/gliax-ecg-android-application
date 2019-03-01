@@ -44,10 +44,14 @@ class Curve: public DrawableObject{
         static const float POINT_INVALID;
 
         void setLength(int lengthInPixels);
-        void put(float *data, int n);
+        int put(float *data, int n);
+        int put_rhythm(float *data, int n);
 
         const Vec2 <int> endpointCoordinates();
-    private:
+
+        void resetCurrWritePos();
+
+private:
         std::string fragmentShader;
         std::string vertexShader;
 

@@ -34,6 +34,7 @@ class EcgArea: public DrawableGroup{
     private:
         static const int ECG_CURVE_COUNT = 12;
         const char *labelText[ECG_CURVE_COUNT] = {"I", "II", "III", "aVR", "aVL", "aVF", "V1", "V2", "V3", "V4", "V5", "V6"};
+        const char *rhythm_text = "RHYTHM";
 
         EcgArea();
 
@@ -42,14 +43,18 @@ class EcgArea: public DrawableGroup{
         int calculateUnalignedArea(int size, float dpcm);
         GridDrawer grid;
         TextDrawer labels[ECG_CURVE_COUNT];
+        TextDrawer rhythm_label;
         TextDrawer devLabel;
+        TextDrawer bpm_label;
         TextDrawer disconnectedLabel;
-        TextDrawer outOfRangeLabels[ECG_CURVE_COUNT];
+        //TextDrawer outOfRangeLabels[ECG_CURVE_COUNT];
 
         Curve ecgCurves[ECG_CURVE_COUNT];
+        Curve rhythm;
         //It is somewhat ugly to use endpoint circles separated from their
         //curves, but it avoids unneccessary shader switches.
         Circle endpointCircles[ECG_CURVE_COUNT];
+        Circle rhythm_circle;
 
         float lastSampleFrequency;
 
@@ -64,9 +69,12 @@ class EcgArea: public DrawableGroup{
 
         Vec2<int> screenSize;
 
-        int availableHeight;
-        int curvePositions[12];
-        int timers[12];
+        //int availableHeight;
+        //int curvePositions[12];
+        //int timers[12];
+
+        static const int ECG_COLUMN_COUNT = 4;
+        int cur_column;
 
         void setContentVisible(bool visible);
 public:

@@ -32,7 +32,7 @@
 #include "../res/Common/DataFormat/DifferenceEcgCompressor.cpp"
 
 //#define DEBUG
-#define DEBUGFILE // uncomment this to write signal data to files
+//#define DEBUGFILE // uncomment this to write signal data to files
 
 #define PULSE_THRESHOLD 0.5 // Pulse detection threshold
 // Number of beats required for initial pulse detection.
@@ -181,7 +181,7 @@ void EcgProcessor::receivePacket(char *data, int len){
 
     EcgArea::instance().putData((GLfloat*)decompressBuffer, header->channelCount, filteredSampleNum[0], DECOMPRESS_BUFFER_STRIDE);
     pulseCurrentBPM = (int)pulse_current_bpm;
-    LOGD("BPM: %d ", pulseCurrentBPM);
+    //LOGD("BPM: %d ", pulseCurrentBPM);
 }
 
 float EcgProcessor::getSamplingFrequency(){
@@ -202,7 +202,7 @@ void EcgProcessor::calculate12Channels(float *input, float *output, int stride) 
     float aVL = (I-III)/3;
     float aVF = (II+III)/3;
 
-    EcgProcessor::calculateBPM(II);
+    //EcgProcessor::calculateBPM(II);
 
     output[0*stride] = I;
     output[1*stride] = II;
