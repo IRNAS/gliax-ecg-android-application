@@ -166,7 +166,7 @@ void EcgArea::constructLayout(){
         //curvePositions[a] = yCoord;
         //timers[a] = 0;
     }
-    rhythm.setLength(curveWidth*c);
+    rhythm.setLength(curveWidth);
     const int rhy_x = activeArea.left();
     const int rhy_y = activeArea.top() + 3*yStep + yStep/2;
     rhythm.setPosition(rhy_x, rhy_y);
@@ -213,7 +213,10 @@ void EcgArea::setPixelDensity(const Vec2<float> &pPixelDensity){
 }
 
 void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride){
-    int remains = nPoints;
+    rhythm.put(data + stride*1, nPoints);
+    rhythm_circle.setPosition(rhythm.endpointCoordinates());
+
+    int remains = 0;
     for (int a=0; a<3; a++) {
         remains = ecgCurves[cur_column*3 + a].put(data + stride*a, nPoints);
         endpointCircles[cur_column*3 + a].setPosition(ecgCurves[cur_column*3 + a].endpointCoordinates());
@@ -224,14 +227,11 @@ void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride){
         if (cur_column == ECG_COLUMN_COUNT) {
             cur_column = 0;
         }
-
+        /*
         for (int a=0; a<3; a++) {
             ecgCurves[cur_column*3 + a].resetCurrWritePos();
-        }
+        }*/
     }
-
-    rhythm.put_rhythm(data + stride*1, nPoints);
-    rhythm_circle.setPosition(rhythm.endpointCoordinates());
 }
 
 void EcgArea::draw(){

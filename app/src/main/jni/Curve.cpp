@@ -64,7 +64,7 @@ Curve::Curve(): DrawableObject(){
     position.y=100;
     currNumOfPoints=0;
     requiredNumOfPoints=1;
-    clearWidthInPoints=50;  // was set to 100
+    clearWidthInPoints=10;  // was set to 100
     endCoordinates.x=0;
     endCoordinates.y=0;
 
@@ -122,7 +122,7 @@ int Curve::put(GLfloat *data, int n){
     LOGI("TEST: requiredNumOfPoints: %d, currWritePos: %d, newPos: %d\n", requiredNumOfPoints, currWritePos, new_position);
     endCoordinates.y=data[n-1];
     if (new_position < requiredNumOfPoints) {
-        endCoordinates.x= new_position % requiredNumOfPoints;
+        endCoordinates.x= new_position;
         return 0;
     }
     else {
@@ -130,16 +130,23 @@ int Curve::put(GLfloat *data, int n){
         return 1;
     }
 }
-
-int Curve::put_rhythm(GLfloat *data, int n) {
+/*
+void Curve::put_rhythm(GLfloat *data, int n) {
     if (n<=0)
-        return -1;
+        return;
 
     newPointBuffer.add(data, n);
-    endCoordinates.x=(currWritePos+newPointBuffer.used()) % requiredNumOfPoints;
+    int new_position = currWritePos+newPointBuffer.used();
+    LOGI("TEST: requiredNumOfPoints: %d, currWritePos: %d, newPos: %d\n", requiredNumOfPoints, currWritePos, new_position);
     endCoordinates.y=data[n-1];
+    if (new_position < requiredNumOfPoints) {
+        endCoordinates.x = new_position % requiredNumOfPoints;
+    }
+    else {
+        endCoordinates.x = requiredNumOfPoints;
+    }
 }
-
+*/
 void Curve::resizeOnGPU(){
     if (requiredNumOfPoints==currNumOfPoints && (!EcgArea::instance().isRedrawNeeded())){
         return;
