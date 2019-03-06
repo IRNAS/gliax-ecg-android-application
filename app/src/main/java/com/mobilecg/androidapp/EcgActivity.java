@@ -120,10 +120,6 @@ public class EcgActivity extends Activity {
             int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
             decorView.setSystemUiVisibility(uiOptions);
         }
-        intentFilter = new IntentFilter(ACTION_USB_PERMISSION);
-        registerReceiver(usbReceiver,intentFilter);
-        customTable = CreateDevicesTable();
-        FindUsbDevice();
 
         displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
@@ -192,6 +188,10 @@ public class EcgActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        intentFilter = new IntentFilter(ACTION_USB_PERMISSION);
+        registerReceiver(usbReceiver,intentFilter);
+        customTable = CreateDevicesTable();
+        FindUsbDevice();
         registerReceiver(usbReceiver,intentFilter);
         mView.onResume();
         mView.queueEvent(new Runnable() {
