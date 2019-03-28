@@ -214,4 +214,16 @@ extern "C" {
         (void)type;
          //= x_spd;
     }
+    /*
+    JNIEXPORT jintArray JNICALL
+    Java_com_mobilecg_androidapp_EcgJNI_getButtonCoords(JNIEnv *env, jclass type) { // TODO handle memory leak - trying different approach
+        (void)env;
+        (void)type;
+        jint * c_array = EcgArea::instance().getButtonsSize();
+        jintArray j_array;
+        j_array = env->NewIntArray(2);
+        env->SetIntArrayRegion(j_array, 0, 2, c_array);
+        return j_array;
+    }
+     */
 }
