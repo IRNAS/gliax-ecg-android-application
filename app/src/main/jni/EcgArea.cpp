@@ -47,7 +47,12 @@ EcgArea::EcgArea():
 
     drawableList.push_back(&rhythm_circle);
     rhythm_circle.setZOrder(0);
-
+    /*
+    drawableList.push_back(&pause_button);
+    pause_button.setZOrder(2);
+    pause_button.setSize(BUTTON_SIZE);
+    pause_button.setColor(0.1, 0.2, 0.6);
+    */
     for (int a=0; a<ECG_CURVE_COUNT; a++) {
         drawableList.push_back(&labels[a]);
         labels[a]
@@ -68,7 +73,12 @@ EcgArea::EcgArea():
                 .setTextSizeMM(3.5);
     }
     */
-
+    /*
+    drawableList.push_back(&pause_label);
+    pause_label
+            .setColor(Image::BLACK)
+            .setTextSizeMM(5.5);
+    */
     drawableList.push_back(&devLabel);
     devLabel
         .setColor(Image::GREY)
@@ -113,11 +123,13 @@ void EcgArea::rescale(){
     for (int a=0; a<ECG_CURVE_COUNT; a++) {
         ecgCurves[a].setScale(xScale, yScale);
         labels[a].drawText(labelText[a]);
-        rhythm.setScale(xScale, yScale);
-        rhythm_label.drawText(rhythm_text);
         //outOfRangeLabels[a].drawText("OUT OF RANGE");
     }
+    rhythm.setScale(xScale, yScale);
+    rhythm_label.drawText(rhythm_text);
     //availableHeight = labels[1].getYPosition() - labels[0].getYPosition();
+
+    //pause_label.drawText(pause_text);
 
     disconnectedLabel.drawText("DISCONNECTED");
     devLabel.drawText("DEV VERSION " GIT_HASH " - " __DATE__ );
@@ -171,12 +183,23 @@ void EcgArea::constructLayout(){
     const int rhy_y = activeArea.top() + 3*yStep + yStep/2;
     rhythm.setPosition(rhy_x, rhy_y);
     rhythm_label.setPosition(rhy_x, rhy_y - 0.8*pixelDensity.y);
+    /*
+    for (int b = 0; b < BUTTONS_COUNT; b++) {
+
+    }
+     */
+    //const int button_offset = 85;
+    //const int button_size = BUTTON_SIZE * 8;
+    //pause_button.setPosition(button_offset, screenSize.h - button_offset);
+    //pause_label.setPosition(85 + 160, screenSize.h - 90);
 
     //availableHeight = labels[1].getYPosition() - labels[0].getYPosition();
     //LOGI("Available height: %d\n", availableHeight);
 
-    devLabel.setPosition(pixelDensity.x*0.0, 0);
+    devLabel.setPosition(0, 0);
     bpm_label.setPosition(screenSize.w - bpm_label.getWidth() - 10, 0);
+
+    //pause_size = pause_button.getSize();
 }
 
 void EcgArea::contextResized(int w, int h){
@@ -221,7 +244,7 @@ void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride){
         remains = ecgCurves[cur_column*3 + a].put(data + stride*a, nPoints);
         endpointCircles[cur_column*3 + a].setPosition(ecgCurves[cur_column*3 + a].endpointCoordinates());
     }
-    LOGI("TEST: Num of points: %d, remains: %d, col: %d\n", nPoints, remains, cur_column);
+    //LOGI("TEST: Num of points: %d, remains: %d, col: %d\n", nPoints, remains, cur_column);    // TODO fix this function
     if (remains == 1) {
         cur_column++;
         if (cur_column == ECG_COLUMN_COUNT) {
@@ -287,6 +310,8 @@ void EcgArea::setContentVisible(bool visible){
     rhythm_circle.setVisible(visible);
     rhythm.setVisible(visible);
     rhythm_label.setVisible(visible);
+    //pause_button.setVisible(visible);
+    //pause_label.setVisible(visible);
 }
 
 void EcgArea::deviceConnected(){
@@ -298,3 +323,8 @@ void EcgArea::deviceDisconnected(){
     setContentVisible(false);
     disconnectedLabel.setVisible(true);
 }
+/*
+int * EcgArea::getButtonsSize() {
+    //return pause_size;
+}
+ */

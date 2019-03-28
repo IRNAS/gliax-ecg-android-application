@@ -29,12 +29,18 @@
 #include "Vec2.h"
 #include "Curve.h"
 #include "Circle.h"
+#include "Rectangle.h"
 
 class EcgArea: public DrawableGroup{
     private:
+        static const int BUTTONS_COUNT = 4;
         static const int ECG_CURVE_COUNT = 12;
+        static const int BUTTON_SIZE = 50;
+
         const char *labelText[ECG_CURVE_COUNT] = {"I", "II", "III", "aVR", "aVL", "aVF", "V1", "V2", "V3", "V4", "V5", "V6"};
         const char *rhythm_text = "RHYTHM";
+        const char *pause_text = "II";
+        const char *resume_text = "I>";
 
         EcgArea();
 
@@ -48,6 +54,10 @@ class EcgArea: public DrawableGroup{
         TextDrawer bpm_label;
         TextDrawer disconnectedLabel;
         //TextDrawer outOfRangeLabels[ECG_CURVE_COUNT];
+
+        //Rectangle pause_button;
+        //TextDrawer pause_label;
+        //int* pause_size;
 
         Curve ecgCurves[ECG_CURVE_COUNT];
         Curve rhythm;
@@ -96,6 +106,8 @@ public:
 
         void deviceConnected();
         void deviceDisconnected();
+
+        int * getButtonsSize();
 };
 
 
