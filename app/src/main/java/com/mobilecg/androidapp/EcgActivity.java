@@ -42,6 +42,7 @@ import javax.microedition.khronos.opengles.GL10;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
@@ -128,11 +129,39 @@ public class EcgActivity extends Activity {
         mView.setEGLContextClientVersion(2);
         mView.setEGLConfigChooser(new MultisampleConfig());
 
-        mView.setOnLongClickListener(new View.OnLongClickListener() {
+        /*
+        mView.setOnLongClickListener(new View.OnLongClickListener() {   // TODO remove it
             @Override
             public boolean onLongClick(View v) {
                 openOptionsMenu();
                 return true;
+            }
+        });
+        */
+        /*
+        mView.setOnClickListener(new View.OnClickListener() {   // TODO remove it
+            @Override
+            public void onClick(View v) {
+                float x = v.getX();
+                float y = v.getY();
+                String test = "X: " + x + " Y: " + y;
+                //Log.d(TAG, test);
+            }
+        });
+        */
+        mView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                float x = event.getX();
+                float y = event.getY();
+                //MotionEvent.ACTION
+                String test = "X: " + x + " Y: " + y;
+                Log.d(TAG, "screen height: " + v.getHeight());
+                Log.d(TAG, test);
+                //EcgJNI.getButtonCoords();
+                //EcgJNI.getButtonCoords();
+                //Log.d(TAG, "button coords: " + test2[0]);
+                return false;
             }
         });
 
@@ -156,6 +185,7 @@ public class EcgActivity extends Activity {
             public void onDrawFrame(GL10 gl) {
                 EcgJNI.drawFrame();
             }
+
         });
 
         mView.queueEvent(new Runnable() {
