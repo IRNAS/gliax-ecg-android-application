@@ -20,6 +20,7 @@
 
 package com.mobilecg.androidapp;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
@@ -100,6 +101,7 @@ public class EcgActivity extends Activity {
     private int STOP_BITS = UsbSerialPort.STOPBITS_1;
     private int PARITY = UsbSerialPort.PARITY_NONE;
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
@@ -125,12 +127,16 @@ public class EcgActivity extends Activity {
         displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 
-        mView = new GLSurfaceView(getApplication());
+        setContentView(R.layout.ecg_layout);
+
+        //mView = new GLSurfaceView(getApplication());
+        mView = (GLSurfaceView) findViewById(R.id.gl_surface_view);
+
         mView.setEGLContextClientVersion(2);
         mView.setEGLConfigChooser(new MultisampleConfig());
 
         /*
-        mView.setOnLongClickListener(new View.OnLongClickListener() {   // TODO remove it
+        mView.setOnLongClickListener(new View.OnLongClickListener() {   // TODO
             @Override
             public boolean onLongClick(View v) {
                 openOptionsMenu();
@@ -139,7 +145,7 @@ public class EcgActivity extends Activity {
         });
         */
         /*
-        mView.setOnClickListener(new View.OnClickListener() {   // TODO remove it
+        mView.setOnClickListener(new View.OnClickListener() {   // TODO
             @Override
             public void onClick(View v) {
                 float x = v.getX();
@@ -149,12 +155,12 @@ public class EcgActivity extends Activity {
             }
         });
         */
+
         mView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 float x = event.getX();
                 float y = event.getY();
-                //MotionEvent.ACTION
                 String test = "X: " + x + " Y: " + y;
                 Log.d(TAG, "screen height: " + v.getHeight());
                 Log.d(TAG, test);
@@ -165,28 +171,7 @@ public class EcgActivity extends Activity {
             }
         });
 
-        mView.setRenderer(new GLSurfaceView.Renderer() {
-            @Override
-            public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-                gl.glEnable(gl.GL_LINE_SMOOTH);
-                gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST);
-                EcgJNI.surfaceCreated();
-            }
-
-            @Override
-            public void onSurfaceChanged(GL10 gl, int width, int height) {
-                gl.glEnable(gl.GL_LINE_SMOOTH);
-                gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST);
-                EcgJNI.setDotPerCM(displayMetrics.xdpi / 2.54f, displayMetrics.ydpi / 2.54f);
-                EcgJNI.surfaceChanged(width, height);
-            }
-
-            @Override
-            public void onDrawFrame(GL10 gl) {
-                EcgJNI.drawFrame();
-            }
-
-        });
+        mView.setRenderer(new MyGLRenderer(displayMetrics));
 
         mView.queueEvent(new Runnable() {
             @Override
@@ -196,8 +181,6 @@ public class EcgActivity extends Activity {
                 EcgJNI.initNDK(debugFilePath);
             }
         });
-
-        setContentView(mView);
     }
 
     @Override

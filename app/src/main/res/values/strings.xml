@@ -46,5 +46,7 @@
         <item>25 mm/s</item>
         <item>50 mm/s</item>
     </string-array>
+    <string name="ecg_layout">ecg_layout</string>
+    <string name="gl_surface_view">m_view</string>
 </resources>
 
