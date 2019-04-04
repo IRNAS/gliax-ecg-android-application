@@ -63,6 +63,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -88,10 +89,16 @@ public class EcgActivity extends Activity {
     private UsbSerialDriver usbDriver = null;
     private UsbSerialPort serialPort = null;
     private ProbeTable customTable = null;
+
+    Button pause_resume_btn;
+    Button save_btn;
+    Button rhythm_btn;
+    Button patient_btn;
     private boolean render_paused = false;
 
     private static final String ACTION_USB_PERMISSION = "com.mobileecg.androidapp.USB_PERMISSION";
-    private final String TAG = EcgActivity.class.getSimpleName();
+    //private final String TAG = EcgActivity.class.getSimpleName();
+    private final String TAG = "HEH";
     private IntentFilter intentFilter = null;
     private String debugFilePath = "";
 
@@ -100,6 +107,10 @@ public class EcgActivity extends Activity {
     private int DATA_BITS = 8;
     private int STOP_BITS = UsbSerialPort.STOPBITS_1;
     private int PARITY = UsbSerialPort.PARITY_NONE;
+
+    // patient data values
+    private String patientName, patientSurname, patientAge, patientBirth;
+    private String measurementId, timestamp;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -181,31 +192,74 @@ public class EcgActivity extends Activity {
                 EcgJNI.initNDK(debugFilePath);
             }
         });
+
+        // Main GUI buttons
+        pause_resume_btn = (Button)findViewById(R.id.pause_btn);   // Pause / resume
+        pause_resume_btn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (render_paused) {
+                    resumeECG();
+                }
+                else {
+                    pauseECG();
+                }
+            }
+        });
+
+        save_btn = (Button)findViewById(R.id.save_btn);    // Save
+        save_btn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+
+            }
+        });
+        rhythm_btn = (Button)findViewById(R.id.rhythm_btn);    // Rhythm
+        rhythm_btn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+
+            }
+        });
+        patient_btn = (Button)findViewById(R.id.patient_btn);  // Patient
+        patient_btn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                inputPatientData();
+            }
+        });
+
     }
 
     @Override
     protected void onPause() {
-        super.onPause();
-        if (usbReceiver != null) {
-            unregisterReceiver(usbReceiver);
-        }
-        mView.onPause();
-        mView.queueEvent(new Runnable() {
-            @Override
-            public void run() {
-                EcgJNI.pause();
-            }
-        });
+        Log.d(TAG, "run event - onPause");
+       super.onPause();
+       pauseECG();
     }
 
     @Override
     protected void onResume() {
+        Log.d(TAG, "run event - onResume");
         super.onResume();
+        resumeECG();
+    }
+
+    @Override
+    protected void onStop() {
+        Log.d(TAG, "run event - onStop");
+        super.onStop();
+        if (debugFileWrite == true) {
+            CopyDebugFiles();
+        }
+    }
+
+    private void resumeECG() {
+        Log.d(TAG, "resumeECG function");
+        // resume reading from usb
         intentFilter = new IntentFilter(ACTION_USB_PERMISSION);
         registerReceiver(usbReceiver,intentFilter);
         customTable = CreateDevicesTable();
         FindUsbDevice();
-        registerReceiver(usbReceiver,intentFilter);
+
+        // resume drawing
+        mView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY); // resume auto rendering
         mView.onResume();
         mView.queueEvent(new Runnable() {
             @Override
@@ -213,17 +267,34 @@ public class EcgActivity extends Activity {
                 EcgJNI.resume();
             }
         });
-        Log.d(TAG, "run event - onResume");
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (debugFileWrite == true) {
-            CopyDebugFiles();
+        if (render_paused) {
+            render_paused = false;
+            pause_resume_btn.setText(R.string.menu_button_1);
         }
     }
 
+    private void pauseECG() {
+        Log.d(TAG, "pauseECG - function");
+        // TODO pause reading from usb ???
+        unregisterReceiver(usbReceiver);
+        //}
+
+        // pause drawing
+        mView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);   // this stops auto rendering
+        mView.onPause();
+        mView.queueEvent(new Runnable() {
+            @Override
+            public void run() {
+                EcgJNI.pause();
+            }
+        });
+
+        if (!render_paused) {
+            pause_resume_btn.setText(R.string.menu_button_1_alt);
+            render_paused = true;
+        }
+    }
+    /*
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -276,6 +347,38 @@ public class EcgActivity extends Activity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+    */
+
+    private void inputPatientData() {   // TODO buttons bar appearing handle
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = getLayoutInflater().inflate(R.layout.input_data_popup, null);
+
+        builder.setView(view);
+        final AlertDialog alertDialog = builder.create();
+
+        final EditText etName = (EditText) view.findViewById(R.id.popup_name);
+        final EditText etSurname = (EditText) view.findViewById(R.id.popup_surname);
+        final EditText etAge = (EditText) view.findViewById(R.id.age);
+        final EditText etBirth = (EditText) view.findViewById(R.id.birth_date);
+        final EditText etMeasurementID = (EditText) view.findViewById(R.id.measurement_id);
+
+        Button btnOK = (Button) view.findViewById(R.id.buttonPopUp);
+        btnOK.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                patientName = etName.getText().toString().trim();
+                patientSurname = etSurname.getText().toString().trim();
+                patientAge = etAge.getText().toString().trim();
+                patientBirth = etBirth.getText().toString().trim();
+                measurementId  = etMeasurementID.getText().toString().trim();
+                timestamp = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
+                alertDialog.dismiss();
+                String logi = String.format("name: %s, surname: %s, birth: %s", patientName, patientSurname, patientBirth);
+                Log.d(TAG, logi);
+            }
+        });
+        alertDialog.show();
     }
 
     private ProbeTable CreateDevicesTable() {
@@ -434,7 +537,7 @@ public class EcgActivity extends Activity {
 
     private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
         @Override
-        public void onReceive(Context context, Intent intent) {
+        public void onReceive(Context context, Intent intent) { // TODO handle usb detached and attached events
             String action = intent.getAction();
             if (ACTION_USB_PERMISSION.equals(action)) {
                 if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
@@ -445,6 +548,5 @@ public class EcgActivity extends Activity {
                 }
             }
         }
-
     };
 }

@@ -25,10 +25,11 @@
     <!-- Simple strings. -->
     <string name="app_name">MobilECG</string>
     <string name="layout_main">main_layout</string>
-    <string name="menu_button_1">Resume</string>
-    <string name="menu_button_1_alt">Pause</string>
-    <string name="menu_button_2">Stop</string>
-    <string name="menu_button_3">Save to pdf</string>
+    <string name="menu_button_1">Pause</string>
+    <string name="menu_button_1_alt">Resume</string>
+    <string name="menu_button_2">Save</string>
+    <string name="menu_button_3">Rhythm</string>
+    <string name="menu_button_4">Patient</string>
     <string name="title_settings">ECG Settings</string>
     <string name="settings_button">OK</string>
     <string name="mains_text">Mains frequency</string>
