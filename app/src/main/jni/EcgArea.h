@@ -107,6 +107,8 @@ public:
         void deviceConnected();
         void deviceDisconnected();
 
+        void resetContent();
+
         int * getButtonsSize();
 };
 

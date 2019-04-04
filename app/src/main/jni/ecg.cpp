@@ -88,11 +88,12 @@ class ecg {
         EcgArea::instance().draw();
     }
 
-    void pause() {  // TODO handle this
+    void pause() {  // TODO handle this properly
 
     }
 
     void resume() {
+        EcgArea::instance().resetContent();
         EcgArea::instance().redraw();
     }
 
