@@ -48,6 +48,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 
@@ -69,6 +70,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static android.R.attr.id;
+import static android.content.ContentValues.TAG;
+import static com.mobilecg.androidapp.PopUps.GetSelectedXspeed;
 
 /**
  * Reading data from ECG board over USB
@@ -111,6 +114,8 @@ public class EcgActivity extends Activity {
     // patient data values
     private String patientName, patientSurname, patientAge, patientBirth;
     private String measurementId, timestamp;
+    // advanced settings values
+    private static int SELECTED_X_SPEED = 0;    // speed is 25 mm/s
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -118,21 +123,6 @@ public class EcgActivity extends Activity {
         super.onCreate(icicle);
         if (debugFileWrite == true) {
             debugFilePath = this.getFilesDir().getAbsolutePath();
-        }
-
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        // Hide both the navigation bar and the status bar.
-        // SYSTEM_UI_FLAG_FULLSCREEN is only available on Android 4.1 and higher, but as
-        // a general rule, you should design your app to hide the status bar whenever you
-        // hide the navigation bar.
-        if(Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) { // lower api
-            View v = this.getWindow().getDecorView();
-            v.setSystemUiVisibility(View.GONE);
-        } else if(Build.VERSION.SDK_INT >= 19) {
-            //for new api versions.
-            View decorView = getWindow().getDecorView();
-            int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-            decorView.setSystemUiVisibility(uiOptions);
         }
 
         displayMetrics = new DisplayMetrics();
@@ -187,7 +177,8 @@ public class EcgActivity extends Activity {
         mView.queueEvent(new Runnable() {
             @Override
             public void run() {
-                EcgJNI.init(getAssets(), MainScreen.GetSelectedMainsFreq());
+                //EcgJNI.init(getAssets(), PopUps.GetSelectedMainsFreq());
+                EcgJNI.init(getAssets(), 50);
                 Log.d(TAG, "run event - onCreate");
                 EcgJNI.initNDK(debugFilePath);
             }
@@ -238,6 +229,7 @@ public class EcgActivity extends Activity {
     protected void onResume() {
         Log.d(TAG, "run event - onResume");
         super.onResume();
+        hideNavAndStatusBar();
         resumeECG();
     }
 
@@ -247,6 +239,23 @@ public class EcgActivity extends Activity {
         super.onStop();
         if (debugFileWrite == true) {
             CopyDebugFiles();
+        }
+    }
+
+    public void hideNavAndStatusBar() {
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        // Hide both the navigation bar and the status bar.
+        // SYSTEM_UI_FLAG_FULLSCREEN is only available on Android 4.1 and higher, but as
+        // a general rule, you should design your app to hide the status bar whenever you
+        // hide the navigation bar.
+        if(Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) { // lower api
+            View v = this.getWindow().getDecorView();
+            v.setSystemUiVisibility(View.GONE);
+        } else if(Build.VERSION.SDK_INT >= 19) {
+            //for new api versions.
+            View decorView = getWindow().getDecorView();
+            int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+            decorView.setSystemUiVisibility(uiOptions);
         }
     }
 
@@ -350,7 +359,7 @@ public class EcgActivity extends Activity {
     }
     */
 
-    private void inputPatientData() {   // TODO buttons bar appearing handle
+    private void inputPatientData() {   // TODO move to PopUps.java
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = getLayoutInflater().inflate(R.layout.input_data_popup, null);
 
@@ -359,23 +368,87 @@ public class EcgActivity extends Activity {
 
         final EditText etName = (EditText) view.findViewById(R.id.popup_name);
         final EditText etSurname = (EditText) view.findViewById(R.id.popup_surname);
-        final EditText etAge = (EditText) view.findViewById(R.id.age);
         final EditText etBirth = (EditText) view.findViewById(R.id.birth_date);
         final EditText etMeasurementID = (EditText) view.findViewById(R.id.measurement_id);
 
-        Button btnOK = (Button) view.findViewById(R.id.buttonPopUp);
+        Button btnOK = (Button) view.findViewById(R.id.buttonPopUpOK);
         btnOK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 patientName = etName.getText().toString().trim();
                 patientSurname = etSurname.getText().toString().trim();
-                patientAge = etAge.getText().toString().trim();
                 patientBirth = etBirth.getText().toString().trim();
                 measurementId  = etMeasurementID.getText().toString().trim();
                 timestamp = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
                 alertDialog.dismiss();
+                hideNavAndStatusBar();
                 String logi = String.format("name: %s, surname: %s, birth: %s", patientName, patientSurname, patientBirth);
                 Log.d(TAG, logi);
+            }
+        });
+
+        Button btnAdvSet = (Button) view.findViewById(R.id.buttonPopUpAdvanced);
+        btnAdvSet.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                advancedSettings();
+            }
+        });
+
+        Button btnArchive = (Button) view.findViewById(R.id.buttonPopUpArchive);
+        btnArchive.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // TODO
+            }
+        });
+
+        Button btnNew = (Button) view.findViewById(R.id.buttonPopUpNew);
+        btnNew.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // TODO
+            }
+        });
+
+        alertDialog.show();
+    }
+
+    private void advancedSettings() {   // TODO move to PopUps.java
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = getLayoutInflater().inflate(R.layout.advanced_popup, null);
+        /*
+        final Spinner mainsFreqSpinner = (Spinner) view.findViewById(R.id.spinnerMains);
+        final ArrayAdapter<CharSequence> mainsFreqAdapter = ArrayAdapter.createFromResource(view.getContext(), R.array.mains, android.R.layout.simple_spinner_item);
+        mainsFreqAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mainsFreqSpinner.setAdapter(mainsFreqAdapter);
+        */
+        final Spinner xSpeedSpinner = (Spinner) view.findViewById(R.id.spinnerSpeedX);
+        final ArrayAdapter<CharSequence> xSpeedAdapter = ArrayAdapter.createFromResource(view.getContext(), R.array.x_speed, android.R.layout.simple_spinner_item);
+        xSpeedAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        xSpeedSpinner.setAdapter(xSpeedAdapter);
+
+        //mainsFreqSpinner.setSelection(SELECTED_MAINS_FREQ);
+        xSpeedSpinner.setSelection(SELECTED_X_SPEED);
+
+        builder.setView(view);
+        final AlertDialog alertDialog = builder.create();
+
+        Button btnOK = (Button) view.findViewById(R.id.btnOK);
+        btnOK.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                /*
+                if (SELECTED_MAINS_FREQ != mainsFreqSpinner.getSelectedItemPosition()) {
+                    SELECTED_MAINS_FREQ = mainsFreqSpinner.getSelectedItemPosition();
+                    //Log.i(TAG, "Mains: " + GetSelectedMainsFreq());
+                }
+                */
+                if (SELECTED_X_SPEED != xSpeedSpinner.getSelectedItemPosition()) {
+                    SELECTED_X_SPEED = xSpeedSpinner.getSelectedItemPosition();
+                    Log.i(TAG, "X speed: " + GetSelectedXspeed());
+                }
+                alertDialog.dismiss();
             }
         });
         alertDialog.show();

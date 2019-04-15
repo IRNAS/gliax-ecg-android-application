@@ -21,33 +21,53 @@
 <!-- This file contains resource definitions for displayed strings, allowing
      them to be changed based on the locale and options. -->
 
+<!-- TODO organize this file -->
+
 <resources>
     <!-- Simple strings. -->
     <string name="app_name">MobilECG</string>
-    <string name="layout_main">main_layout</string>
+    <string name="confirm_btn">OK</string>
+
+    <string name="ecg_layout">ecg_layout</string>
+    <string name="gl_surface_view">m_view</string>
     <string name="menu_button_1">Pause</string>
     <string name="menu_button_1_alt">Resume</string>
     <string name="menu_button_2">Save</string>
     <string name="menu_button_3">Rhythm</string>
+    <string name="menu_button_3_alt">12-lead</string>
     <string name="menu_button_4">Patient</string>
-    <string name="title_settings">ECG Settings</string>
-    <string name="settings_button">OK</string>
-    <string name="mains_text">Mains frequency</string>
-    <string name="x_speed_text">Speed selection</string>
+
+    <string name="input_popup_title">PATIENT DATA</string>
+    <string name="id_text">ID:</string>
+    <string name="surname_text">LAST NAME:</string>
+    <string name="name_text">FIRST NAME:</string>
+    <string name="birth_date_text">DATE OF BIRTH:</string>
+    <string name="archive_btn">ARCHIVE</string>
+    <string name="advanced_set_btn">ADVANCED SETTINGS</string>
+
+    <string name="x_speed_text">PAPER SPEED</string>
+    <string-array name="x_speed">
+        <item>25 mm/s</item>
+        <item>50 mm/s</item>
+    </string-array>
+    <string name="save_loc_text">SAVE LOCATION</string>
+    <string name="switch_text">Auto print on save</string>
+    <string name="about_btn">About</string>
+
+    <string name="question_print_measur">Would you like to print your measurement?</string>
+    <string name="print_btn">Print</string>
+    <string name="cancel_btn">Cancel</string>
+
+    <string name="search_btn">Search</string>
+
+    <!-- unused, TODO delete -->
+    <string name="layout_main">main_layout</string>
     <string name="in_patient_data">Input patient data</string>
     <string name="main_btn_1">Start measurement</string>
     <string name="main_btn_2">Settings</string>
     <string name="main_btn_3">View old data</string>
     <string name="main_btn_4">Exit</string>
-    <string-array name="mains">
-        <item>50</item>
-        <item>60</item>
-    </string-array>
-    <string-array name="x_speed">
-        <item>25 mm/s</item>
-        <item>50 mm/s</item>
-    </string-array>
-    <string name="ecg_layout">ecg_layout</string>
-    <string name="gl_surface_view">m_view</string>
+    <string name="title_settings">ECG Settings</string>
+
 </resources>
 
