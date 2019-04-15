@@ -50,6 +50,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.Spinner;
 
 import com.hoho.android.usbserial.driver.CdcAcmSerialDriver;
@@ -112,10 +113,11 @@ public class EcgActivity extends Activity {
     private int PARITY = UsbSerialPort.PARITY_NONE;
 
     // patient data values
-    private String patientName, patientSurname, patientAge, patientBirth;
+    private String patientName, patientSurname, patientBirth;
     private String measurementId, timestamp;
     // advanced settings values
-    private static int SELECTED_X_SPEED = 0;    // speed is 25 mm/s
+    private static int paperSpeed = 0;    // speed is 25 mm/s
+    private String saveLocation = "heh";
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -387,7 +389,7 @@ public class EcgActivity extends Activity {
             }
         });
 
-        Button btnAdvSet = (Button) view.findViewById(R.id.buttonPopUpAdvanced);
+        Button btnAdvSet = (Button) view.findViewById(R.id.buttonPopUpAdvanced);    // TODO move to xml all button onclick methods
         btnAdvSet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -417,40 +419,55 @@ public class EcgActivity extends Activity {
     private void advancedSettings() {   // TODO move to PopUps.java
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = getLayoutInflater().inflate(R.layout.advanced_popup, null);
-        /*
-        final Spinner mainsFreqSpinner = (Spinner) view.findViewById(R.id.spinnerMains);
-        final ArrayAdapter<CharSequence> mainsFreqAdapter = ArrayAdapter.createFromResource(view.getContext(), R.array.mains, android.R.layout.simple_spinner_item);
-        mainsFreqAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        mainsFreqSpinner.setAdapter(mainsFreqAdapter);
-        */
-        final Spinner xSpeedSpinner = (Spinner) view.findViewById(R.id.spinnerSpeedX);
-        final ArrayAdapter<CharSequence> xSpeedAdapter = ArrayAdapter.createFromResource(view.getContext(), R.array.x_speed, android.R.layout.simple_spinner_item);
-        xSpeedAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        xSpeedSpinner.setAdapter(xSpeedAdapter);
-
-        //mainsFreqSpinner.setSelection(SELECTED_MAINS_FREQ);
-        xSpeedSpinner.setSelection(SELECTED_X_SPEED);
 
         builder.setView(view);
         final AlertDialog alertDialog = builder.create();
+
+        final EditText etSaveLoc = (EditText) view.findViewById(R.id.save_location);
+        etSaveLoc.setText(saveLocation);
+        final RadioButton rbSpeed25 = (RadioButton) view.findViewById(R.id.pap_speed_25);
+        final RadioButton rbSpeed50 = (RadioButton) view.findViewById(R.id.pap_speed_50);
+        if (paperSpeed == 25) {
+            rbSpeed25.setChecked(true);
+        }
+        else {
+            rbSpeed50.setChecked(true);
+        }
 
         Button btnOK = (Button) view.findViewById(R.id.btnOK);
         btnOK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                /*
-                if (SELECTED_MAINS_FREQ != mainsFreqSpinner.getSelectedItemPosition()) {
-                    SELECTED_MAINS_FREQ = mainsFreqSpinner.getSelectedItemPosition();
-                    //Log.i(TAG, "Mains: " + GetSelectedMainsFreq());
+                String save_loc = etSaveLoc.getText().toString().trim();
+                if (save_loc != saveLocation) {
+                    saveLocation = save_loc;
                 }
-                */
-                if (SELECTED_X_SPEED != xSpeedSpinner.getSelectedItemPosition()) {
-                    SELECTED_X_SPEED = xSpeedSpinner.getSelectedItemPosition();
-                    Log.i(TAG, "X speed: " + GetSelectedXspeed());
+                int paper_speed = 0;
+                Log.i(TAG, "save location: " + save_loc);
+
+                if (rbSpeed25.isChecked()) {
+                    paper_speed = 25;
                 }
+                else if (rbSpeed50.isChecked()) {
+                    paper_speed = 50;
+                }
+                if (paper_speed != paperSpeed) {
+                    paperSpeed = paper_speed;
+                }
+                Log.i(TAG, "Paper speed: " + paper_speed);
+
                 alertDialog.dismiss();
             }
         });
+
+        Button btnAbout = (Button) view.findViewById(R.id.btnAbout);
+        btnAbout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // TODO
+            }
+        });
+
         alertDialog.show();
     }
 

@@ -20,6 +20,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="10dp"
         android:orientation="vertical">
 
         <LinearLayout
@@ -34,33 +35,58 @@
                 android:text="@string/x_speed_text"
                 android:textSize="20sp"/>
 
-            <Spinner
-                android:id="@+id/spinnerSpeedX"
+            <RadioGroup
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="22dp"
-                android:layout_marginStart="22dp"
-                android:minWidth="70dp"/>
+                android:orientation="horizontal">
+                <RadioButton
+                    android:id="@+id/pap_speed_25"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="@string/x_speed_25"/>
+                <RadioButton
+                    android:id="@+id/pap_speed_50"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/x_speed_50"/>
+            </RadioGroup>
 
         </LinearLayout>
 
-        <LinearLayout
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/save_loc_text"
+            android:textSize="20sp"/>
+
+        <EditText
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:id="@+id/save_location"
+            android:inputType="text"/>
 
-        </LinearLayout>
+        <Switch
+            android:id="@+id/switch1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/switch_text"
+            android:checked="true"
+            android:textSize="20sp"/>
 
         <Button
             android:id="@+id/btnOK"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:background="@android:color/darker_gray"
-            android:paddingBottom="5dp"
-            android:paddingTop="5dp"
-            android:text="@string/confirm_btn"
-            android:textColor="@android:color/white"
-            android:textSize="18sp"/>
+            android:text="@string/confirm_btn"/>
+
+        <Button
+            android:id="@+id/btnAbout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="7dp"
+            android:text="@string/about_btn" />
 
     </LinearLayout>
 </RelativeLayout>

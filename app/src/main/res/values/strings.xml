@@ -45,13 +45,11 @@
     <string name="archive_btn">ARCHIVE</string>
     <string name="advanced_set_btn">ADVANCED SETTINGS</string>
 
-    <string name="x_speed_text">PAPER SPEED</string>
-    <string-array name="x_speed">
-        <item>25 mm/s</item>
-        <item>50 mm/s</item>
-    </string-array>
+    <string name="x_speed_text">PAPER SPEED:</string>
+    <string name="x_speed_25">25 mm/s</string>
+    <string name="x_speed_50">50 mm/s</string>
     <string name="save_loc_text">SAVE LOCATION</string>
-    <string name="switch_text">Auto print on save</string>
+    <string name="switch_text">Auto print on save:</string>
     <string name="about_btn">About</string>
 
     <string name="question_print_measur">Would you like to print your measurement?</string>
