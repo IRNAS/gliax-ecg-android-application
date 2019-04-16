@@ -30,6 +30,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
+import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
@@ -52,6 +53,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Spinner;
+import android.widget.ToggleButton;
 
 import com.hoho.android.usbserial.driver.CdcAcmSerialDriver;
 import com.hoho.android.usbserial.driver.Cp21xxSerialDriver;
@@ -118,6 +120,7 @@ public class EcgActivity extends Activity {
     // advanced settings values
     private static int paperSpeed = 0;    // speed is 25 mm/s
     private String saveLocation = "heh";
+    private boolean autoPrint = true;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -372,6 +375,10 @@ public class EcgActivity extends Activity {
         final EditText etSurname = (EditText) view.findViewById(R.id.popup_surname);
         final EditText etBirth = (EditText) view.findViewById(R.id.birth_date);
         final EditText etMeasurementID = (EditText) view.findViewById(R.id.measurement_id);
+        etName.setText(patientName);
+        etSurname.setText(patientSurname);
+        etBirth.setText(patientBirth);
+        etMeasurementID.setText(measurementId);
 
         Button btnOK = (Button) view.findViewById(R.id.buttonPopUpOK);
         btnOK.setOnClickListener(new View.OnClickListener() {
@@ -409,7 +416,10 @@ public class EcgActivity extends Activity {
         btnNew.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO
+                etName.setText("");
+                etSurname.setText("");
+                etBirth.setText("");
+                etMeasurementID.setText("");
             }
         });
 
@@ -433,28 +443,26 @@ public class EcgActivity extends Activity {
         else {
             rbSpeed50.setChecked(true);
         }
+        final ToggleButton tbAutoSave = (ToggleButton) view.findViewById(R.id.toggle1);
+        tbAutoSave.setChecked(autoPrint);
 
         Button btnOK = (Button) view.findViewById(R.id.btnOK);
         btnOK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String save_loc = etSaveLoc.getText().toString().trim();
-                if (save_loc != saveLocation) {
-                    saveLocation = save_loc;
-                }
-                int paper_speed = 0;
+                if (save_loc != saveLocation) { saveLocation = save_loc; }
                 Log.i(TAG, "save location: " + save_loc);
 
-                if (rbSpeed25.isChecked()) {
-                    paper_speed = 25;
-                }
-                else if (rbSpeed50.isChecked()) {
-                    paper_speed = 50;
-                }
-                if (paper_speed != paperSpeed) {
-                    paperSpeed = paper_speed;
-                }
+                int paper_speed = 0;
+                if (rbSpeed25.isChecked()) { paper_speed = 25; }
+                else if (rbSpeed50.isChecked()) { paper_speed = 50; }
+                if (paper_speed != paperSpeed) { paperSpeed = paper_speed; }
                 Log.i(TAG, "Paper speed: " + paper_speed);
+
+                if (tbAutoSave.isChecked()) { autoPrint = true; }
+                else { autoPrint = false; }
+                Log.i(TAG, "Auto print on save: " + autoPrint);
 
                 alertDialog.dismiss();
             }
@@ -464,7 +472,8 @@ public class EcgActivity extends Activity {
         btnAbout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.irnas.eu"));
+                startActivity(browserIntent);
             }
         });
 
