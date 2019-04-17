@@ -66,6 +66,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/save_location"
+            android:hint="@string/save_loc_hint"
             android:inputType="text"/>
 
         <LinearLayout

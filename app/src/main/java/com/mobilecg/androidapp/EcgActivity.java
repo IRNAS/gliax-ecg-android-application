@@ -20,6 +20,7 @@
 
 package com.mobilecg.androidapp;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -28,6 +29,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.net.Uri;
@@ -36,10 +38,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.SystemClock;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.util.DisplayMetrics;
-
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.opengles.GL10;
 
 import android.util.Log;
 import android.view.Menu;
@@ -51,9 +52,13 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
+import android.support.v4.content.ContextCompat;
 
 import com.hoho.android.usbserial.driver.CdcAcmSerialDriver;
 import com.hoho.android.usbserial.driver.Cp21xxSerialDriver;
@@ -67,6 +72,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -107,6 +113,7 @@ public class EcgActivity extends Activity {
     private final String TAG = "HEH";
     private IntentFilter intentFilter = null;
     private String debugFilePath = "";
+    private final int APP_ALLOW_STORAGE = 1;
 
     // initial values for usb communication parameters
     private int BAUD_RATE = 115200;
@@ -119,7 +126,7 @@ public class EcgActivity extends Activity {
     private String measurementId, timestamp;
     // advanced settings values
     private static int paperSpeed = 0;    // speed is 25 mm/s
-    private String saveLocation = "heh";
+    private String saveLocation = "MobilECG";    // TODO make save location stay as it's set between app launches
     private boolean autoPrint = true;
 
     @SuppressLint("ClickableViewAccessibility")
@@ -221,6 +228,10 @@ public class EcgActivity extends Activity {
             }
         });
 
+        // check if app has permission for storage read/write and request it if not
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE}, APP_ALLOW_STORAGE);
+        }
     }
 
     @Override
@@ -408,7 +419,7 @@ public class EcgActivity extends Activity {
         btnArchive.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO
+                showArchive();
             }
         });
 
@@ -480,6 +491,47 @@ public class EcgActivity extends Activity {
         alertDialog.show();
     }
 
+    private void showArchive() {
+        if (isExternalStorageReadable()) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            View view = getLayoutInflater().inflate(R.layout.archive_popup, null);
+
+            builder.setView(view);
+            final AlertDialog alertDialog = builder.create();
+            File dir = new File(Environment.getExternalStorageDirectory() + File.separator + saveLocation);
+            if (!dir.exists()) {
+                boolean result = dir.mkdirs();
+                if (!result) {
+                    Log.i(TAG, "archive mkdir error");
+                    return;
+                }
+            }
+            ListView listView = (ListView) findViewById(R.id.archive_list_view);
+            File[] fileList = dir.listFiles();
+            if (fileList != null && fileList.length > 0) {
+                String[] namesOfFiles = new String[fileList.length];
+                for (int i = 0; i < namesOfFiles.length; i++) {
+                    namesOfFiles[i] = fileList[i].getName();
+                    Log.i(TAG, "name: " + namesOfFiles[i]);
+                }
+                Arrays.sort(namesOfFiles);
+                ArrayAdapter<String> listOfFiles = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, namesOfFiles);
+                listView.setAdapter(listOfFiles);
+            }
+            else {
+                //listView.setVisibility(View.GONE);
+                TextView infoTextView = new TextView(this);
+                infoTextView.setLayoutParams(new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT));
+                infoTextView.setText(getString(R.string.empty_archive));
+            }
+
+            alertDialog.show();
+        }
+        else {
+            Toast.makeText(this, "Error accessing device storage...", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private ProbeTable CreateDevicesTable() {
         ProbeTable probeTable = new ProbeTable();
         probeTable.addProduct(0x0483, 0x374B, CdcAcmSerialDriver.class);   // add ST-LINK/V2.1 device support
@@ -530,7 +582,18 @@ public class EcgActivity extends Activity {
         }
         return false;
     }
-
+    /*
+    @Override
+    public void onRequestPermissionResult(int requestCode, @NonNull String permission, @NonNull int grantResults) {
+        switch(requestCode) {
+            case APP_ALLOW_STORAGE:
+                if (grantResults != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "Permission denied for accessing external storage!", Toast.LENGTH_LONG).show();
+                }
+            break;
+        }
+    }
+    */
     private void FindUsbDevice() {
         UsbSerialProber prober = new UsbSerialProber(customTable);
         usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
@@ -643,7 +706,7 @@ public class EcgActivity extends Activity {
                     ConnectToUsbDevice();
                 }
                 else {
-                    Log.d(TAG, "Permission denied for accessing target device.");
+                    Log.d(TAG, "Permission denied for accessing ECG device!");
                 }
             }
         }

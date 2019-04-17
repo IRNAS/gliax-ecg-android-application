@@ -49,6 +49,7 @@
     <string name="x_speed_25">25 mm/s</string>
     <string name="x_speed_50">50 mm/s</string>
     <string name="save_loc_text">SAVE LOCATION</string>
+    <string name="save_loc_hint">Folder name</string>
     <string name="switch_text">Auto print on save:</string>
     <string name="about_btn">About</string>
 
@@ -56,7 +57,8 @@
     <string name="print_btn">Print</string>
     <string name="cancel_btn">Cancel</string>
 
-    <string name="search_btn">Search</string>
+    <string name="search_text">Search</string>
+    <string name="empty_archive">No files found :(</string>
 
     <!-- unused, TODO delete -->
     <string name="layout_main">main_layout</string>

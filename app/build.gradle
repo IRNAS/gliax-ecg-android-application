@@ -60,5 +60,6 @@ model {
 
 dependencies {
     compile project(":usbSerialForAndroid-library")
+    compile 'com.android.support:support-v4:23.4.0'
 }
 
