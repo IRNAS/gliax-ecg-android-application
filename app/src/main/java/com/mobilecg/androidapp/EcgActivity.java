@@ -27,6 +27,7 @@ import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -104,9 +105,10 @@ public class EcgActivity extends Activity {
 
     Button pause_resume_btn;
     Button save_btn;
-    Button rhythm_btn;
+    Button rhythm_12lead_btn;
     Button patient_btn;
     private boolean render_paused = false;
+    private boolean rhythm_screen = false;
 
     private static final String ACTION_USB_PERMISSION = "com.mobileecg.androidapp.USB_PERMISSION";
     //private final String TAG = EcgActivity.class.getSimpleName();
@@ -125,9 +127,9 @@ public class EcgActivity extends Activity {
     private String patientName, patientSurname, patientBirth;
     private String measurementId, timestamp;
     // advanced settings values
-    private static int paperSpeed = 0;    // speed is 25 mm/s
+    private static int paperSpeed = 25;    // speed is 25 mm/s - TODO display alert if not default speed
     private String saveLocation = "MobilECG";    // TODO make save location stay as it's set between app launches
-    private boolean autoPrint = true;
+    private boolean autoPrint = true;   // this gets reset between app launches
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -212,13 +214,30 @@ public class EcgActivity extends Activity {
         save_btn = (Button)findViewById(R.id.save_btn);    // Save
         save_btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-
+                if (!render_paused) {   // pause ecg
+                    pauseECG();
+                }
+                if (!autoPrint) {   // display alert
+                    showPrintAlertDialog();
+                }
+                else {
+                    // TODO call print function
+                }
             }
         });
-        rhythm_btn = (Button)findViewById(R.id.rhythm_btn);    // Rhythm
-        rhythm_btn.setOnClickListener(new View.OnClickListener() {
+        rhythm_12lead_btn = (Button)findViewById(R.id.rhythm_btn);    // Rhythm / 12 lead
+        rhythm_12lead_btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-
+                if (!rhythm_screen) {   // 12 lead -> rhythm
+                    // TODO call native cpp function
+                    rhythm_12lead_btn.setText(R.string.menu_button_3_alt);
+                    rhythm_screen = true;
+                }
+                else {  // rhythm -> 12 lead
+                    // TODO call native cpp function
+                    rhythm_12lead_btn.setText(R.string.menu_button_3);
+                    rhythm_screen = false;
+                }
             }
         });
         patient_btn = (Button)findViewById(R.id.patient_btn);  // Patient
@@ -231,6 +250,17 @@ public class EcgActivity extends Activity {
         // check if app has permission for storage read/write and request it if not
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE}, APP_ALLOW_STORAGE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch(requestCode) {
+            case APP_ALLOW_STORAGE:
+                if (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "Permission denied for accessing external storage! You won't be able to save pdfs!", Toast.LENGTH_LONG).show();
+                }
+                break;
         }
     }
 
@@ -375,6 +405,26 @@ public class EcgActivity extends Activity {
     }
     */
 
+    private void showPrintAlertDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.question_print_measur);
+        builder.setPositiveButton(R.string.print_btn, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // TODO call print function
+            }
+        });
+        builder.setNegativeButton(R.string.cancel_btn, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // return to main screen
+                hideNavAndStatusBar();
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
     private void inputPatientData() {   // TODO move to PopUps.java
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = getLayoutInflater().inflate(R.layout.input_data_popup, null);
@@ -506,7 +556,8 @@ public class EcgActivity extends Activity {
                     return;
                 }
             }
-            ListView listView = (ListView) findViewById(R.id.archive_list_view);
+            TextView textView = (TextView) view.findViewById(R.id.text_view_empty_archive);
+            ListView listView = (ListView) view.findViewById(R.id.archive_list_view);
             File[] fileList = dir.listFiles();
             if (fileList != null && fileList.length > 0) {
                 String[] namesOfFiles = new String[fileList.length];
@@ -515,22 +566,24 @@ public class EcgActivity extends Activity {
                     Log.i(TAG, "name: " + namesOfFiles[i]);
                 }
                 Arrays.sort(namesOfFiles);
-                ArrayAdapter<String> listOfFiles = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, namesOfFiles);
+                final ArrayAdapter<String> listOfFiles = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, namesOfFiles);
                 listView.setAdapter(listOfFiles);
+                textView.setVisibility(View.GONE);
             }
             else {
-                //listView.setVisibility(View.GONE);
+                listView.setVisibility(View.GONE);
                 TextView infoTextView = new TextView(this);
                 infoTextView.setLayoutParams(new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT));
                 infoTextView.setText(getString(R.string.empty_archive));
             }
-
             alertDialog.show();
         }
         else {
             Toast.makeText(this, "Error accessing device storage...", Toast.LENGTH_SHORT).show();
         }
     }
+
+    // TODO handle search function in archive
 
     private ProbeTable CreateDevicesTable() {
         ProbeTable probeTable = new ProbeTable();
@@ -575,6 +628,18 @@ public class EcgActivity extends Activity {
         }
     }
 
+    private void disableMainButtons() {
+        pause_resume_btn.setEnabled(false);
+        save_btn.setEnabled(false);
+        rhythm_12lead_btn.setEnabled(false);
+    }
+
+    private void enableMainButtons() {
+        pause_resume_btn.setEnabled(true);
+        save_btn.setEnabled(true);
+        rhythm_12lead_btn.setEnabled(true);
+    }
+
     public boolean isExternalStorageReadable() {
         String state = Environment.getExternalStorageState();
         if (Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
@@ -582,27 +647,18 @@ public class EcgActivity extends Activity {
         }
         return false;
     }
-    /*
-    @Override
-    public void onRequestPermissionResult(int requestCode, @NonNull String permission, @NonNull int grantResults) {
-        switch(requestCode) {
-            case APP_ALLOW_STORAGE:
-                if (grantResults != PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(this, "Permission denied for accessing external storage!", Toast.LENGTH_LONG).show();
-                }
-            break;
-        }
-    }
-    */
+
     private void FindUsbDevice() {
         UsbSerialProber prober = new UsbSerialProber(customTable);
         usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
         List<UsbSerialDriver> usbDriversList = prober.findAllDrivers(usbManager);
         if (usbDriversList.isEmpty()) {
             Log.d(TAG, "Usb device not connected.");
+            disableMainButtons();
             return;
         }
         else {
+            enableMainButtons();
             if (usbDriversList.size() > 1)  {
                 Log.d(TAG, "More than one ECG devices connected. Selecting the first one...");
             }
@@ -711,4 +767,6 @@ public class EcgActivity extends Activity {
             }
         }
     };
+
+    // TODO handle back button press (stop at main screen, hide nav bar)
 }

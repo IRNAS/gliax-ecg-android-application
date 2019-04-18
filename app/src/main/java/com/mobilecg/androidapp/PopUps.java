@@ -30,7 +30,7 @@ public class PopUps extends Activity {
     private String patientName, patientSurname, patientAge, patientBirth;
     private String measurementId, timestamp;
 
-    private void inputPatientData() {   // TODO move to PopUps.java
+    private void inputPatientData() {   // TODO
 
     }
 

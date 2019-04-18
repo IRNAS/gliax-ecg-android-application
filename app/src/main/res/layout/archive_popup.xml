@@ -9,7 +9,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:queryHint="@string/search_text"
-        android:layout_margin="5dp"/>
+        android:layout_margin="5dp">
+
+    </SearchView>
 
     <ListView
         android:layout_width="match_parent"
@@ -18,5 +20,13 @@
         android:layout_margin="5dp">
 
     </ListView>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/text_view_empty_archive"
+        android:textSize="20sp"
+        android:layout_margin="10dp"
+        android:text="@string/empty_archive"/>
 
 </LinearLayout>
