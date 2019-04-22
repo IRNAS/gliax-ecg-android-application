@@ -261,6 +261,7 @@ void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride){
             ecgCurves[cur_column*3 + a].resetCurrWritePos();
         }*/
     }
+    // opcija je da si dam buffer na dolžino enega rhythm okna in za ostale izrisujem 4x od tam ven
 }
 
 void EcgArea::draw(){

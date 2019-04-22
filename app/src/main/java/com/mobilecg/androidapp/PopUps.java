@@ -24,11 +24,6 @@ public class PopUps extends Activity {
     // initial values for operational parameters
     //private static int SELECTED_MAINS_FREQ = 0; // mains freq is 50 Hz
     private static int SELECTED_X_SPEED = 0;    // speed is 25 mm/s
-    private static boolean PATIENT_DATA = true; // we request patient data
-
-    // patient data values
-    private String patientName, patientSurname, patientAge, patientBirth;
-    private String measurementId, timestamp;
 
     private void inputPatientData() {   // TODO
 

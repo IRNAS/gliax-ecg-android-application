@@ -123,9 +123,10 @@ public class EcgActivity extends Activity {
     private int STOP_BITS = UsbSerialPort.STOPBITS_1;
     private int PARITY = UsbSerialPort.PARITY_NONE;
 
-    // patient data values
+    // patient data values - TODO make separate class
+    private Patient patient;
     private String patientName, patientSurname, patientBirth;
-    private String measurementId, timestamp;
+    private String measurementId, measurementTimestamp;
     // advanced settings values
     private static int paperSpeed = 25;    // speed is 25 mm/s - TODO display alert if not default speed
     private String saveLocation = "MobilECG";    // TODO make save location stay as it's set between app launches
@@ -186,7 +187,8 @@ public class EcgActivity extends Activity {
             }
         });
 
-        mView.setRenderer(new MyGLRenderer(displayMetrics));
+        final MyGLRenderer myGLRenderer = new MyGLRenderer(displayMetrics);
+        mView.setRenderer(myGLRenderer);
 
         mView.queueEvent(new Runnable() {
             @Override
@@ -214,6 +216,8 @@ public class EcgActivity extends Activity {
         save_btn = (Button)findViewById(R.id.save_btn);    // Save
         save_btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                myGLRenderer.takeScreenshot(saveLocation, patient);
+
                 if (!render_paused) {   // pause ecg
                     pauseECG();
                 }
@@ -251,6 +255,9 @@ public class EcgActivity extends Activity {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE}, APP_ALLOW_STORAGE);
         }
+
+        // create new patient
+        patient = new Patient();
     }
 
     @Override
@@ -267,8 +274,8 @@ public class EcgActivity extends Activity {
     @Override
     protected void onPause() {
         Log.d(TAG, "run event - onPause");
-       super.onPause();
-       pauseECG();
+        super.onPause();
+        pauseECG();
     }
 
     @Override
@@ -286,6 +293,7 @@ public class EcgActivity extends Activity {
         if (debugFileWrite == true) {
             CopyDebugFiles();
         }
+        // TODO save current patient
     }
 
     public void hideNavAndStatusBar() {
@@ -436,24 +444,23 @@ public class EcgActivity extends Activity {
         final EditText etSurname = (EditText) view.findViewById(R.id.popup_surname);
         final EditText etBirth = (EditText) view.findViewById(R.id.birth_date);
         final EditText etMeasurementID = (EditText) view.findViewById(R.id.measurement_id);
-        etName.setText(patientName);
-        etSurname.setText(patientSurname);
-        etBirth.setText(patientBirth);
-        etMeasurementID.setText(measurementId);
+        etName.setText(patient.getName());
+        etSurname.setText(patient.getSurname());
+        etBirth.setText(patient.getBirth());
+        etMeasurementID.setText(patient.getMeasurementId());
 
         Button btnOK = (Button) view.findViewById(R.id.buttonPopUpOK);
         btnOK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                patientName = etName.getText().toString().trim();
-                patientSurname = etSurname.getText().toString().trim();
-                patientBirth = etBirth.getText().toString().trim();
-                measurementId  = etMeasurementID.getText().toString().trim();
-                timestamp = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
+                String name = etName.getText().toString().trim();
+                String surname = etSurname.getText().toString().trim();
+                String birth = etBirth.getText().toString().trim();
+                String id  = etMeasurementID.getText().toString().trim();
+                patient.setPatientData(name, surname, birth, id);
+                 // TODO move to screenshot click function
                 alertDialog.dismiss();
                 hideNavAndStatusBar();
-                String logi = String.format("name: %s, surname: %s, birth: %s", patientName, patientSurname, patientBirth);
-                Log.d(TAG, logi);
             }
         });
 
@@ -477,10 +484,8 @@ public class EcgActivity extends Activity {
         btnNew.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                etName.setText("");
-                etSurname.setText("");
-                etBirth.setText("");
-                etMeasurementID.setText("");
+                // TODO auto save?
+                patient = new Patient();
             }
         });
 
