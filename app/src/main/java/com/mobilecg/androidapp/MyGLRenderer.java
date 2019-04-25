@@ -1,5 +1,6 @@
 package com.mobilecg.androidapp;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -8,6 +9,8 @@ import android.graphics.pdf.PdfDocument;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.print.PrintAttributes;
 import android.print.pdf.PrintedPdfDocument;
 import android.util.DisplayMetrics;
@@ -31,6 +34,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private int glWidth;
 
     private boolean screenshot = false;
+    private boolean screenshotResult = false;
     private String savePath = null;
     private Patient thisPatient = null;
 
@@ -135,6 +139,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             File file = new File(dir + filename);
             document.writeTo(new FileOutputStream(file));
             document.close();
+            screenshotResult = true;
 
             /*  // DEBUG - to save picture directly
             File file = new File(dir + filename);
@@ -148,5 +153,11 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             e.printStackTrace();
             Log.i("HEH", "Save pdf file error!");
         }
+    }
+
+    public boolean getScreenshotResult() {
+        boolean result = screenshotResult;
+        screenshotResult = false;
+        return result;
     }
 }

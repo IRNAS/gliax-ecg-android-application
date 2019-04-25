@@ -210,15 +210,21 @@ public class EcgActivity extends Activity {
                 }
             }
         });
-
         save_btn = (Button)findViewById(R.id.save_btn);    // Save
         save_btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 myGLRenderer.takeScreenshot(saveLocation, patient);
-
                 if (!render_paused) {   // pause ecg
                     pauseECG();
                 }
+                boolean result = myGLRenderer.getScreenshotResult();
+                if (result) {
+                    displayToast("Successfully saved to pdf...");
+                }
+                else {
+                    displayToast("Error when saving to pdf!");
+                }
+
                 if (!autoPrint) {   // display alert
                     showPrintAlertDialog();
                 }
@@ -263,7 +269,7 @@ public class EcgActivity extends Activity {
         switch(requestCode) {
             case APP_ALLOW_STORAGE:
                 if (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(this, "Permission denied for accessing external storage! You won't be able to save pdfs!", Toast.LENGTH_LONG).show();
+                    displayToast("Permission denied for accessing external storage! You won't be able to save pdfs!");
                 }
                 break;
         }
@@ -292,6 +298,10 @@ public class EcgActivity extends Activity {
             CopyDebugFiles();
         }
         // TODO save current patient
+    }
+
+    public void displayToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
     public void hideNavAndStatusBar() {
@@ -421,14 +431,11 @@ public class EcgActivity extends Activity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 // TODO call print function
-
             }
         });
         builder.setNegativeButton(R.string.cancel_btn, new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // return to main screen
-            }
+            public void onClick(DialogInterface dialog, int which) {}   // return to main screen
         });
         AlertDialog dialog = builder.create();
         dialog.show();
@@ -593,7 +600,7 @@ public class EcgActivity extends Activity {
             alertDialog.show();
         }
         else {
-            Toast.makeText(this, "Error accessing device storage...", Toast.LENGTH_SHORT).show();
+            displayToast("Error accessing device storage...");
         }
     }
 
