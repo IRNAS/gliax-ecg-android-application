@@ -136,8 +136,6 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             document.writeTo(new FileOutputStream(file));
             document.close();
 
-            // TODO make a toast
-
             /*  // DEBUG - to save picture directly
             File file = new File(dir + filename);
             FileOutputStream outputStream = new FileOutputStream(file);

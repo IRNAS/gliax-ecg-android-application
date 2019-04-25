@@ -21,8 +21,6 @@
 <!-- This file contains resource definitions for displayed strings, allowing
      them to be changed based on the locale and options. -->
 
-<!-- TODO organize this file -->
-
 <resources>
     <!-- Simple strings. -->
     <string name="app_name">MobilECG</string>

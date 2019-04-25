@@ -123,10 +123,8 @@ public class EcgActivity extends Activity {
     private int STOP_BITS = UsbSerialPort.STOPBITS_1;
     private int PARITY = UsbSerialPort.PARITY_NONE;
 
-    // patient data values - TODO make separate class
+    // patient class
     private Patient patient;
-    private String patientName, patientSurname, patientBirth;
-    private String measurementId, measurementTimestamp;
     // advanced settings values
     private static int paperSpeed = 25;    // speed is 25 mm/s - TODO display alert if not default speed
     private String saveLocation = "MobilECG";    // TODO make save location stay as it's set between app launches
@@ -357,6 +355,10 @@ public class EcgActivity extends Activity {
             render_paused = true;
         }
     }
+
+    @Override
+    public void onBackPressed() {}  // disable back button
+
     /*
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -402,7 +404,6 @@ public class EcgActivity extends Activity {
                 }
                 return true;
             case R.id.menu_btn2:    // Stop measurement - exit
-                // TODO Save to pdf
                 finish();
                 System.exit(0);
                 super.onStop();
@@ -420,17 +421,18 @@ public class EcgActivity extends Activity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 // TODO call print function
+
             }
         });
         builder.setNegativeButton(R.string.cancel_btn, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 // return to main screen
-                hideNavAndStatusBar();
             }
         });
         AlertDialog dialog = builder.create();
         dialog.show();
+        hideNavAndStatusBar();
     }
 
     private void inputPatientData() {   // TODO move to PopUps.java
@@ -448,6 +450,13 @@ public class EcgActivity extends Activity {
         etSurname.setText(patient.getSurname());
         etBirth.setText(patient.getBirth());
         etMeasurementID.setText(patient.getMeasurementId());
+
+        alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                hideNavAndStatusBar();
+            }
+        });
 
         Button btnOK = (Button) view.findViewById(R.id.buttonPopUpOK);
         btnOK.setOnClickListener(new View.OnClickListener() {
@@ -772,6 +781,4 @@ public class EcgActivity extends Activity {
             }
         }
     };
-
-    // TODO handle back button press (stop at main screen, hide nav bar)
 }

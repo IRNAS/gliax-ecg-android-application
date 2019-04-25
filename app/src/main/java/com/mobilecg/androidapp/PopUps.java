@@ -25,7 +25,7 @@ public class PopUps extends Activity {
     //private static int SELECTED_MAINS_FREQ = 0; // mains freq is 50 Hz
     private static int SELECTED_X_SPEED = 0;    // speed is 25 mm/s
 
-    private void inputPatientData() {   // TODO
+    private void inputPatientData() {
 
     }
 
