@@ -117,18 +117,20 @@ int Curve::put(GLfloat *data, int n){
     if (n<=0)
         return -1;
 
-    newPointBuffer.add(data, n);
+    int new_points_count = n;
+    int return_value = OK_REMAINS;
+    if ((currWritePos + n) > requiredNumOfPoints) {
+        new_points_count = requiredNumOfPoints - currWritePos;
+        return_value = NO_REMAINS;
+    }
+    newPointBuffer.add(data, new_points_count);
     int new_position = currWritePos+newPointBuffer.used();
+
+    endCoordinates.x = new_position;
+    endCoordinates.y = data[n-1];
+
     LOGI("TEST: requiredNumOfPoints: %d, currWritePos: %d, newPos: %d\n", requiredNumOfPoints, currWritePos, new_position);
-    endCoordinates.y=data[n-1];
-    if (new_position < requiredNumOfPoints) {
-        endCoordinates.x= new_position;
-        return 0;
-    }
-    else {
-        endCoordinates.x = requiredNumOfPoints;
-        return 1;
-    }
+    return return_value;
 }
 /*
 void Curve::put_rhythm(GLfloat *data, int n) {

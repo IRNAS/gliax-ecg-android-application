@@ -181,7 +181,7 @@ void EcgArea::constructLayout(){
         //curvePositions[a] = yCoord;
         //timers[a] = 0;
     }
-    rhythm.setLength(curveWidth);
+    rhythm.setLength(curveWidth*4);
     const int rhy_x = activeArea.left();
     const int rhy_y = activeArea.top() + 3*yStep + yStep/2;
     rhythm.setPosition(rhy_x, rhy_y);
@@ -242,16 +242,17 @@ void EcgArea::setPixelDensity(const Vec2<float> &pPixelDensity){
 
 void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride){
     //LOGD("HEH: EcgArea::putData");
-    rhythm.put(data + stride*1, nPoints);
-    rhythm_circle.setPosition(rhythm.endpointCoordinates());
 
-    int remains = 0;
+    int remains = OK_REMAINS;
     for (int a=0; a<3; a++) {
+        LOGI("TEST: curve nr %d", cur_column*3 + a);
         remains = ecgCurves[cur_column*3 + a].put(data + stride*a, nPoints);
         endpointCircles[cur_column*3 + a].setPosition(ecgCurves[cur_column*3 + a].endpointCoordinates());
     }
     //LOGI("TEST: Num of points: %d, remains: %d, col: %d\n", nPoints, remains, cur_column);    // TODO fix this function
-    if (remains == 1) {
+
+    if (remains == NO_REMAINS) {
+        //LOGI("TEST: Num of points: %d, remains: %d, col: %d\n", nPoints, remains, cur_column);    // TODO fix this function
         cur_column++;
         if (cur_column == ECG_COLUMN_COUNT) {
             cur_column = 0;
@@ -261,6 +262,10 @@ void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride){
             ecgCurves[cur_column*3 + a].resetCurrWritePos();
         }*/
     }
+
+    rhythm.put(data + stride*1, nPoints);
+    rhythm_circle.setPosition(rhythm.endpointCoordinates());
+
     // opcija je da si dam buffer na dolžino enega rhythm okna in za ostale izrisujem 4x od tam ven
 }
 
