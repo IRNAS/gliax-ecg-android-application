@@ -217,7 +217,7 @@ public class EcgActivity extends Activity {
                 if (!render_paused) {   // pause ecg
                     pauseECG();
                 }
-                boolean result = myGLRenderer.getScreenshotResult();
+                boolean result = myGLRenderer.getScreenshotResult();    // check save file result
                 if (result) {
                     displayToast("Successfully saved to pdf...");
                 }
@@ -502,6 +502,10 @@ public class EcgActivity extends Activity {
             public void onClick(View view) {
                 // TODO auto save?
                 patient = new Patient();
+                etName.setText("");
+                etSurname.setText("");
+                etBirth.setText("");
+                etMeasurementID.setText("");
             }
         });
 
