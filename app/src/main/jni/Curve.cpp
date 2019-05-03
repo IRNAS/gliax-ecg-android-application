@@ -71,6 +71,8 @@ Curve::Curve(): DrawableObject(){
     color[0]=1;
     color[1]=0;
     color[2]=0;
+
+    reset = 0;
 }
 
 void Curve::init(AAssetManager *assetManager){
@@ -117,9 +119,14 @@ int Curve::put(GLfloat *data, int n){
     if (n<=0)
         return -1;
 
+    if (reset) {
+        currWritePos = 0;
+        reset = 0;
+    }
+
     int new_points_count = n;
     int return_value = OK_REMAINS;
-    if ((currWritePos + n) > requiredNumOfPoints) {
+    if ((currWritePos + n) >= requiredNumOfPoints) {
         new_points_count = requiredNumOfPoints - currWritePos;
         return_value = NO_REMAINS;
     }
@@ -127,9 +134,9 @@ int Curve::put(GLfloat *data, int n){
     int new_position = currWritePos+newPointBuffer.used();
 
     endCoordinates.x = new_position;
-    endCoordinates.y = data[n-1];
+    endCoordinates.y = data[new_points_count-1];
 
-    LOGI("TEST: requiredNumOfPoints: %d, currWritePos: %d, newPos: %d\n", requiredNumOfPoints, currWritePos, new_position);
+    //LOGI("TEST: requiredNumOfPoints: %d, currWritePos: %d, newPos: %d\n", requiredNumOfPoints, currWritePos, new_position);
     return return_value;
 }
 /*
@@ -137,16 +144,18 @@ void Curve::put_rhythm(GLfloat *data, int n) {
     if (n<=0)
         return;
 
+    if (reset) {
+        currWritePos = 0;
+        reset = 0;
+    }
+
     newPointBuffer.add(data, n);
     int new_position = currWritePos+newPointBuffer.used();
-    LOGI("TEST: requiredNumOfPoints: %d, currWritePos: %d, newPos: %d\n", requiredNumOfPoints, currWritePos, new_position);
-    endCoordinates.y=data[n-1];
-    if (new_position < requiredNumOfPoints) {
-        endCoordinates.x = new_position % requiredNumOfPoints;
-    }
-    else {
-        endCoordinates.x = requiredNumOfPoints;
-    }
+
+    endCoordinates.x = new_position;
+    endCoordinates.y = data[n-1];
+
+    LOGI("TEST: RHYTHM requiredNumOfPoints: %d, currWritePos: %d, newPos: %d\n", requiredNumOfPoints, currWritePos, new_position);
 }
 */
 void Curve::resizeOnGPU(){
@@ -242,6 +251,12 @@ const Vec2 <int> Curve::endpointCoordinates(){
 
 void Curve::resetCurrWritePos() {
     currNumOfPoints = requiredNumOfPoints;
-    currWritePos=0;
+    currWritePos=requiredNumOfPoints;
+    //endCoordinates.x = requiredNumOfPoints;
     //clear();
+    reset = 1;
+}
+
+float Curve::getEndCoordinateX() {
+    return endCoordinates.x;
 }
