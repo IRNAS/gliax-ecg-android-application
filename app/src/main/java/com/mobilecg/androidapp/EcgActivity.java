@@ -206,7 +206,7 @@ public class EcgActivity extends Activity {
                     resumeECG();
                 }
                 else {
-                    pauseECG();
+                    pauseECG(); // TODO fix occasional blink
                 }
             }
         });
@@ -694,7 +694,7 @@ public class EcgActivity extends Activity {
         }
     }
 
-    private void ConnectToUsbDevice() {
+    private void ConnectToUsbDevice() { // TODO - URGENT: fix when app is restarted
         UsbDeviceConnection deviceConnection = usbManager.openDevice(usbDriver.getDevice());
         if (deviceConnection == null) {
             Log.e(TAG, " Opening device connection failed.");

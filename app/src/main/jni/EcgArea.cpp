@@ -140,6 +140,7 @@ void EcgArea::rescale(){
 
 void EcgArea::constructLayout(){
     LOGD("HEH: EcgArea::constructLayout");
+    cur_column = 0;
     int r,c;
     /*  // app orientation is locked to landscape
     if (activeArea.width()<activeArea.height()){
@@ -181,11 +182,13 @@ void EcgArea::constructLayout(){
         //curvePositions[a] = yCoord;
         //timers[a] = 0;
     }
-    rhythm.setLength(curveWidth*4);
+
+    rhythm.setLength(curveWidth*ECG_COLUMN_COUNT);
     const int rhy_x = activeArea.left();
     const int rhy_y = activeArea.top() + 3*yStep + yStep/2;
     rhythm.setPosition(rhy_x, rhy_y);
     rhythm_label.setPosition(rhy_x, rhy_y - 0.8*pixelDensity.y);
+    rhy_remains = OK_REMAINS;   // OPTION 2
     /*
     for (int b = 0; b < BUTTONS_COUNT; b++) {
 
@@ -240,33 +243,53 @@ void EcgArea::setPixelDensity(const Vec2<float> &pPixelDensity){
     rescale();
 }
 
-void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride){
+void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride){       // TODO fix this function
     //LOGD("HEH: EcgArea::putData");
 
     int remains = OK_REMAINS;
     for (int a=0; a<3; a++) {
-        LOGI("TEST: curve nr %d", cur_column*3 + a);
+        //LOGI("TEST: curve nr %d", cur_column*3 + a);
         remains = ecgCurves[cur_column*3 + a].put(data + stride*a, nPoints);
+        //LOGI("TEST: remains: %d", remains);
         endpointCircles[cur_column*3 + a].setPosition(ecgCurves[cur_column*3 + a].endpointCoordinates());
     }
-    //LOGI("TEST: Num of points: %d, remains: %d, col: %d\n", nPoints, remains, cur_column);    // TODO fix this function
+    //LOGI("TEST: Num of points: %d, remains: %d, col: %d\n", nPoints, remains, cur_column);
 
-    if (remains == NO_REMAINS) {
-        //LOGI("TEST: Num of points: %d, remains: %d, col: %d\n", nPoints, remains, cur_column);    // TODO fix this function
+    // OPTION 2 - to update rhythm
+    if (rhy_remains == OK_REMAINS || rhy_remains == -1) {
+        //LOGI("TEST: rhythm draw");
+        rhy_remains = rhythm.put(data + stride*1, nPoints);
+        rhythm_circle.setPosition(rhythm.endpointCoordinates());
+    }
+
+    int rhythm_points = nPoints;
+    if (remains == NO_REMAINS) {    // switching column of signals
+        // OPTION 1 - leaving out parts of signal when changing columns
+        //int curve_cur_position = ecgCurves[cur_column*3].getEndCoordinateX();  // get current (before switch) signal x coord from 1. line
+        //int rhythm_cur_position = rhythm.getEndCoordinateX() - curve_cur_position*cur_column;   // get current rhythm signal position and substitute old curves max positions
+        //rhythm_points = curve_cur_position - rhythm_cur_position;   // calculate number of points to put into rhythm curve
+
+        //LOGI("TEST: curve_cur_position: %d, rhythm_cur_position: %d, rhythm_points: %d\n", curve_cur_position, rhythm_cur_position, rhythm_points);
         cur_column++;
         if (cur_column == ECG_COLUMN_COUNT) {
+            //LOGI("TEST: back to start...");
             cur_column = 0;
+            rhy_remains = OK_REMAINS;
+            // OPTION 2 - reset rhythm drawing to 0
+            rhythm.resetCurrWritePos();
+            rhythm_circle.setPosition(Vec2<int>());
+
+            // OPTION 1
+            //rhythm_points++; // we add 1 point when switching back to 1. column to match requiredNumOfPoints for other curves
         }
         /*
         for (int a=0; a<3; a++) {
             ecgCurves[cur_column*3 + a].resetCurrWritePos();
         }*/
     }
-
-    rhythm.put(data + stride*1, nPoints);
-    rhythm_circle.setPosition(rhythm.endpointCoordinates());
-
-    // opcija je da si dam buffer na dolžino enega rhythm okna in za ostale izrisujem 4x od tam ven
+    // OPTION 1 - to update rhythm
+    //rhythm.put(data + stride*1, rhythm_points);
+    //rhythm_circle.setPosition(rhythm.endpointCoordinates());
 }
 
 void EcgArea::draw(){

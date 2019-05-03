@@ -85,6 +85,7 @@ class EcgArea: public DrawableGroup{
 
         static const int ECG_COLUMN_COUNT = 4;
         int cur_column;
+        int rhy_remains; // OPTION 2
 
         void setContentVisible(bool visible);
 public:

@@ -50,6 +50,7 @@ class Curve: public DrawableObject{
         void setLength(int lengthInPixels);
         int put(float *data, int n);
         //void put_rhythm(float *data, int n);
+        float getEndCoordinateX();
 
         const Vec2 <int> endpointCoordinates();
 
@@ -102,6 +103,8 @@ private:
         static GLfloat *xCoordinates;
         static int xCoordinatesLength;
         static GLuint xCoordinatesOnGPU;
+
+        int reset;
 };
 
 #endif //ANDROIDAPP_CURVE_H
