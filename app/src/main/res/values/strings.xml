@@ -40,6 +40,7 @@
     <string name="surname_text">LAST NAME:</string>
     <string name="name_text">FIRST NAME:</string>
     <string name="birth_date_text">DATE OF BIRTH:</string>
+    <string name="birth_date_hint">format: dd.mm.yyyy</string>
     <string name="archive_btn">ARCHIVE</string>
     <string name="advanced_set_btn">ADVANCED SETTINGS</string>
     <string name="new_btn">NEW</string>

@@ -74,11 +74,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.zip.DataFormatException;
 
 import static android.R.attr.id;
 import static android.content.ContentValues.TAG;
@@ -523,6 +525,24 @@ public class EcgActivity extends Activity {
                 String name = etName.getText().toString().trim();
                 String surname = etSurname.getText().toString().trim();
                 String birth = etBirth.getText().toString().trim();
+                if (!birth.isEmpty()) {
+                    try {
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+                        Date birthDate = dateFormat.parse(birth);
+                        Date now = new Date();
+                        if (birthDate.compareTo(now) < 0) { // birthDate is before now
+                            birth = dateFormat.format(birthDate);
+                        }
+                        else {  // wrong date
+                            displayToast("Entered date of birth is invalid!");
+                            birth = "";
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        displayToast("Entered date of birth is invalid!");
+                        birth = "";
+                    }
+                }
                 String id  = etMeasurementID.getText().toString().trim();
                 patient.setPatientData(name, surname, birth, id);
                  // TODO move to screenshot click function
@@ -590,7 +610,7 @@ public class EcgActivity extends Activity {
             @Override
             public void onClick(View view) {
                 String save_loc = etSaveLoc.getText().toString().trim();
-                if (save_loc != saveLocation) { saveLocation = save_loc; }
+                if (save_loc != saveLocation && save_loc != "") { saveLocation = save_loc; }
                 Log.d(TAG, "new save location: " + save_loc);
 
                 int paper_speed = 0;
