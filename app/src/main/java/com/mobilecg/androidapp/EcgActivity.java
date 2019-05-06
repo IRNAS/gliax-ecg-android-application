@@ -30,6 +30,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
@@ -95,6 +96,7 @@ public class EcgActivity extends Activity {
 
     private GLSurfaceView mView;
     private DisplayMetrics displayMetrics;
+    private MyGLRenderer myGLRenderer = null;
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
     private SerialInputOutputManager serialIoManager;
@@ -113,6 +115,7 @@ public class EcgActivity extends Activity {
     private static final String ACTION_USB_PERMISSION = "com.mobileecg.androidapp.USB_PERMISSION";
     //private final String TAG = EcgActivity.class.getSimpleName();
     private final String TAG = "HEH";
+    private static final String SETTINGS_NAME = "EcgPrefsFile";
     private IntentFilter intentFilter = null;
     private String debugFilePath = "";
     private final int APP_ALLOW_STORAGE = 1;
@@ -127,7 +130,7 @@ public class EcgActivity extends Activity {
     private Patient patient;
     // advanced settings values
     private static int paperSpeed = 25;    // speed is 25 mm/s - TODO display alert if not default speed
-    private String saveLocation = "MobilECG";    // TODO make save location stay as it's set between app launches
+    private String saveLocation;
     private boolean autoPrint = true;   // this gets reset between app launches
 
     @SuppressLint("ClickableViewAccessibility")
@@ -148,6 +151,10 @@ public class EcgActivity extends Activity {
 
         mView.setEGLContextClientVersion(2);
         mView.setEGLConfigChooser(new MultisampleConfig());
+
+        // read saved settings
+        SharedPreferences settings = getSharedPreferences(SETTINGS_NAME, 0);
+        saveLocation = settings.getString("saveLocation", "MobilECG");
 
         /*
         mView.setOnLongClickListener(new View.OnLongClickListener() {   // TODO
@@ -185,7 +192,7 @@ public class EcgActivity extends Activity {
             }
         });
 
-        final MyGLRenderer myGLRenderer = new MyGLRenderer(displayMetrics);
+        myGLRenderer = new MyGLRenderer(displayMetrics);
         mView.setRenderer(myGLRenderer);
 
         mView.queueEvent(new Runnable() {
@@ -213,18 +220,7 @@ public class EcgActivity extends Activity {
         save_btn = (Button)findViewById(R.id.save_btn);    // Save
         save_btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                myGLRenderer.takeScreenshot(saveLocation, patient);
-                if (!render_paused) {   // pause ecg
-                    pauseECG();
-                }
-                boolean result = myGLRenderer.getScreenshotResult();    // check save file result
-                if (result) {
-                    displayToast("Successfully saved to pdf...");
-                }
-                else {
-                    displayToast("Error when saving to pdf!");
-                }
-
+                saveMeasurement();
                 if (!autoPrint) {   // display alert
                     showPrintAlertDialog();
                 }
@@ -260,8 +256,14 @@ public class EcgActivity extends Activity {
             ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE}, APP_ALLOW_STORAGE);
         }
 
-        // create new patient
+        // read saved data
+        String oldName = settings.getString("patientName", "");
+        String oldSurame = settings.getString("patientSurname", "");
+        String oldBirth = settings.getString("patientBirth", "");
+        String oldId = settings.getString("patientId", "");
+
         patient = new Patient();
+        patient.setPatientData(oldName, oldSurame, oldBirth, oldId);
     }
 
     @Override
@@ -297,7 +299,19 @@ public class EcgActivity extends Activity {
         if (debugFileWrite == true) {
             CopyDebugFiles();
         }
-        // TODO save current patient
+        // save file save location
+        SharedPreferences settings = getSharedPreferences(SETTINGS_NAME, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString("saveLocation", saveLocation);
+
+        // if current patient has data and was not saved to file, save it
+        if (!patient.getSaved() && (patient.getMeasurementId() != "" || patient.getSurname() != "" || patient.getName() != "")) {
+            editor.putString("patientName", patient.getName());
+            editor.putString("patientSurname", patient.getSurname());
+            editor.putString("patientBirth", patient.getBirth());
+            editor.putString("patientId", patient.getMeasurementId());
+        }
+        editor.apply();
     }
 
     public void displayToast(String message) {
@@ -442,6 +456,39 @@ public class EcgActivity extends Activity {
         hideNavAndStatusBar();
     }
 
+    private void showSaveAlertDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.question_save_measur);
+        builder.setPositiveButton(R.string.yes_btn, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                saveMeasurement();
+            }
+        });
+        builder.setNegativeButton(R.string.no_btn, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {}   // return to main screen
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        hideNavAndStatusBar();
+    }
+
+    private void saveMeasurement() {
+        myGLRenderer.takeScreenshot(saveLocation, patient);
+        if (!render_paused) {   // pause ecg
+            pauseECG();
+        }
+        boolean result = myGLRenderer.getScreenshotResult();    // check save file result
+        if (result) {
+            patient.setSaved(true);
+            displayToast("Successfully saved to pdf...");
+        }
+        else {
+            displayToast("Error when saving to pdf!");
+        }
+    }
+
     private void inputPatientData() {   // TODO move to PopUps.java
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = getLayoutInflater().inflate(R.layout.input_data_popup, null);
@@ -500,7 +547,9 @@ public class EcgActivity extends Activity {
         btnNew.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO auto save?
+                if(!patient.getSaved() && serialPort != null) {
+                   showSaveAlertDialog();
+                }
                 patient = new Patient();
                 etName.setText("");
                 etSurname.setText("");
@@ -538,7 +587,7 @@ public class EcgActivity extends Activity {
             public void onClick(View view) {
                 String save_loc = etSaveLoc.getText().toString().trim();
                 if (save_loc != saveLocation) { saveLocation = save_loc; }
-                Log.i(TAG, "save location: " + save_loc);
+                Log.i(TAG, "new save location: " + save_loc);
 
                 int paper_speed = 0;
                 if (rbSpeed25.isChecked()) { paper_speed = 25; }
@@ -607,8 +656,6 @@ public class EcgActivity extends Activity {
             displayToast("Error accessing device storage...");
         }
     }
-
-    // TODO handle search function in archive
 
     private ProbeTable CreateDevicesTable() {
         ProbeTable probeTable = new ProbeTable();

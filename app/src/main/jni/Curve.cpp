@@ -64,7 +64,7 @@ Curve::Curve(): DrawableObject(){
     position.y=100;
     currNumOfPoints=0;
     requiredNumOfPoints=1;
-    clearWidthInPoints=10;  // was set to 100
+    clearWidthInPoints=10;  // was set to 100 TODO - test back at 100
     endCoordinates.x=0;
     endCoordinates.y=0;
 

@@ -7,9 +7,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="NEW"
-        android:layout_marginEnd="2dp"
-        android:layout_marginRight="2dp"
+        android:text="@string/new_btn"
         android:layout_alignParentRight="true"
         android:id="@+id/buttonPopUpNew"/>
 
@@ -40,9 +38,7 @@
                 android:gravity="right"
                 android:paddingTop="8dp"
                 android:paddingStart="1dp"
-                android:paddingLeft="1dp"
-                android:paddingEnd="5dp"
-                android:paddingRight="5dp">
+                android:paddingEnd="5dp">
 
                 <TextView
                     android:id="@+id/textView1"

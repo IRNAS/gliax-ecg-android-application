@@ -243,7 +243,7 @@ void EcgArea::setPixelDensity(const Vec2<float> &pPixelDensity){
     rescale();
 }
 
-void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride){       // TODO fix this function
+void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride){
     //LOGD("HEH: EcgArea::putData");
 
     int remains = OK_REMAINS;

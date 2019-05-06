@@ -5,6 +5,15 @@
     android:layout_height="wrap_content"
     android:layout_margin="5dp">
 
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/archive_btn"
+        android:textSize="25sp"
+        android:gravity="center"/>
+
+    <!-- TODO
     <SearchView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -12,6 +21,7 @@
         android:layout_margin="5dp">
 
     </SearchView>
+    -->
 
     <ListView
         android:layout_width="match_parent"

@@ -42,6 +42,7 @@
     <string name="birth_date_text">DATE OF BIRTH:</string>
     <string name="archive_btn">ARCHIVE</string>
     <string name="advanced_set_btn">ADVANCED SETTINGS</string>
+    <string name="new_btn">NEW</string>
 
     <string name="x_speed_text">PAPER SPEED:</string>
     <string name="x_speed_25">25 mm/s</string>
@@ -54,6 +55,10 @@
     <string name="question_print_measur">Would you like to print your measurement?</string>
     <string name="print_btn">Print</string>
     <string name="cancel_btn">Cancel</string>
+
+    <string name="question_save_measur">Current patient measurement was not yet saved. Would you like to save it now?</string>
+    <string name="yes_btn">Yes</string>
+    <string name="no_btn">No</string>
 
     <string name="search_text">Search</string>
     <string name="empty_archive">No files found :(</string>
