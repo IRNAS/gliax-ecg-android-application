@@ -23,7 +23,7 @@
 
 <resources>
     <!-- Simple strings. -->
-    <string name="app_name">MobilECG</string>
+    <string name="app_name">GliaECG</string>
     <string name="confirm_btn">OK</string>
 
     <string name="ecg_layout">ecg_layout</string>
@@ -47,8 +47,8 @@
     <string name="x_speed_text">PAPER SPEED:</string>
     <string name="x_speed_25">25 mm/s</string>
     <string name="x_speed_50">50 mm/s</string>
-    <string name="save_loc_text">SAVE LOCATION</string>
-    <string name="save_loc_hint">Folder name</string>
+    <string name="save_loc_text">SAVE LOCATION FOLDER NAME</string>
+    <string name="save_loc_hint">Insert folder name</string>
     <string name="switch_text">Auto print on save:</string>
     <string name="about_btn">About</string>
 

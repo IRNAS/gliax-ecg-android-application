@@ -101,6 +101,7 @@ public class EcgActivity extends Activity {
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
     private SerialInputOutputManager serialIoManager;
     private UsbManager usbManager = null;
+    private UsbDeviceConnection deviceConnection = null;
     private UsbSerialDriver usbDriver = null;
     private UsbSerialPort serialPort = null;
     private ProbeTable customTable = null;
@@ -131,11 +132,12 @@ public class EcgActivity extends Activity {
     // advanced settings values
     private static int paperSpeed = 25;    // speed is 25 mm/s - TODO display alert if not default speed
     private String saveLocation;
-    private boolean autoPrint = true;   // this gets reset between app launches
+    private boolean autoPrint;   // this gets reset between app launches
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle icicle) {
+        Log.d(TAG, "run event - onCreate");
         super.onCreate(icicle);
         if (debugFileWrite == true) {
             debugFilePath = this.getFilesDir().getAbsolutePath();
@@ -154,7 +156,11 @@ public class EcgActivity extends Activity {
 
         // read saved settings
         SharedPreferences settings = getSharedPreferences(SETTINGS_NAME, 0);
-        saveLocation = settings.getString("saveLocation", "MobilECG");
+        String defaultSaveLoc = getResources().getString(R.string.app_name);
+        saveLocation = settings.getString("saveLocation", defaultSaveLoc);
+        if (saveLocation.equals("")) {
+            saveLocation = defaultSaveLoc;
+        }
 
         /*
         mView.setOnLongClickListener(new View.OnLongClickListener() {   // TODO
@@ -200,7 +206,6 @@ public class EcgActivity extends Activity {
             public void run() {
                 //EcgJNI.init(getAssets(), PopUps.GetSelectedMainsFreq());
                 EcgJNI.init(getAssets(), 50);
-                Log.d(TAG, "run event - onCreate");
                 EcgJNI.initNDK(debugFilePath);
             }
         });
@@ -258,12 +263,12 @@ public class EcgActivity extends Activity {
 
         // read saved data
         String oldName = settings.getString("patientName", "");
-        String oldSurame = settings.getString("patientSurname", "");
+        String oldSurname = settings.getString("patientSurname", "");
         String oldBirth = settings.getString("patientBirth", "");
         String oldId = settings.getString("patientId", "");
 
         patient = new Patient();
-        patient.setPatientData(oldName, oldSurame, oldBirth, oldId);
+        patient.setPatientData(oldName, oldSurname, oldBirth, oldId);
     }
 
     @Override
@@ -282,6 +287,8 @@ public class EcgActivity extends Activity {
         Log.d(TAG, "run event - onPause");
         super.onPause();
         pauseECG();
+        unregisterReceiver(usbReceiver);
+        CloseConnectionToUsbDevice();
     }
 
     @Override
@@ -289,6 +296,12 @@ public class EcgActivity extends Activity {
         Log.d(TAG, "run event - onResume");
         super.onResume();
         hideNavAndStatusBar();
+        // resume reading from usb
+        intentFilter = new IntentFilter(ACTION_USB_PERMISSION);
+        registerReceiver(usbReceiver,intentFilter);
+        customTable = CreateDevicesTable();
+        FindUsbDevice();
+
         resumeECG();
     }
 
@@ -304,8 +317,8 @@ public class EcgActivity extends Activity {
         SharedPreferences.Editor editor = settings.edit();
         editor.putString("saveLocation", saveLocation);
 
-        // if current patient has data and was not saved to file, save it
-        if (!patient.getSaved() && (patient.getMeasurementId() != "" || patient.getSurname() != "" || patient.getName() != "")) {
+        // if current patient was not saved to file and has some data: save it
+        if (!patient.getSaved() && (patient.getMeasurementId() != "" || patient.getSurname() != "" || patient.getName() != "" || patient.getBirth() != "")) {
             editor.putString("patientName", patient.getName());
             editor.putString("patientSurname", patient.getSurname());
             editor.putString("patientBirth", patient.getBirth());
@@ -337,14 +350,7 @@ public class EcgActivity extends Activity {
 
     private void resumeECG() {
         Log.d(TAG, "resumeECG function");
-        // resume reading from usb
-        intentFilter = new IntentFilter(ACTION_USB_PERMISSION);
-        registerReceiver(usbReceiver,intentFilter);
-        customTable = CreateDevicesTable();
-        FindUsbDevice();
-
         // resume drawing
-        mView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY); // resume auto rendering
         mView.onResume();
         mView.queueEvent(new Runnable() {
             @Override
@@ -352,6 +358,7 @@ public class EcgActivity extends Activity {
                 EcgJNI.resume();
             }
         });
+        mView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY); // resume auto rendering
         if (render_paused) {
             render_paused = false;
             pause_resume_btn.setText(R.string.menu_button_1);
@@ -361,9 +368,6 @@ public class EcgActivity extends Activity {
     private void pauseECG() {
         Log.d(TAG, "pauseECG - function");
         // TODO pause reading from usb ???
-        unregisterReceiver(usbReceiver);
-        //}
-
         // pause drawing
         mView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);   // this stops auto rendering
         mView.onPause();
@@ -587,17 +591,17 @@ public class EcgActivity extends Activity {
             public void onClick(View view) {
                 String save_loc = etSaveLoc.getText().toString().trim();
                 if (save_loc != saveLocation) { saveLocation = save_loc; }
-                Log.i(TAG, "new save location: " + save_loc);
+                Log.d(TAG, "new save location: " + save_loc);
 
                 int paper_speed = 0;
                 if (rbSpeed25.isChecked()) { paper_speed = 25; }
                 else if (rbSpeed50.isChecked()) { paper_speed = 50; }
                 if (paper_speed != paperSpeed) { paperSpeed = paper_speed; }
-                Log.i(TAG, "Paper speed: " + paper_speed);
+                Log.d(TAG, "Paper speed: " + paper_speed);
 
                 if (tbAutoSave.isChecked()) { autoPrint = true; }
                 else { autoPrint = false; }
-                Log.i(TAG, "Auto print on save: " + autoPrint);
+                Log.d(TAG, "Auto print on save: " + autoPrint);
 
                 alertDialog.dismiss();
             }
@@ -626,7 +630,7 @@ public class EcgActivity extends Activity {
             if (!dir.exists()) {
                 boolean result = dir.mkdirs();
                 if (!result) {
-                    Log.i(TAG, "archive mkdir error");
+                    Log.d(TAG, "archive mkdir error");
                     return;
                 }
             }
@@ -637,7 +641,7 @@ public class EcgActivity extends Activity {
                 String[] namesOfFiles = new String[fileList.length];
                 for (int i = 0; i < namesOfFiles.length; i++) {
                     namesOfFiles[i] = fileList[i].getName();
-                    Log.i(TAG, "name: " + namesOfFiles[i]);
+                    Log.d(TAG, "name: " + namesOfFiles[i]);
                 }
                 Arrays.sort(namesOfFiles);
                 final ArrayAdapter<String> listOfFiles = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, namesOfFiles);
@@ -741,8 +745,8 @@ public class EcgActivity extends Activity {
         }
     }
 
-    private void ConnectToUsbDevice() { // TODO - URGENT: fix when app is restarted
-        UsbDeviceConnection deviceConnection = usbManager.openDevice(usbDriver.getDevice());
+    private void ConnectToUsbDevice() {
+        deviceConnection = usbManager.openDevice(usbDriver.getDevice());
         if (deviceConnection == null) {
             Log.e(TAG, " Opening device connection failed.");
             return;
@@ -774,6 +778,18 @@ public class EcgActivity extends Activity {
         }
     }
 
+    private void CloseConnectionToUsbDevice() {
+        stopIoManager();
+        if (serialPort != null) {
+            try {
+                serialPort.close();
+                //deviceConnection.close();
+            } catch (IOException e) {
+                Log.e(TAG, "Error closing connection - " + e.getMessage(), e);
+            }
+        }
+    }
+
     private void onDeviceStateChange() {
         stopIoManager();
         startIoManager();
@@ -781,16 +797,17 @@ public class EcgActivity extends Activity {
 
     private void startIoManager() {
         if (serialPort != null) {
-            Log.i(TAG, "Starting io manager ..");
+            Log.d(TAG, "Starting io manager ..");
             EcgJNI.onDeviceConnected();
             serialIoManager = new SerialInputOutputManager(serialPort, mListener);
             mExecutor.submit(serialIoManager);
+            displayToast("ECG device OK, waiting for data...");
         }
     }
 
     private void stopIoManager() {
         if (serialIoManager != null) {
-            Log.i(TAG, "Stopping io manager ..");
+            Log.d(TAG, "Stopping io manager ..");
             EcgJNI.onDeviceDisconnected();
             serialIoManager.stop();
             serialIoManager = null;
@@ -835,6 +852,7 @@ public class EcgActivity extends Activity {
                 }
                 else {
                     Log.d(TAG, "Permission denied for accessing ECG device!");
+                    displayToast("Permission denied for accessing ECG device! It needs to be granted in order to use this ECG.");
                 }
             }
         }

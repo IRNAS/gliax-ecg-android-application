@@ -67,7 +67,9 @@
             android:layout_height="wrap_content"
             android:id="@+id/save_location"
             android:hint="@string/save_loc_hint"
+            android:enabled="false"
             android:inputType="text"/>
+        <!-- editing this field is disabled -->
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -89,7 +91,7 @@
                 android:layout_marginLeft="5dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:checked="true" />
+                android:checked="false" />
 
         </LinearLayout>
 
