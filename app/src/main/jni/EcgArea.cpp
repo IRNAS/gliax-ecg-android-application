@@ -101,6 +101,7 @@ EcgArea::EcgArea():
             .setTextSizeMM(3.5);
 
     deviceDisconnected();
+    selected_layout = NORMAL_LAYOUT;
 }
 
 EcgArea &EcgArea::instance(){
@@ -138,8 +139,19 @@ void EcgArea::rescale(){
     bpm_label.drawText("HR: 100");
 }
 
-void EcgArea::constructLayout(){
-    LOGD("HEH: EcgArea::constructLayout");
+/*
+void EcgArea::constructLayout() {   // TODO enable it
+    if (selected_layout == NORMAL_LAYOUT) {
+        constructLayoutNormal();
+    }
+    else if (selected_layout == RHYTHM_LAYOUT) {
+        constructLayoutRhythm();
+    }
+}
+*/
+
+void EcgArea::constructLayout(){    // TODO rename to constructLayoutNormal()
+    LOGD("HEH: EcgArea::constructLayoutNormal");
     cur_column = 0;
     int r,c;
     /*  // app orientation is locked to landscape
@@ -208,6 +220,65 @@ void EcgArea::constructLayout(){
     //pause_size = pause_button.getSize();
 }
 
+void EcgArea::constructLayoutRhythm(){
+    LOGD("HEH: EcgArea::constructLayoutRhythm");
+    int r,c;
+    // only displaying 4 signals (I, III, aVL and rhythm)
+    c = 1;
+    r = 4;
+
+    disconnectedLabel.setPosition((screenSize.w - disconnectedLabel.getWidth())/2, screenSize.h/2 - disconnectedLabel.getHeight());
+
+    int padInPixels=padInCm*pixelDensity.x;
+    int curveWidth=(activeArea.width()-(c-1)*padInPixels)/c;
+
+    const int yStep = activeArea.height()/r;
+    const int xStep = curveWidth+padInPixels;
+
+    const int bottomCurves = r % 3;
+    const int topCurves = r - bottomCurves;
+
+    const int topCurveCount = topCurves * c;
+
+    for (int a=0; a<6; a+=2){
+        ecgCurves[a].setLength(curveWidth);
+
+        const bool bottom = a >= topCurveCount;
+        const int y=bottom ? ((a - topCurveCount) % bottomCurves + topCurves) : (a % topCurves);
+
+        const int xCoord=activeArea.left();
+        const int yCoord=activeArea.top() + y*yStep + yStep/2;
+
+        ecgCurves[a].setPosition(xCoord, yCoord);
+        labels[a].setPosition(xCoord, yCoord - 0.8*pixelDensity.y);
+        //outOfRangeLabels[a].setPosition(xCoord + 20, yCoord - 0.4*pixelDensity.y);
+        //curvePositions[a] = yCoord;
+        //timers[a] = 0;
+    }
+
+    rhythm.setLength(curveWidth);
+    const int rhy_x = activeArea.left();
+    const int rhy_y = activeArea.top() + 3*yStep + yStep/2;
+    rhythm.setPosition(rhy_x, rhy_y);
+    rhythm_label.setPosition(rhy_x, rhy_y - 0.8*pixelDensity.y);
+    rhy_remains = OK_REMAINS;   // OPTION 2
+    /*
+    for (int b = 0; b < BUTTONS_COUNT; b++) {
+
+    }
+     */
+    //const int button_offset = 85;
+    //const int button_size = BUTTON_SIZE * 8;
+    //pause_button.setPosition(button_offset, screenSize.h - button_offset);
+    //pause_label.setPosition(85 + 160, screenSize.h - 90);
+
+    //availableHeight = labels[1].getYPosition() - labels[0].getYPosition();
+    //LOGI("Available height: %d\n", availableHeight);
+
+    devLabel.setPosition(0, 0);
+    bpm_label.setPosition(screenSize.w - bpm_label.getWidth() - 10, 0);
+}
+
 void EcgArea::contextResized(int w, int h){
     LOGD("HEH: EcgArea::contextResized");
     int deleteX=calculateUnalignedArea(w, pixelDensity.x);
@@ -220,7 +291,7 @@ void EcgArea::contextResized(int w, int h){
 
     redraw();
     DrawableGroup::contextResized(w,h);
-    constructLayout();
+    constructLayout();  // TODO layout switching
 }
 
 
@@ -366,8 +437,24 @@ void EcgArea::deviceDisconnected(){
 
 void EcgArea::resetContent() {
     cur_column = 0;
-    //redraw();
-    constructLayout();
+    for (int i = 0; i < ECG_CURVE_COUNT; i++) {
+        endpointCircles[i].setPosition(Vec2<int>());
+        ecgCurves[i].resetCurrWritePos();
+    }
+    rhythm_circle.setPosition(Vec2<int>());
+    rhythm.resetCurrWritePos();
+    constructLayout();  // TODO layout switching
+    redraw();
+}
+
+void EcgArea::changeLayout() {
+    LOGD("HEH: EcgArea::changeLayout");
+    if (selected_layout == NORMAL_LAYOUT) {
+        selected_layout = RHYTHM_LAYOUT;
+    }
+    else if (selected_layout == RHYTHM_LAYOUT) {
+        selected_layout = NORMAL_LAYOUT;
+    }
 }
 
 /*

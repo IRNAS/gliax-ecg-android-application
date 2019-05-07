@@ -104,6 +104,10 @@ class ecg {
     void onEcgDisconnected(){
         EcgArea::instance().deviceDisconnected();
     }
+
+    void changeLayout() {
+        EcgArea::instance().changeLayout();
+    }
 };
 
 ecg gEcg;
@@ -215,6 +219,15 @@ extern "C" {
         (void)type;
          //= x_spd;
     }
+
+    JNIEXPORT void JNICALL
+    Java_com_mobilecg_androidapp_EcgJNI_changeLayout(JNIEnv *env, jclass type) {
+        (void)env;
+        (void)type;
+        gEcg.changeLayout();
+        //gEcg.resume();
+    }
+
     /*
     JNIEXPORT jintArray JNICALL
     Java_com_mobilecg_androidapp_EcgJNI_getButtonCoords(JNIEnv *env, jclass type) { // TODO handle memory leak - trying different approach

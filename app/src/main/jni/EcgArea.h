@@ -42,6 +42,10 @@ class EcgArea: public DrawableGroup{
         const char *pause_text = "II";
         const char *resume_text = "I>";
 
+        const int NORMAL_LAYOUT = 0;
+        const int RHYTHM_LAYOUT = 1;
+        int selected_layout;
+
         EcgArea();
 
         Rect activeArea;
@@ -72,6 +76,8 @@ class EcgArea: public DrawableGroup{
         bool redrawNeeded;
 
         void constructLayout();
+        void constructLayoutNormal();
+        void constructLayoutRhythm();
         void rescale();
 
         float ecgCmPerMv;
@@ -109,6 +115,7 @@ public:
         void deviceDisconnected();
 
         void resetContent();
+        void changeLayout();
 
         int * getButtonsSize();
 };

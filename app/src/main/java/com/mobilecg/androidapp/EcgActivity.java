@@ -239,13 +239,12 @@ public class EcgActivity extends Activity {
         rhythm_12lead_btn = (Button)findViewById(R.id.rhythm_btn);    // Rhythm / 12 lead
         rhythm_12lead_btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                //EcgJNI.changeLayout();    // TODO test it
                 if (!rhythm_screen) {   // 12 lead -> rhythm
-                    // TODO call native cpp function
                     rhythm_12lead_btn.setText(R.string.menu_button_3_alt);
                     rhythm_screen = true;
                 }
                 else {  // rhythm -> 12 lead
-                    // TODO call native cpp function
                     rhythm_12lead_btn.setText(R.string.menu_button_3);
                     rhythm_screen = false;
                 }
