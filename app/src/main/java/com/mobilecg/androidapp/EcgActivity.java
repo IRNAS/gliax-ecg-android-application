@@ -23,6 +23,7 @@ package com.mobilecg.androidapp;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -45,6 +46,7 @@ import android.support.v4.app.ActivityCompat;
 import android.util.DisplayMetrics;
 
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -307,7 +309,7 @@ public class EcgActivity extends Activity {
         pauseECG();
         turnEcgOnOrOff(ECG_OFF);
         unregisterReceiver(usbReceiver);
-        CloseConnectionToUsbDevice();
+        //CloseConnectionToUsbDevice();
     }
 
     @Override
@@ -333,6 +335,13 @@ public class EcgActivity extends Activity {
         editor.apply();
     }
 
+    @Override
+    protected void onDestroy() {
+        Log.d(TAG, "run-event - onDestroy");
+        super.onDestroy();
+        CloseConnectionToUsbDevice();
+    }
+
     public void displayToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
@@ -340,18 +349,9 @@ public class EcgActivity extends Activity {
     public void hideNavAndStatusBar() {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         // Hide both the navigation bar and the status bar.
-        // SYSTEM_UI_FLAG_FULLSCREEN is only available on Android 4.1 and higher, but as
-        // a general rule, you should design your app to hide the status bar whenever you
-        // hide the navigation bar.
-        if(Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) { // lower api
-            View v = this.getWindow().getDecorView();
-            v.setSystemUiVisibility(View.GONE);
-        } else if(Build.VERSION.SDK_INT >= 19) {
-            //for new api versions.
-            View decorView = getWindow().getDecorView();
-            int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-            decorView.setSystemUiVisibility(uiOptions);
-        }
+        View decorView = getWindow().getDecorView();
+        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+        decorView.setSystemUiVisibility(uiOptions);
     }
 
     private void resumeECG() {
@@ -453,18 +453,29 @@ public class EcgActivity extends Activity {
         builder.setTitle(R.string.question_print_measur);
         builder.setPositiveButton(R.string.print_btn, new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
+            public void onClick(DialogInterface dialog, int which) {    // print press
                 // TODO call print function
                 hideNavAndStatusBar();
             }
         });
-        builder.setNegativeButton(R.string.cancel_btn, new DialogInterface.OnClickListener() {
+        builder.setNegativeButton(R.string.cancel_btn, new DialogInterface.OnClickListener() {  // cancel press
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 hideNavAndStatusBar();
-            }   // return to main screen
+            }
         });
+
+
+        builder.setOnKeyListener(new AlertDialog.OnKeyListener() {  // disable back key press
+            @Override
+            public boolean onKey(DialogInterface arg0, int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_BACK) { }
+                return true;
+            }
+        });
+
         AlertDialog dialog = builder.create();
+        dialog.setCanceledOnTouchOutside(false);
         dialog.show();
     }
 
@@ -874,16 +885,16 @@ public class EcgActivity extends Activity {
     private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) { // TODO handle usb detached and attached events
-        String action = intent.getAction();
-        if (ACTION_USB_PERMISSION.equals(action)) {
-            if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                ConnectToUsbDevice();
+            String action = intent.getAction();
+            if (ACTION_USB_PERMISSION.equals(action)) {
+                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                    ConnectToUsbDevice();
+                }
+                else {
+                    Log.d(TAG, "Permission denied for accessing ECG device!");
+                    displayToast("Permission denied for accessing ECG device! It needs to be granted in order to use this ECG.");
+                }
             }
-            else {
-                Log.d(TAG, "Permission denied for accessing ECG device!");
-                displayToast("Permission denied for accessing ECG device! It needs to be granted in order to use this ECG.");
-            }
-        }
         }
     };
 

@@ -443,8 +443,8 @@ void EcgArea::resetContent() {
     }
     rhythm_circle.setPosition(Vec2<int>());
     rhythm.resetCurrWritePos();
-    constructLayout();  // TODO layout switching
-    redraw();
+    //constructLayout();  // TODO layout switching
+    //redraw();
 }
 
 void EcgArea::changeLayout() {
