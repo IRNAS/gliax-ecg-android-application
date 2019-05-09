@@ -89,7 +89,7 @@ class ecg {
     }
 
     void pause() {  // TODO handle this properly
-
+        EcgArea::instance().resetContent();
     }
 
     void resume() {

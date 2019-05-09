@@ -82,6 +82,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.zip.DataFormatException;
 
+import static android.R.attr.background;
 import static android.R.attr.id;
 import static android.content.ContentValues.TAG;
 import static com.mobilecg.androidapp.PopUps.GetSelectedXspeed;
@@ -128,6 +129,9 @@ public class EcgActivity extends Activity {
     private int DATA_BITS = 8;
     private int STOP_BITS = UsbSerialPort.STOPBITS_1;
     private int PARITY = UsbSerialPort.PARITY_NONE;
+    private boolean ecgDeviceOn;
+    private static final int ECG_OFF = 0;
+    private static final int ECG_ON = 1;
 
     // patient class
     private Patient patient;
@@ -220,7 +224,7 @@ public class EcgActivity extends Activity {
                     resumeECG();
                 }
                 else {
-                    pauseECG(); // TODO fix occasional blink
+                    pauseECG();
                 }
             }
         });
@@ -284,15 +288,6 @@ public class EcgActivity extends Activity {
     }
 
     @Override
-    protected void onPause() {
-        Log.d(TAG, "run event - onPause");
-        super.onPause();
-        pauseECG();
-        unregisterReceiver(usbReceiver);
-        CloseConnectionToUsbDevice();
-    }
-
-    @Override
     protected void onResume() {
         Log.d(TAG, "run event - onResume");
         super.onResume();
@@ -302,14 +297,24 @@ public class EcgActivity extends Activity {
         registerReceiver(usbReceiver,intentFilter);
         customTable = CreateDevicesTable();
         FindUsbDevice();
-
         resumeECG();
+    }
+
+    @Override
+    protected void onPause() {
+        Log.d(TAG, "run event - onPause");
+        super.onPause();
+        pauseECG();
+        turnEcgOnOrOff(ECG_OFF);
+        unregisterReceiver(usbReceiver);
+        CloseConnectionToUsbDevice();
     }
 
     @Override
     protected void onStop() {
         Log.d(TAG, "run event - onStop");
         super.onStop();
+
         if (debugFileWrite == true) {
             CopyDebugFiles();
         }
@@ -450,15 +455,17 @@ public class EcgActivity extends Activity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 // TODO call print function
+                hideNavAndStatusBar();
             }
         });
         builder.setNegativeButton(R.string.cancel_btn, new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {}   // return to main screen
+            public void onClick(DialogInterface dialog, int which) {
+                hideNavAndStatusBar();
+            }   // return to main screen
         });
         AlertDialog dialog = builder.create();
         dialog.show();
-        hideNavAndStatusBar();
     }
 
     private void showSaveAlertDialog() {
@@ -495,6 +502,7 @@ public class EcgActivity extends Activity {
     }
 
     private void inputPatientData() {   // TODO move to PopUps.java
+        pauseECG();
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = getLayoutInflater().inflate(R.layout.input_data_popup, null);
 
@@ -514,6 +522,7 @@ public class EcgActivity extends Activity {
             @Override
             public void onCancel(DialogInterface dialog) {
                 hideNavAndStatusBar();
+                resumeECG();
             }
         });
 
@@ -547,6 +556,7 @@ public class EcgActivity extends Activity {
                  // TODO move to screenshot click function
                 alertDialog.dismiss();
                 hideNavAndStatusBar();
+                resumeECG();
             }
         });
 
@@ -791,6 +801,7 @@ public class EcgActivity extends Activity {
                 return;
             }
             onDeviceStateChange();
+            turnEcgOnOrOff(ECG_ON);
         }
         else {
             Log.e(TAG, " Opening device port failed.");
@@ -864,16 +875,33 @@ public class EcgActivity extends Activity {
     private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) { // TODO handle usb detached and attached events
-            String action = intent.getAction();
-            if (ACTION_USB_PERMISSION.equals(action)) {
-                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                    ConnectToUsbDevice();
-                }
-                else {
-                    Log.d(TAG, "Permission denied for accessing ECG device!");
-                    displayToast("Permission denied for accessing ECG device! It needs to be granted in order to use this ECG.");
-                }
+        String action = intent.getAction();
+        if (ACTION_USB_PERMISSION.equals(action)) {
+            if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                ConnectToUsbDevice();
+            }
+            else {
+                Log.d(TAG, "Permission denied for accessing ECG device!");
+                displayToast("Permission denied for accessing ECG device! It needs to be granted in order to use this ECG.");
             }
         }
+        }
     };
+
+    private void turnEcgOnOrOff(int newState) {
+        try {
+            // TODO check ecg device state with readLatch
+            if (newState == ECG_ON && !ecgDeviceOn)  {
+                serialPort.writeLatch(ECG_ON);
+                ecgDeviceOn = true;
+            }
+            else if (newState == ECG_OFF && ecgDeviceOn) {
+                serialPort.writeLatch(ECG_OFF);
+                ecgDeviceOn = false;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            displayToast("Error when changing state of ECG device! Please restart the app...");
+        }
+    }
 }
