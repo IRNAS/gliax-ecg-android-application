@@ -93,6 +93,8 @@ class EcgArea: public DrawableGroup{
         int cur_column;
         int rhy_remains; // OPTION 2
 
+        bool deviceNotConnected;
+
         void setContentVisible(bool visible);
 public:
         static EcgArea &instance();

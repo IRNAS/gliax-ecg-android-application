@@ -57,13 +57,13 @@ EcgArea::EcgArea():
         drawableList.push_back(&labels[a]);
         labels[a]
                 .setColor(Image::BLACK)
-                .setTextSizeMM(2.5);
+                .setTextSizeMM(3.5);
     }
 
     drawableList.push_back(&rhythm_label);
     rhythm_label
             .setColor(Image::BLACK)
-            .setTextSizeMM(2.5);
+            .setTextSizeMM(3.5);
 
     /*
     for (int a=0; a<ECG_CURVE_COUNT; a++) {
@@ -139,8 +139,10 @@ void EcgArea::rescale(){
     speed_warning_label.drawText("PAPER SPEED: default");
 }
 
-/*
-void EcgArea::constructLayout() {   // TODO enable it
+
+void EcgArea::constructLayout() {   // TODO
+    LOGD("HEH: EcgArea::constructLayout");
+    resetContent();
     if (selected_layout == NORMAL_LAYOUT) {
         constructLayoutNormal();
     }
@@ -148,9 +150,9 @@ void EcgArea::constructLayout() {   // TODO enable it
         constructLayoutRhythm();
     }
 }
-*/
 
-void EcgArea::constructLayout(){    // TODO rename to constructLayoutNormal()
+
+void EcgArea::constructLayoutNormal(){
     LOGD("HEH: EcgArea::constructLayoutNormal");
     cur_column = 0;
     int r,c;
@@ -189,17 +191,27 @@ void EcgArea::constructLayout(){    // TODO rename to constructLayoutNormal()
         const int yCoord=activeArea.top() + y*yStep + yStep/2;
 
         ecgCurves[a].setPosition(xCoord, yCoord);
-        labels[a].setPosition(xCoord, yCoord - 0.8*pixelDensity.y);
+        labels[a].setPosition(xCoord + 10, yCoord - 0.8*pixelDensity.y);
         //outOfRangeLabels[a].setPosition(xCoord + 20, yCoord - 0.4*pixelDensity.y);
         //curvePositions[a] = yCoord;
         //timers[a] = 0;
+        if (a == 1 || a == 3 || a > 4) {
+            ecgCurves[a].setVisible(true);
+            labels[a].setVisible(true);
+        }
+        else if (deviceNotConnected) {
+            ecgCurves[a].setVisible(true);
+            labels[a].setVisible(true);
+            rhythm.setVisible(true);
+            rhythm_label.setVisible(true);
+        }
     }
 
     rhythm.setLength(curveWidth*ECG_COLUMN_COUNT);
     const int rhy_x = activeArea.left();
     const int rhy_y = activeArea.top() + 3*yStep + yStep/2;
     rhythm.setPosition(rhy_x, rhy_y);
-    rhythm_label.setPosition(rhy_x, rhy_y - 0.8*pixelDensity.y);
+    rhythm_label.setPosition(rhy_x + 10, rhy_y - 0.8*pixelDensity.y);
     rhy_remains = OK_REMAINS;   // OPTION 2
     /*
     for (int b = 0; b < BUTTONS_COUNT; b++) {
@@ -214,7 +226,7 @@ void EcgArea::constructLayout(){    // TODO rename to constructLayoutNormal()
     //availableHeight = labels[1].getYPosition() - labels[0].getYPosition();
     //LOGI("Available height: %d\n", availableHeight);
 
-    devLabel.setPosition(0, 0);
+    devLabel.setPosition(10, 0);
     speed_warning_label.setPosition(screenSize.w - speed_warning_label.getWidth() - 10, 0);
 
     //pause_size = pause_button.getSize();
@@ -230,37 +242,31 @@ void EcgArea::constructLayoutRhythm(){
     disconnectedLabel.setPosition((screenSize.w - disconnectedLabel.getWidth())/2, screenSize.h/2 - disconnectedLabel.getHeight());
 
     int padInPixels=padInCm*pixelDensity.x;
-    int curveWidth=(activeArea.width()-(c-1)*padInPixels)/c;
+    int curveWidth=(activeArea.width());
 
     const int yStep = activeArea.height()/r;
-    const int xStep = curveWidth+padInPixels;
+    int curRow = 0;
 
-    const int bottomCurves = r % 3;
-    const int topCurves = r - bottomCurves;
-
-    const int topCurveCount = topCurves * c;
-
-    for (int a=0; a<6; a+=2){
-        ecgCurves[a].setLength(curveWidth);
-
-        const bool bottom = a >= topCurveCount;
-        const int y=bottom ? ((a - topCurveCount) % bottomCurves + topCurves) : (a % topCurves);
-
-        const int xCoord=activeArea.left();
-        const int yCoord=activeArea.top() + y*yStep + yStep/2;
-
-        ecgCurves[a].setPosition(xCoord, yCoord);
-        labels[a].setPosition(xCoord, yCoord - 0.8*pixelDensity.y);
-        //outOfRangeLabels[a].setPosition(xCoord + 20, yCoord - 0.4*pixelDensity.y);
-        //curvePositions[a] = yCoord;
-        //timers[a] = 0;
+    for (int a=0; a<ECG_CURVE_COUNT; a++){
+        if (a == 1 || a == 3 || a > 4) {
+            ecgCurves[a].setVisible(false);
+            labels[a].setVisible(false);
+        }
+        else {
+            ecgCurves[a].setLength(curveWidth);
+            const int xCoord=activeArea.left();
+            const int yCoord=activeArea.top() + curRow*yStep + yStep/2;
+            curRow++;
+            ecgCurves[a].setPosition(xCoord, yCoord);
+            labels[a].setPosition(xCoord + 10, yCoord - 0.8*pixelDensity.y);
+        }
     }
 
     rhythm.setLength(curveWidth);
     const int rhy_x = activeArea.left();
     const int rhy_y = activeArea.top() + 3*yStep + yStep/2;
     rhythm.setPosition(rhy_x, rhy_y);
-    rhythm_label.setPosition(rhy_x, rhy_y - 0.8*pixelDensity.y);
+    rhythm_label.setPosition(rhy_x + 10, rhy_y - 0.8*pixelDensity.y);
     rhy_remains = OK_REMAINS;   // OPTION 2
     /*
     for (int b = 0; b < BUTTONS_COUNT; b++) {
@@ -275,7 +281,7 @@ void EcgArea::constructLayoutRhythm(){
     //availableHeight = labels[1].getYPosition() - labels[0].getYPosition();
     //LOGI("Available height: %d\n", availableHeight);
 
-    devLabel.setPosition(0, 0);
+    devLabel.setPosition(10, 0);
     speed_warning_label.setPosition(screenSize.w - speed_warning_label.getWidth() - 10, 0);
 }
 
@@ -291,7 +297,7 @@ void EcgArea::contextResized(int w, int h){
 
     redraw();
     DrawableGroup::contextResized(w,h);
-    constructLayout();  // TODO layout switching
+    constructLayout();
 }
 
 
@@ -317,50 +323,66 @@ void EcgArea::setPixelDensity(const Vec2<float> &pPixelDensity){
 void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride){
     //LOGD("HEH: EcgArea::putData");
 
-    int remains = OK_REMAINS;
-    for (int a=0; a<3; a++) {
-        //LOGI("TEST: curve nr %d", cur_column*3 + a);
-        remains = ecgCurves[cur_column*3 + a].put(data + stride*a, nPoints);
-        //LOGI("TEST: remains: %d", remains);
-        endpointCircles[cur_column*3 + a].setPosition(ecgCurves[cur_column*3 + a].endpointCoordinates());
-    }
-    //LOGI("TEST: Num of points: %d, remains: %d, col: %d\n", nPoints, remains, cur_column);
-
-    // OPTION 2 - to update rhythm
-    if (rhy_remains == OK_REMAINS || rhy_remains == -1) {
-        //LOGI("TEST: rhythm draw");
-        rhy_remains = rhythm.put(data + stride*1, nPoints);
+    if (selected_layout == RHYTHM_LAYOUT) {
+        for (int a=0; a<ECG_CURVE_COUNT; a++) {
+            if (a == 1 || a == 3 || a > 4) {
+                //ecgCurves[a].resetCurrWritePos();
+                //endpointCircles[a].setPosition(Vec2<int>());
+            }
+            else {
+                ecgCurves[a].put(data + stride*a, nPoints);
+                endpointCircles[a].setPosition(ecgCurves[a].endpointCoordinates());
+            }
+        }
+        rhythm.put(data + stride*1, nPoints);
         rhythm_circle.setPosition(rhythm.endpointCoordinates());
     }
-
-    int rhythm_points = nPoints;
-    if (remains == NO_REMAINS) {    // switching column of signals
-        // OPTION 1 - leaving out parts of signal when changing columns
-        //int curve_cur_position = ecgCurves[cur_column*3].getEndCoordinateX();  // get current (before switch) signal x coord from 1. line
-        //int rhythm_cur_position = rhythm.getEndCoordinateX() - curve_cur_position*cur_column;   // get current rhythm signal position and substitute old curves max positions
-        //rhythm_points = curve_cur_position - rhythm_cur_position;   // calculate number of points to put into rhythm curve
-
-        //LOGI("TEST: curve_cur_position: %d, rhythm_cur_position: %d, rhythm_points: %d\n", curve_cur_position, rhythm_cur_position, rhythm_points);
-        cur_column++;
-        if (cur_column == ECG_COLUMN_COUNT) {
-            //LOGI("TEST: back to start...");
-            cur_column = 0;
-            rhy_remains = OK_REMAINS;
-            // OPTION 2 - reset rhythm drawing to 0
-            rhythm.resetCurrWritePos();
-            rhythm_circle.setPosition(Vec2<int>());
-
-            // OPTION 1
-            //rhythm_points++; // we add 1 point when switching back to 1. column to match requiredNumOfPoints for other curves
-        }
-        /*
+    else {
+        int remains = OK_REMAINS;
         for (int a=0; a<3; a++) {
-            ecgCurves[cur_column*3 + a].resetCurrWritePos();
-        }*/
+            //LOGI("TEST: curve nr %d", cur_column*3 + a);
+            remains = ecgCurves[cur_column*3 + a].put(data + stride*a, nPoints);
+            //LOGI("TEST: remains: %d", remains);
+            endpointCircles[cur_column*3 + a].setPosition(ecgCurves[cur_column*3 + a].endpointCoordinates());
+        }
+        //LOGI("TEST: Num of points: %d, remains: %d, col: %d\n", nPoints, remains, cur_column);
+
+        // OPTION 2 - to update rhythm
+        if (rhy_remains == OK_REMAINS || rhy_remains == -1) {
+            //LOGI("TEST: rhythm draw");
+            rhy_remains = rhythm.put(data + stride*1, nPoints);
+            rhythm_circle.setPosition(rhythm.endpointCoordinates());
+        }
+
+        int rhythm_points = nPoints;
+        if (remains == NO_REMAINS) {    // switching column of signals
+            // OPTION 1 - leaving out parts of signal when changing columns
+            //int curve_cur_position = ecgCurves[cur_column*3].getEndCoordinateX();  // get current (before switch) signal x coord from 1. line
+            //int rhythm_cur_position = rhythm.getEndCoordinateX() - curve_cur_position*cur_column;   // get current rhythm signal position and substitute old curves max positions
+            //rhythm_points = curve_cur_position - rhythm_cur_position;   // calculate number of points to put into rhythm curve
+
+            //LOGI("TEST: curve_cur_position: %d, rhythm_cur_position: %d, rhythm_points: %d\n", curve_cur_position, rhythm_cur_position, rhythm_points);
+            cur_column++;
+            if (cur_column == ECG_COLUMN_COUNT) {
+                //LOGI("TEST: back to start...");
+                cur_column = 0;
+                rhy_remains = OK_REMAINS;
+                // OPTION 2 - reset rhythm drawing to 0
+                rhythm.resetCurrWritePos();
+                rhythm_circle.setPosition(Vec2<int>());
+
+                // OPTION 1
+                //rhythm_points++; // we add 1 point when switching back to 1. column to match requiredNumOfPoints for other curves
+            }
+            /*
+            for (int a=0; a<3; a++) {
+                ecgCurves[cur_column*3 + a].resetCurrWritePos();
+            }*/
+        }
+        // OPTION 1 - to update rhythm
+        //rhythm.put(data + stride*1, rhythm_points);
+        //rhythm_circle.setPosition(rhythm.endpointCoordinates());
     }
-    // OPTION 1 - to update rhythm
-    //rhythm.put(data + stride*1, rhythm_points);
-    //rhythm_circle.setPosition(rhythm.endpointCoordinates());
 }
 
 void EcgArea::draw(){
@@ -410,15 +432,31 @@ bool EcgArea::isRedrawNeeded(){
 
 void EcgArea::setContentVisible(bool visible){
     LOGD("HEH: EcgArea::setContentVisible");
-    for (int a=0; a<ECG_CURVE_COUNT; a++) {
-        endpointCircles[a].setVisible(visible);
-        ecgCurves[a].setVisible(visible);
-        labels[a].setVisible(visible);
-        //outOfRangeLabels[a].setVisible(false);
+    if (selected_layout == NORMAL_LAYOUT) {
+        for (int a=0; a<ECG_CURVE_COUNT; a++) {
+            endpointCircles[a].setVisible(visible);
+            ecgCurves[a].setVisible(visible);
+            labels[a].setVisible(visible);
+            //outOfRangeLabels[a].setVisible(false);
+        }
+        rhythm_circle.setVisible(visible);
+        rhythm.setVisible(visible);
+        rhythm_label.setVisible(visible);
     }
-    rhythm_circle.setVisible(visible);
-    rhythm.setVisible(visible);
-    rhythm_label.setVisible(visible);
+    else {/*
+        endpointCircles[0].setVisible(visible);
+        ecgCurves[0].setVisible(visible);
+        labels[0].setVisible(visible);
+        endpointCircles[2].setVisible(visible);
+        ecgCurves[2].setVisible(visible);
+        labels[2].setVisible(visible);
+        endpointCircles[4].setVisible(visible);
+        ecgCurves[4].setVisible(visible);
+        labels[4].setVisible(visible);
+        rhythm_circle.setVisible(visible);
+        rhythm.setVisible(visible);
+        rhythm_label.setVisible(visible); */
+    }
     //pause_button.setVisible(visible);
     //pause_label.setVisible(visible);
 }
@@ -427,12 +465,14 @@ void EcgArea::deviceConnected(){
     LOGD("HEH: EcgArea::deviceConnected");
     setContentVisible(true);
     disconnectedLabel.setVisible(false);
+    deviceNotConnected = false;
 }
 
 void EcgArea::deviceDisconnected(){
     LOGD("HEH: EcgArea::deviceDisconnected");
     setContentVisible(false);
     disconnectedLabel.setVisible(true);
+    deviceNotConnected = true;
 }
 
 void EcgArea::resetContent() {
@@ -443,18 +483,18 @@ void EcgArea::resetContent() {
     }
     rhythm_circle.setPosition(Vec2<int>());
     rhythm.resetCurrWritePos();
-    //constructLayout();  // TODO layout switching
-    //redraw();
 }
 
 void EcgArea::changeLayout() {
     LOGD("HEH: EcgArea::changeLayout");
+    resetContent();
     if (selected_layout == NORMAL_LAYOUT) {
         selected_layout = RHYTHM_LAYOUT;
     }
     else if (selected_layout == RHYTHM_LAYOUT) {
         selected_layout = NORMAL_LAYOUT;
     }
+    contextResized(screenSize.w, screenSize.h);
 }
 
 /*

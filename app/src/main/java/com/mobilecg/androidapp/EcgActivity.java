@@ -224,9 +224,11 @@ public class EcgActivity extends Activity {
             public void onClick(View v) {
                 if (render_paused) {
                     resumeECG();
+                    rhythm_12lead_btn.setEnabled(true);
                 }
                 else {
                     pauseECG();
+                    rhythm_12lead_btn.setEnabled(false);
                 }
             }
         });
@@ -245,7 +247,7 @@ public class EcgActivity extends Activity {
         rhythm_12lead_btn = (Button)findViewById(R.id.rhythm_btn);    // Rhythm / 12 lead
         rhythm_12lead_btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                //EcgJNI.changeLayout();    // TODO test it
+                EcgJNI.changeLayout();
                 if (!rhythm_screen) {   // 12 lead -> rhythm
                     rhythm_12lead_btn.setText(R.string.menu_button_3_alt);
                     rhythm_screen = true;
@@ -373,7 +375,6 @@ public class EcgActivity extends Activity {
 
     private void pauseECG() {
         Log.d(TAG, "pauseECG - function");
-        // TODO pause reading from usb ???
         // pause drawing
         mView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);   // this stops auto rendering
         mView.onPause();
