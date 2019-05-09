@@ -105,7 +105,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             String measurementTimestamp = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
             String id = thisPatient.getMeasurementId();
             if (id == "") {
-                id = "NoID";
+                id = "000";
             }
             String filename = id + "_" + measurementTimestamp.replace(" ", "-") + ".pdf";
             int textSize = 50;

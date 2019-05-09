@@ -84,8 +84,8 @@ EcgArea::EcgArea():
         .setColor(Image::GREY)
         .setTextSizeMM(3.5);
 
-    drawableList.push_back(&bpm_label);
-    bpm_label
+    drawableList.push_back(&speed_warning_label);
+    speed_warning_label
         .setColor(Image::GREY)
         .setTextSizeMM(3.5);
 
@@ -98,7 +98,7 @@ EcgArea::EcgArea():
     drawableList.push_back(&disconnectedLabel);
     disconnectedLabel
             .setColor(Image::GREY)
-            .setTextSizeMM(3.5);
+            .setTextSizeMM(4.5);
 
     deviceDisconnected();
     selected_layout = NORMAL_LAYOUT;
@@ -136,7 +136,7 @@ void EcgArea::rescale(){
 
     disconnectedLabel.drawText("DISCONNECTED");
     devLabel.drawText("DEV VERSION " GIT_HASH " - " __DATE__ );
-    bpm_label.drawText("HR: 100");
+    speed_warning_label.drawText("PAPER SPEED: default");
 }
 
 /*
@@ -215,7 +215,7 @@ void EcgArea::constructLayout(){    // TODO rename to constructLayoutNormal()
     //LOGI("Available height: %d\n", availableHeight);
 
     devLabel.setPosition(0, 0);
-    bpm_label.setPosition(screenSize.w - bpm_label.getWidth() - 10, 0);
+    speed_warning_label.setPosition(screenSize.w - speed_warning_label.getWidth() - 10, 0);
 
     //pause_size = pause_button.getSize();
 }
@@ -276,7 +276,7 @@ void EcgArea::constructLayoutRhythm(){
     //LOGI("Available height: %d\n", availableHeight);
 
     devLabel.setPosition(0, 0);
-    bpm_label.setPosition(screenSize.w - bpm_label.getWidth() - 10, 0);
+    speed_warning_label.setPosition(screenSize.w - speed_warning_label.getWidth() - 10, 0);
 }
 
 void EcgArea::contextResized(int w, int h){

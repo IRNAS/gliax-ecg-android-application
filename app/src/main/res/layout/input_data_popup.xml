@@ -7,6 +7,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textSize="18sp"
         android:text="@string/new_btn"
         android:layout_alignParentRight="true"
         android:id="@+id/buttonPopUpNew"/>
@@ -123,6 +124,7 @@
             android:layout_height="wrap_content"
             android:text="@string/confirm_btn"
             android:layout_marginBottom="20dp"
+            android:textSize="18sp"
             android:id="@+id/buttonPopUpOK"/>
 
         <Button
@@ -130,12 +132,14 @@
             android:layout_height="wrap_content"
             android:text="@string/archive_btn"
             android:layout_marginBottom="3dp"
+            android:textSize="18sp"
             android:id="@+id/buttonPopUpArchive"/>
 
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/advanced_set_btn"
+            android:textSize="18sp"
             android:id="@+id/buttonPopUpAdvanced"/>
     </LinearLayout>
 

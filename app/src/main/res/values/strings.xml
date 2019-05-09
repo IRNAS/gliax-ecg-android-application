@@ -48,18 +48,18 @@
     <string name="x_speed_text">PAPER SPEED:</string>
     <string name="x_speed_25">25 mm/s</string>
     <string name="x_speed_50">50 mm/s</string>
-    <string name="save_loc_text">SAVE LOCATION FOLDER NAME</string>
+    <string name="save_loc_text">SAVE LOCATION FOLDER NAME:</string>
     <string name="save_loc_hint">Insert folder name</string>
     <string name="switch_text">Auto print on save:</string>
-    <string name="about_btn">About</string>
+    <string name="about_btn">ABOUT</string>
 
     <string name="question_print_measur">Would you like to print your measurement?</string>
-    <string name="print_btn">Print</string>
-    <string name="cancel_btn">Cancel</string>
+    <string name="print_btn">PRINT</string>
+    <string name="cancel_btn">CANCEL</string>
 
     <string name="question_save_measur">Current patient measurement was not yet saved. Would you like to save it now?</string>
-    <string name="yes_btn">Yes</string>
-    <string name="no_btn">No</string>
+    <string name="yes_btn">YES</string>
+    <string name="no_btn">NO</string>
 
     <string name="search_text">Search</string>
     <string name="empty_archive">No files found :(</string>

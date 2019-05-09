@@ -640,8 +640,7 @@ public class EcgActivity extends Activity {
         btnAbout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.irnas.eu"));
-                startActivity(browserIntent);
+                displayToast("GliaECG\nwww.irnas.eu\nVersion: 1.0");
             }
         });
 
