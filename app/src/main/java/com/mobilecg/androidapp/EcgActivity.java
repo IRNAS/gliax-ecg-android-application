@@ -170,27 +170,6 @@ public class EcgActivity extends Activity {
             saveLocation = defaultSaveLoc;
         }
 
-        /*
-        mView.setOnLongClickListener(new View.OnLongClickListener() {   // TODO
-            @Override
-            public boolean onLongClick(View v) {
-                openOptionsMenu();
-                return true;
-            }
-        });
-        */
-        /*
-        mView.setOnClickListener(new View.OnClickListener() {   // TODO
-            @Override
-            public void onClick(View v) {
-                float x = v.getX();
-                float y = v.getY();
-                String test = "X: " + x + " Y: " + y;
-                //Log.d(TAG, test);
-            }
-        });
-        */
-
         mView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -225,6 +204,7 @@ public class EcgActivity extends Activity {
                 if (render_paused) {
                     resumeECG();
                     rhythm_12lead_btn.setEnabled(true);
+                    save_btn.setEnabled(true);
                 }
                 else {
                     pauseECG();
@@ -236,6 +216,7 @@ public class EcgActivity extends Activity {
         save_btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 saveMeasurement();
+                save_btn.setEnabled(false);
                 if (!autoPrint) {   // display alert
                     showPrintAlertDialog();
                 }
@@ -309,7 +290,6 @@ public class EcgActivity extends Activity {
         Log.d(TAG, "run event - onPause");
         super.onPause();
         pauseECG();
-        turnEcgOnOrOff(ECG_OFF);
         unregisterReceiver(usbReceiver);
         //CloseConnectionToUsbDevice();
     }
@@ -341,6 +321,7 @@ public class EcgActivity extends Activity {
     protected void onDestroy() {
         Log.d(TAG, "run-event - onDestroy");
         super.onDestroy();
+        turnEcgOnOrOff(ECG_OFF);
         CloseConnectionToUsbDevice();
     }
 
@@ -393,61 +374,6 @@ public class EcgActivity extends Activity {
 
     @Override
     public void onBackPressed() {}  // disable back button
-
-    /*
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main_menu, menu);//Menu Resource, Menu
-        return true;
-    }
-
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        if (render_paused) {
-            menu.findItem(R.id.menu_btn1).setTitle(R.string.menu_button_1);
-        }
-        else {
-            menu.findItem(R.id.menu_btn1).setTitle(R.string.menu_button_1_alt);
-        }
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_btn1:    // Pause or resume measurement - freeze
-                if (render_paused) {
-                    mView.onResume();
-                    mView.queueEvent(new Runnable() {
-                        @Override
-                        public void run() {
-                            EcgJNI.resume();
-                        }
-                    });
-                    render_paused = false;
-                }
-                else {
-                    mView.onPause();
-                    mView.queueEvent(new Runnable() {
-                        @Override
-                        public void run() {
-                            EcgJNI.pause();
-                        }
-                    });
-                    render_paused = true;
-                }
-                return true;
-            case R.id.menu_btn2:    // Stop measurement - exit
-                finish();
-                System.exit(0);
-                super.onStop();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-    */
 
     private void showPrintAlertDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -502,6 +428,7 @@ public class EcgActivity extends Activity {
         myGLRenderer.takeScreenshot(saveLocation, patient);
         if (!render_paused) {   // pause ecg
             pauseECG();
+            save_btn.setEnabled(false);
         }
         boolean result = myGLRenderer.getScreenshotResult();    // check save file result
         if (result) {
@@ -509,7 +436,7 @@ public class EcgActivity extends Activity {
             displayToast("Successfully saved to pdf...");
         }
         else {
-            displayToast("Error when saving to pdf!");
+            //displayToast("Error when saving to pdf!");    // TODO
         }
     }
 
@@ -811,8 +738,9 @@ public class EcgActivity extends Activity {
                 serialPort = null;
                 return;
             }
-            onDeviceStateChange();
             turnEcgOnOrOff(ECG_ON);
+            onDeviceStateChange();
+
         }
         else {
             Log.e(TAG, " Opening device port failed.");

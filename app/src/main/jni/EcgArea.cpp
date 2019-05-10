@@ -140,7 +140,7 @@ void EcgArea::rescale(){
 }
 
 
-void EcgArea::constructLayout() {   // TODO
+void EcgArea::constructLayout() {
     LOGD("HEH: EcgArea::constructLayout");
     resetContent();
     if (selected_layout == NORMAL_LAYOUT) {
@@ -341,7 +341,7 @@ void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride){
         int remains = OK_REMAINS;
         for (int a=0; a<3; a++) {
             //LOGI("TEST: curve nr %d", cur_column*3 + a);
-            remains = ecgCurves[cur_column*3 + a].put(data + stride*a, nPoints);
+            remains = ecgCurves[cur_column*3 + a].put(data + stride*(cur_column*3 + a), nPoints);
             //LOGI("TEST: remains: %d", remains);
             endpointCircles[cur_column*3 + a].setPosition(ecgCurves[cur_column*3 + a].endpointCoordinates());
         }
