@@ -118,7 +118,7 @@ extern "C" {
         (void)type;
         AAssetManager *nativeAssetManager = AAssetManager_fromJava(env, assetManager);
         gEcg.init(nativeAssetManager, mains_freq);
-        LOGD("ecgJNI init call");
+        //LOGD("ecgJNI init call");
     }
 
     JNIEXPORT void JNICALL
@@ -206,7 +206,7 @@ extern "C" {
         struct stat sb;
         int32_t res = stat(EcgArea::instance().internalStoragePath, &sb);
         if (0 == res && sb.st_mode && S_IFDIR){
-            LOGD("'%s' dir already in app's internal data storage.",EcgArea::instance().internalStoragePath);
+            //LOGD("'%s' dir already in app's internal data storage.",EcgArea::instance().internalStoragePath);
         }
         else if (ENOENT == errno){
             res = mkdir(EcgArea::instance().internalStoragePath, 0770);

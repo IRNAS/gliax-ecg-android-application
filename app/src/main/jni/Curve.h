@@ -50,7 +50,7 @@ class Curve: public DrawableObject{
         void setLength(int lengthInPixels);
         int put(float *data, int n);
         //void put_rhythm(float *data, int n);
-        float getEndCoordinateX();
+        //float getEndCoordinateX();
 
         const Vec2 <int> endpointCoordinates();
 

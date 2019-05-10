@@ -139,25 +139,7 @@ int Curve::put(GLfloat *data, int n){
     //LOGI("TEST: requiredNumOfPoints: %d, currWritePos: %d, newPos: %d\n", requiredNumOfPoints, currWritePos, new_position);
     return return_value;
 }
-/*
-void Curve::put_rhythm(GLfloat *data, int n) {
-    if (n<=0)
-        return;
 
-    if (reset) {
-        currWritePos = 0;
-        reset = 0;
-    }
-
-    newPointBuffer.add(data, n);
-    int new_position = currWritePos+newPointBuffer.used();
-
-    endCoordinates.x = new_position;
-    endCoordinates.y = data[n-1];
-
-    LOGI("TEST: RHYTHM requiredNumOfPoints: %d, currWritePos: %d, newPos: %d\n", requiredNumOfPoints, currWritePos, new_position);
-}
-*/
 void Curve::resizeOnGPU(){
     if (requiredNumOfPoints==currNumOfPoints && (!EcgArea::instance().isRedrawNeeded())){
         return;
@@ -256,7 +238,8 @@ void Curve::resetCurrWritePos() {
     //clear();
     reset = 1;
 }
-
+/*
 float Curve::getEndCoordinateX() {
     return endCoordinates.x;
 }
+ */

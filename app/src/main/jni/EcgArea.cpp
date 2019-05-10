@@ -110,14 +110,14 @@ EcgArea &EcgArea::instance(){
 }
 
 void EcgArea::init(AAssetManager *assetManager, int mains_freq){
-    LOGD("HEH: EcgArea::init");
+    //LOGD("HEH: EcgArea::init");
     redraw();
     DrawableGroup::init(assetManager);
     mains_frequency = mains_freq;
 }
 
 void EcgArea::rescale(){
-    LOGD("HEH: EcgArea::rescale");
+    //LOGD("HEH: EcgArea::rescale");
     lastSampleFrequency=EcgProcessor::instance().getSamplingFrequency();
 
     float xScale = ecgCmPerSec * pixelDensity.x / lastSampleFrequency;
@@ -141,7 +141,7 @@ void EcgArea::rescale(){
 
 
 void EcgArea::constructLayout() {
-    LOGD("HEH: EcgArea::constructLayout");
+    //LOGD("HEH: EcgArea::constructLayout");
     resetContent();
     if (selected_layout == NORMAL_LAYOUT) {
         constructLayoutNormal();
@@ -153,7 +153,7 @@ void EcgArea::constructLayout() {
 
 
 void EcgArea::constructLayoutNormal(){
-    LOGD("HEH: EcgArea::constructLayoutNormal");
+    //LOGD("HEH: EcgArea::constructLayoutNormal");
     cur_column = 0;
     int r,c;
     /*  // app orientation is locked to landscape
@@ -233,7 +233,7 @@ void EcgArea::constructLayoutNormal(){
 }
 
 void EcgArea::constructLayoutRhythm(){
-    LOGD("HEH: EcgArea::constructLayoutRhythm");
+    //LOGD("HEH: EcgArea::constructLayoutRhythm");
     int r,c;
     // only displaying 4 signals (I, III, aVL and rhythm)
     c = 1;
@@ -286,7 +286,7 @@ void EcgArea::constructLayoutRhythm(){
 }
 
 void EcgArea::contextResized(int w, int h){
-    LOGD("HEH: EcgArea::contextResized");
+    //LOGD("HEH: EcgArea::contextResized");
     int deleteX=calculateUnalignedArea(w, pixelDensity.x);
     int deleteY=calculateUnalignedArea(h, pixelDensity.y);
 
@@ -302,7 +302,7 @@ void EcgArea::contextResized(int w, int h){
 
 
 int EcgArea::calculateUnalignedArea(int size, float dpcm){
-    LOGD("HEH: EcgArea::calculateUnalignedArea");
+    //LOGD("HEH: EcgArea::calculateUnalignedArea");
     int unalignedPixels=(((float)size) / dpcm);
     return size-(int)(unalignedPixels*dpcm);
 }
@@ -422,7 +422,7 @@ void EcgArea::draw(){
 }
 
 void EcgArea::redraw(){
-    LOGD("HEH: EcgArea::redraw");
+    //LOGD("HEH: EcgArea::redraw");
     redrawNeeded=true;
 }
 
@@ -431,7 +431,7 @@ bool EcgArea::isRedrawNeeded(){
 }
 
 void EcgArea::setContentVisible(bool visible){
-    LOGD("HEH: EcgArea::setContentVisible");
+    //LOGD("HEH: EcgArea::setContentVisible");
     if (selected_layout == NORMAL_LAYOUT) {
         for (int a=0; a<ECG_CURVE_COUNT; a++) {
             endpointCircles[a].setVisible(visible);
@@ -462,14 +462,14 @@ void EcgArea::setContentVisible(bool visible){
 }
 
 void EcgArea::deviceConnected(){
-    LOGD("HEH: EcgArea::deviceConnected");
+    //LOGD("HEH: EcgArea::deviceConnected");
     setContentVisible(true);
     disconnectedLabel.setVisible(false);
     deviceNotConnected = false;
 }
 
 void EcgArea::deviceDisconnected(){
-    LOGD("HEH: EcgArea::deviceDisconnected");
+    //LOGD("HEH: EcgArea::deviceDisconnected");
     setContentVisible(false);
     disconnectedLabel.setVisible(true);
     deviceNotConnected = true;
@@ -486,7 +486,7 @@ void EcgArea::resetContent() {
 }
 
 void EcgArea::changeLayout() {
-    LOGD("HEH: EcgArea::changeLayout");
+    //LOGD("HEH: EcgArea::changeLayout");
     resetContent();
     if (selected_layout == NORMAL_LAYOUT) {
         selected_layout = RHYTHM_LAYOUT;

@@ -21,8 +21,8 @@ public class Patient {
         patientBirth = birth;
         measurementId = id;
 
-        String logi = String.format("New patient - id: %s, name: %s, surname: %s, birth: %s", measurementId, patientName, patientSurname, patientBirth);
-        Log.d("HEH", logi);
+        //String logi = String.format("New patient - id: %s, name: %s, surname: %s, birth: %s", measurementId, patientName, patientSurname, patientBirth);
+        //Log.d("HEH", logi);
     }
 
     public void setSaved(boolean value) {

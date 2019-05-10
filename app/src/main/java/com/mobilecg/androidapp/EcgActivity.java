@@ -119,8 +119,8 @@ public class EcgActivity extends Activity {
     private boolean rhythm_screen = false;
 
     private static final String ACTION_USB_PERMISSION = "com.mobileecg.androidapp.USB_PERMISSION";
-    //private final String TAG = EcgActivity.class.getSimpleName();
-    private final String TAG = "HEH";
+    private final String TAG = EcgActivity.class.getSimpleName();
+    //private final String TAG = "HEH";
     private static final String SETTINGS_NAME = "EcgPrefsFile";
     private IntentFilter intentFilter = null;
     private String debugFilePath = "";
@@ -145,7 +145,7 @@ public class EcgActivity extends Activity {
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle icicle) {
-        Log.d(TAG, "run event - onCreate");
+        //Log.d(TAG, "run event - onCreate");
         super.onCreate(icicle);
         if (debugFileWrite == true) {
             debugFilePath = this.getFilesDir().getAbsolutePath();
@@ -176,8 +176,8 @@ public class EcgActivity extends Activity {
                 float x = event.getX();
                 float y = event.getY();
                 String test = "X: " + x + " Y: " + y;
-                Log.d(TAG, "screen height: " + v.getHeight());
-                Log.d(TAG, test);
+                //Log.d(TAG, "screen height: " + v.getHeight());
+                //Log.d(TAG, test);
                 //EcgJNI.getButtonCoords();
                 //EcgJNI.getButtonCoords();
                 //Log.d(TAG, "button coords: " + test2[0]);
@@ -274,7 +274,7 @@ public class EcgActivity extends Activity {
 
     @Override
     protected void onResume() {
-        Log.d(TAG, "run event - onResume");
+        //Log.d(TAG, "run event - onResume");
         super.onResume();
         hideNavAndStatusBar();
         // resume reading from usb
@@ -287,7 +287,7 @@ public class EcgActivity extends Activity {
 
     @Override
     protected void onPause() {
-        Log.d(TAG, "run event - onPause");
+        //Log.d(TAG, "run event - onPause");
         super.onPause();
         pauseECG();
         unregisterReceiver(usbReceiver);
@@ -296,7 +296,7 @@ public class EcgActivity extends Activity {
 
     @Override
     protected void onStop() {
-        Log.d(TAG, "run event - onStop");
+        //Log.d(TAG, "run event - onStop");
         super.onStop();
 
         if (debugFileWrite == true) {
@@ -319,7 +319,7 @@ public class EcgActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        Log.d(TAG, "run-event - onDestroy");
+        //Log.d(TAG, "run-event - onDestroy");
         super.onDestroy();
         turnEcgOnOrOff(ECG_OFF);
         CloseConnectionToUsbDevice();
@@ -338,7 +338,7 @@ public class EcgActivity extends Activity {
     }
 
     private void resumeECG() {
-        Log.d(TAG, "resumeECG function");
+        //Log.d(TAG, "resumeECG function");
         // resume drawing
         mView.onResume();
         mView.queueEvent(new Runnable() {
@@ -355,7 +355,7 @@ public class EcgActivity extends Activity {
     }
 
     private void pauseECG() {
-        Log.d(TAG, "pauseECG - function");
+        //Log.d(TAG, "pauseECG - function");
         // pause drawing
         mView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);   // this stops auto rendering
         mView.onPause();
@@ -559,17 +559,17 @@ public class EcgActivity extends Activity {
             public void onClick(View view) {
                 String save_loc = etSaveLoc.getText().toString().trim();
                 if (save_loc != saveLocation && save_loc != "") { saveLocation = save_loc; }
-                Log.d(TAG, "new save location: " + save_loc);
+                //Log.d(TAG, "new save location: " + save_loc);
 
                 int paper_speed = 0;
                 if (rbSpeed25.isChecked()) { paper_speed = 25; }
                 else if (rbSpeed50.isChecked()) { paper_speed = 50; }
                 if (paper_speed != paperSpeed) { paperSpeed = paper_speed; }
-                Log.d(TAG, "Paper speed: " + paper_speed);
+                //Log.d(TAG, "Paper speed: " + paper_speed);
 
                 if (tbAutoSave.isChecked()) { autoPrint = true; }
                 else { autoPrint = false; }
-                Log.d(TAG, "Auto print on save: " + autoPrint);
+                //Log.d(TAG, "Auto print on save: " + autoPrint);
 
                 alertDialog.dismiss();
             }
@@ -597,7 +597,7 @@ public class EcgActivity extends Activity {
             if (!dir.exists()) {
                 boolean result = dir.mkdirs();
                 if (!result) {
-                    Log.d(TAG, "archive mkdir error");
+                    //Log.d(TAG, "archive mkdir error");
                     return;
                 }
             }
@@ -608,7 +608,7 @@ public class EcgActivity extends Activity {
                 String[] namesOfFiles = new String[fileList.length];
                 for (int i = 0; i < namesOfFiles.length; i++) {
                     namesOfFiles[i] = fileList[i].getName();
-                    Log.d(TAG, "name: " + namesOfFiles[i]);
+                    //Log.d(TAG, "name: " + namesOfFiles[i]);
                 }
                 Arrays.sort(namesOfFiles);
                 final ArrayAdapter<String> listOfFiles = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, namesOfFiles);
@@ -696,19 +696,19 @@ public class EcgActivity extends Activity {
         usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
         List<UsbSerialDriver> usbDriversList = prober.findAllDrivers(usbManager);
         if (usbDriversList.isEmpty()) {
-            Log.d(TAG, "Usb device not connected.");
+            //Log.d(TAG, "Usb device not connected.");
             disableMainButtons();
             return;
         }
         else {
             enableMainButtons();
             if (usbDriversList.size() > 1)  {
-                Log.d(TAG, "More than one ECG devices connected. Selecting the first one...");
+                //Log.d(TAG, "More than one ECG devices connected. Selecting the first one...");
             }
             usbDriver = usbDriversList.get(0);
             PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
             usbManager.requestPermission(usbDriver.getDevice(), pendingIntent);
-            Log.d(TAG, " Target device connected.");
+            //Log.d(TAG, " Target device connected.");
         }
     }
 
@@ -720,7 +720,7 @@ public class EcgActivity extends Activity {
         }
         int numOfPorts = usbDriver.getPorts().size();
         if ( numOfPorts > 1) {
-            Log.d(TAG, "Device has " + numOfPorts + " ports. Selecting the first one...");
+            //Log.d(TAG, "Device has " + numOfPorts + " ports. Selecting the first one...");
         }
         serialPort = usbDriver.getPorts().get(0);
         if (serialPort != null) {
@@ -766,7 +766,7 @@ public class EcgActivity extends Activity {
 
     private void startIoManager() {
         if (serialPort != null) {
-            Log.d(TAG, "Starting io manager ..");
+            //Log.d(TAG, "Starting io manager ..");
             EcgJNI.onDeviceConnected();
             serialIoManager = new SerialInputOutputManager(serialPort, mListener);
             mExecutor.submit(serialIoManager);
@@ -776,7 +776,7 @@ public class EcgActivity extends Activity {
 
     private void stopIoManager() {
         if (serialIoManager != null) {
-            Log.d(TAG, "Stopping io manager ..");
+            //Log.d(TAG, "Stopping io manager ..");
             EcgJNI.onDeviceDisconnected();
             serialIoManager.stop();
             serialIoManager = null;
@@ -807,7 +807,7 @@ public class EcgActivity extends Activity {
 
         @Override
         public void onRunError(Exception e) {
-            Log.d(TAG, "Runner stopped.");
+            //Log.d(TAG, "Runner stopped.");
         }
     };
 
@@ -820,7 +820,7 @@ public class EcgActivity extends Activity {
                     ConnectToUsbDevice();
                 }
                 else {
-                    Log.d(TAG, "Permission denied for accessing ECG device!");
+                    //Log.d(TAG, "Permission denied for accessing ECG device!");
                     displayToast("Permission denied for accessing ECG device! It needs to be granted in order to use this ECG.");
                 }
             }

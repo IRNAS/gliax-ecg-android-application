@@ -33,14 +33,10 @@
 
 class EcgArea: public DrawableGroup{
     private:
-        static const int BUTTONS_COUNT = 4;
         static const int ECG_CURVE_COUNT = 12;
-        static const int BUTTON_SIZE = 50;
 
         const char *labelText[ECG_CURVE_COUNT] = {"I", "II", "III", "aVR", "aVL", "aVF", "V1", "V2", "V3", "V4", "V5", "V6"};
         const char *rhythm_text = "RHYTHM";
-        const char *pause_text = "II";
-        const char *resume_text = "I>";
 
         const int NORMAL_LAYOUT = 0;
         const int RHYTHM_LAYOUT = 1;
@@ -119,7 +115,7 @@ public:
         void resetContent();
         void changeLayout();
 
-        int * getButtonsSize();
+        //int * getButtonsSize();
 };
 
 
