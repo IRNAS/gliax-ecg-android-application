@@ -26,6 +26,7 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -52,6 +53,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -593,7 +595,7 @@ public class EcgActivity extends Activity {
 
             builder.setView(view);
             final AlertDialog alertDialog = builder.create();
-            File dir = new File(Environment.getExternalStorageDirectory() + File.separator + saveLocation);
+            final File dir = new File(Environment.getExternalStorageDirectory() + File.separator + saveLocation);
             if (!dir.exists()) {
                 boolean result = dir.mkdirs();
                 if (!result) {
@@ -605,7 +607,7 @@ public class EcgActivity extends Activity {
             ListView listView = (ListView) view.findViewById(R.id.archive_list_view);
             File[] fileList = dir.listFiles();
             if (fileList != null && fileList.length > 0) {
-                String[] namesOfFiles = new String[fileList.length];
+                final String[] namesOfFiles = new String[fileList.length];
                 for (int i = 0; i < namesOfFiles.length; i++) {
                     namesOfFiles[i] = fileList[i].getName();
                     //Log.d(TAG, "name: " + namesOfFiles[i]);
@@ -613,6 +615,23 @@ public class EcgActivity extends Activity {
                 Arrays.sort(namesOfFiles);
                 final ArrayAdapter<String> listOfFiles = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, namesOfFiles);
                 listView.setAdapter(listOfFiles);
+                listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        //displayToast("Clicked on list item: " + position);
+                        File file = new File(dir +"/"+ namesOfFiles[position]);
+                        Intent target = new Intent(Intent.ACTION_VIEW);
+                        target.setDataAndType(Uri.fromFile(file),"application/pdf");
+                        target.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+
+                        Intent intent = Intent.createChooser(target, "Open File");
+                        try {
+                            startActivity(intent);
+                        } catch (ActivityNotFoundException e) {
+                            displayToast("No pdf reader is installed!");
+                        }
+                    }
+                });
                 textView.setVisibility(View.GONE);
             }
             else {
