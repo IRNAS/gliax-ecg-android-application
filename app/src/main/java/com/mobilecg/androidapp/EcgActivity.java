@@ -55,11 +55,13 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RadioButton;
+import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -79,6 +81,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -143,6 +146,8 @@ public class EcgActivity extends Activity {
     private static int paperSpeed = 25;    // speed is 25 mm/s - TODO display alert if not default speed
     private String saveLocation;
     private boolean autoPrint;   // this gets reset between app launches
+    private String[] namesOfFiles;
+    private ListView listView;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -603,17 +608,20 @@ public class EcgActivity extends Activity {
                     return;
                 }
             }
+
             TextView textView = (TextView) view.findViewById(R.id.text_view_empty_archive);
-            ListView listView = (ListView) view.findViewById(R.id.archive_list_view);
+            listView = (ListView) view.findViewById(R.id.archive_list_view);
+            SearchView searchView = (SearchView) view.findViewById(R.id.archive_search_view);
             File[] fileList = dir.listFiles();
             if (fileList != null && fileList.length > 0) {
-                final String[] namesOfFiles = new String[fileList.length];
+                namesOfFiles = new String[fileList.length];
                 for (int i = 0; i < namesOfFiles.length; i++) {
                     namesOfFiles[i] = fileList[i].getName();
                     //Log.d(TAG, "name: " + namesOfFiles[i]);
                 }
                 Arrays.sort(namesOfFiles);
-                final ArrayAdapter<String> listOfFiles = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, namesOfFiles);
+
+                ArrayAdapter<String> listOfFiles = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, namesOfFiles);
                 listView.setAdapter(listOfFiles);
                 listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
@@ -633,9 +641,29 @@ public class EcgActivity extends Activity {
                     }
                 });
                 textView.setVisibility(View.GONE);
+
+                searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                    @Override
+                    public boolean onQueryTextSubmit(String query) {
+                        List<String> filteredFiles = new ArrayList<>();
+                        for (int i = 0; i < namesOfFiles.length; i++) {
+                            if (namesOfFiles[i].contains(query)) {
+                                filteredFiles.add(namesOfFiles[i]);
+                            }
+                        }
+                        Log.d(TAG, filteredFiles.toString());
+                        return false;
+                    }
+                    @Override
+                    public boolean onQueryTextChange(String newText) {
+                        //displayToast(newText);
+                        return false;
+                    }
+                });
             }
             else {
                 listView.setVisibility(View.GONE);
+                searchView.setVisibility(View.GONE);
                 TextView infoTextView = new TextView(this);
                 infoTextView.setLayoutParams(new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT));
                 infoTextView.setText(getString(R.string.empty_archive));

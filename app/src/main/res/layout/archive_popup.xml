@@ -13,15 +13,16 @@
         android:textSize="25sp"
         android:gravity="center"/>
 
-    <!-- TODO
     <SearchView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:queryHint="@string/search_text"
+        android:iconifiedByDefault="false"
+        android:background="@color/white"
+        android:id="@+id/archive_search_view"
         android:layout_margin="5dp">
 
     </SearchView>
-    -->
 
     <ListView
         android:layout_width="match_parent"
