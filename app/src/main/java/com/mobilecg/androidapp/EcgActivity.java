@@ -83,6 +83,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -146,8 +147,11 @@ public class EcgActivity extends Activity {
     private static int paperSpeed = 25;    // speed is 25 mm/s - TODO display alert if not default speed
     private String saveLocation;
     private boolean autoPrint;   // this gets reset between app launches
-    private String[] namesOfFiles;
-    private ListView listView;
+
+    ArrayList<String> namesOfFiles;
+    ArrayAdapter<String> listAdapter;
+    ListView listView;
+    SearchView searchView;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -536,7 +540,6 @@ public class EcgActivity extends Activity {
                 etMeasurementID.setText("");
             }
         });
-
         alertDialog.show();
     }
 
@@ -611,23 +614,22 @@ public class EcgActivity extends Activity {
 
             TextView textView = (TextView) view.findViewById(R.id.text_view_empty_archive);
             listView = (ListView) view.findViewById(R.id.archive_list_view);
-            SearchView searchView = (SearchView) view.findViewById(R.id.archive_search_view);
+            searchView = (SearchView) view.findViewById(R.id.archive_search_view);
             File[] fileList = dir.listFiles();
             if (fileList != null && fileList.length > 0) {
-                namesOfFiles = new String[fileList.length];
-                for (int i = 0; i < namesOfFiles.length; i++) {
-                    namesOfFiles[i] = fileList[i].getName();
-                    //Log.d(TAG, "name: " + namesOfFiles[i]);
+                namesOfFiles = new ArrayList<>();
+                for (int i = 0; i < fileList.length; i++) {
+                    namesOfFiles.add(fileList[i].getName());
                 }
-                Arrays.sort(namesOfFiles);
+                Collections.sort(namesOfFiles);
 
-                ArrayAdapter<String> listOfFiles = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, namesOfFiles);
-                listView.setAdapter(listOfFiles);
+                listAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, namesOfFiles);
+                listView.setAdapter(listAdapter);
                 listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         //displayToast("Clicked on list item: " + position);
-                        File file = new File(dir +"/"+ namesOfFiles[position]);
+                        File file = new File(dir +"/"+ namesOfFiles.get(position));
                         Intent target = new Intent(Intent.ACTION_VIEW);
                         target.setDataAndType(Uri.fromFile(file),"application/pdf");
                         target.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
@@ -645,13 +647,13 @@ public class EcgActivity extends Activity {
                 searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                     @Override
                     public boolean onQueryTextSubmit(String query) {
-                        List<String> filteredFiles = new ArrayList<>();
-                        for (int i = 0; i < namesOfFiles.length; i++) {
-                            if (namesOfFiles[i].contains(query)) {
-                                filteredFiles.add(namesOfFiles[i]);
-                            }
+                        query = query + ".pdf";
+                        if (namesOfFiles.contains(query)) {
+                            listAdapter.getFilter().filter(query);
                         }
-                        Log.d(TAG, filteredFiles.toString());
+                        else {
+                            displayToast("No exact match found...");
+                        }
                         return false;
                     }
                     @Override

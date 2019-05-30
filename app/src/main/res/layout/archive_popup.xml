@@ -18,11 +18,9 @@
         android:layout_height="wrap_content"
         android:queryHint="@string/search_text"
         android:iconifiedByDefault="false"
-        android:background="@color/white"
+        android:background="@color/patient_background"
         android:id="@+id/archive_search_view"
-        android:layout_margin="5dp">
-
-    </SearchView>
+        android:layout_margin="5dp"/>
 
     <ListView
         android:layout_width="match_parent"
