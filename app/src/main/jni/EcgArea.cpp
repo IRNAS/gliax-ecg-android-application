@@ -168,7 +168,8 @@ void EcgArea::constructLayoutNormal(){
 
     disconnectedLabel.setPosition((screenSize.w - disconnectedLabel.getWidth())/2, screenSize.h/2 - disconnectedLabel.getHeight());
 
-    int padInPixels=padInCm*pixelDensity.x;
+    //int padInPixels=padInCm*pixelDensity.x;
+    int padInPixels = 1;
     int curveWidth=(activeArea.width()-(c-1)*padInPixels)/c;
 
     const int yStep = activeArea.height()/r;
