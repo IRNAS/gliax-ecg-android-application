@@ -137,7 +137,6 @@ public class EcgActivity extends Activity {
     private int DATA_BITS = 8;
     private int STOP_BITS = UsbSerialPort.STOPBITS_1;
     private int PARITY = UsbSerialPort.PARITY_NONE;
-    private boolean ecgDeviceOn;
     private static final int ECG_OFF = 0;
     private static final int ECG_ON = 1;
 
@@ -878,14 +877,14 @@ public class EcgActivity extends Activity {
 
     private void turnEcgOnOrOff(int newState) {
         try {
-            // TODO check ecg device state with readLatch
-            if (newState == ECG_ON && !ecgDeviceOn)  {
+            // check ecg device state with readLatch
+            boolean ecgOn = serialPort.readLatch();
+            Log.d(TAG, "ECG is currently on: " + String.valueOf(ecgOn));
+            if (newState == ECG_ON && !ecgOn)  {
                 serialPort.writeLatch(ECG_ON);
-                ecgDeviceOn = true;
             }
-            else if (newState == ECG_OFF && ecgDeviceOn) {
+            else if (newState == ECG_OFF && ecgOn) {
                 serialPort.writeLatch(ECG_OFF);
-                ecgDeviceOn = false;
             }
         } catch (Exception e) {
             e.printStackTrace();
