@@ -30,8 +30,7 @@
 #include "../res/Common/DataFormat/CircularBuffer.h"
 
 // variables for curve remaining available space on X axis
-const int OK_REMAINS = 0;
-const int NO_REMAINS = 1;
+const int OK_REMAINS = -2;
 
 class Curve: public DrawableObject{
     public:

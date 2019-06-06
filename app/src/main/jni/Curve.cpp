@@ -128,7 +128,9 @@ int Curve::put(GLfloat *data, int n){
     int return_value = OK_REMAINS;
     if ((currWritePos + n) >= requiredNumOfPoints) {
         new_points_count = requiredNumOfPoints - currWritePos;
-        return_value = NO_REMAINS;
+        //("TEST: num of points that fit: %d", new_points_count);
+        return_value = n - new_points_count;
+        //LOGI("TEST: num of points that don't fit: %d", return_value);
     }
     newPointBuffer.add(data, new_points_count);
     int new_position = currWritePos+newPointBuffer.used();
