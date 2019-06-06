@@ -301,7 +301,8 @@ public class EcgActivity extends Activity {
         super.onPause();
         pauseECG();
         unregisterReceiver(usbReceiver);
-        //CloseConnectionToUsbDevice();
+        turnEcgOnOrOff(ECG_OFF);
+        CloseConnectionToUsbDevice();
     }
 
     @Override
@@ -331,8 +332,8 @@ public class EcgActivity extends Activity {
     protected void onDestroy() {
         //Log.d(TAG, "run-event - onDestroy");
         super.onDestroy();
-        turnEcgOnOrOff(ECG_OFF);
-        CloseConnectionToUsbDevice();
+        //turnEcgOnOrOff(ECG_OFF);
+        //CloseConnectionToUsbDevice();
     }
 
     public void displayToast(String message) {
@@ -799,6 +800,8 @@ public class EcgActivity extends Activity {
         stopIoManager();
         if (serialPort != null) {
             try {
+                Log.d(TAG, "Closing usb connection");
+                serialPort.purgeHwBuffers(true, false);
                 serialPort.close();
                 //deviceConnection.close();
             } catch (IOException e) {
