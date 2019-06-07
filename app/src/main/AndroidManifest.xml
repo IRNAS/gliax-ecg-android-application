@@ -18,7 +18,9 @@
 -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.mobilecg.androidapp">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.mobilecg.androidapp"
+    tools:ignore="GoogleAppIndexingWarning">
 
     <uses-feature
         android:glEsVersion="0x00020000"
@@ -49,5 +51,11 @@
                 android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
                 android:resource="@xml/device_filter" />
         </activity>
+        <receiver android:name=".BatteryDetectReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
+                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

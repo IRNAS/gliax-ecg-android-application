@@ -93,6 +93,8 @@ import java.util.zip.DataFormatException;
 import static android.R.attr.background;
 import static android.R.attr.id;
 import static android.content.ContentValues.TAG;
+import static android.content.Intent.ACTION_POWER_CONNECTED;
+import static android.content.Intent.ACTION_POWER_DISCONNECTED;
 import static com.mobilecg.androidapp.PopUps.GetSelectedXspeed;
 
 /**
@@ -103,7 +105,7 @@ import static com.mobilecg.androidapp.PopUps.GetSelectedXspeed;
 
 public class EcgActivity extends Activity {
 
-    private boolean debugFileWrite = true; // set this to true to write signal data to files (do it also in EcgProcessor.cpp file)
+    private boolean debugFileWrite = false; // set this to true to write signal data to files (do it also in EcgProcessor.cpp file)
 
     private GLSurfaceView mView;
     private DisplayMetrics displayMetrics;
@@ -151,6 +153,8 @@ public class EcgActivity extends Activity {
     ArrayAdapter<String> listAdapter;
     ListView listView;
     SearchView searchView;
+
+    BatteryDetectReceiver batteryDetect;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -293,6 +297,9 @@ public class EcgActivity extends Activity {
         customTable = CreateDevicesTable();
         FindUsbDevice();
         resumeECG();
+
+        intentFilter = new IntentFilter(ACTION_POWER_CONNECTED);
+        registerReceiver(batteryDetect, intentFilter);
     }
 
     @Override
@@ -303,6 +310,8 @@ public class EcgActivity extends Activity {
         unregisterReceiver(usbReceiver);
         turnEcgOnOrOff(ECG_OFF);
         CloseConnectionToUsbDevice();
+
+        unregisterReceiver(batteryDetect);
     }
 
     @Override
@@ -891,7 +900,7 @@ public class EcgActivity extends Activity {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            displayToast("Error when changing state of ECG device! Please restart the app...");
+            displayToast("Error when changing state of ECG device!");
         }
     }
 }

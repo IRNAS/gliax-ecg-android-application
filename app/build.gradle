@@ -17,6 +17,8 @@ model {
             applicationId    = "com.mobilecg.androidapp"
             minSdkVersion.apiLevel    = 19
             targetSdkVersion.apiLevel = 23
+            versionCode 1
+            versionName "1.0"
         }
     }
 
