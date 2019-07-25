@@ -6,7 +6,7 @@
 
     <Button
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
         android:textSize="18sp"
         android:text="@string/new_btn"
         android:layout_alignParentRight="true"
@@ -24,7 +24,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:paddingBottom="5dp"
+            android:paddingBottom="15dp"
             android:text="@string/input_popup_title"
             android:textSize="25sp"/>
 
@@ -116,12 +116,12 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="275dp"
+        android:layout_marginTop="290dp"
         android:padding="10dp"
         android:orientation="vertical">
         <Button
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:text="@string/confirm_btn"
             android:layout_marginBottom="20dp"
             android:textSize="18sp"
@@ -129,7 +129,7 @@
 
         <Button
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:text="@string/archive_btn"
             android:layout_marginBottom="3dp"
             android:textSize="18sp"
@@ -137,7 +137,7 @@
 
         <Button
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:text="@string/advanced_set_btn"
             android:textSize="18sp"
             android:id="@+id/buttonPopUpAdvanced"/>
