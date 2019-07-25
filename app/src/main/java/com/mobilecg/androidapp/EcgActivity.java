@@ -149,10 +149,11 @@ public class EcgActivity extends Activity {
     private String saveLocation;
     private boolean autoPrint;   // this gets reset between app launches
 
-    ArrayList<String> namesOfFiles;
-    ArrayAdapter<String> listAdapter;
-    ListView listView;
-    SearchView searchView;
+    // Pdf filenames container and search
+    public static ArrayList<PdfFiles> namesOfFiles;
+    private MyListViewAdapter listViewAdapter;
+    private ListView listView;
+    private SearchView searchView;
 
     BatteryDetectReceiver batteryDetect;
 
@@ -628,17 +629,20 @@ public class EcgActivity extends Activity {
             if (fileList != null && fileList.length > 0) {
                 namesOfFiles = new ArrayList<>();
                 for (int i = 0; i < fileList.length; i++) {
-                    namesOfFiles.add(fileList[i].getName());
+                    PdfFiles pdfFiles = new PdfFiles(fileList[i].getName());
+                    namesOfFiles.add(pdfFiles);
                 }
-                Collections.sort(namesOfFiles);
 
-                listAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, namesOfFiles);
-                listView.setAdapter(listAdapter);
+                listViewAdapter = new MyListViewAdapter(this);
+                listView.setAdapter(listViewAdapter);
                 listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         //displayToast("Clicked on list item: " + position);
-                        File file = new File(dir +"/"+ namesOfFiles.get(position));
+
+                        PdfFiles pdfFiles = namesOfFiles.get(position);
+                        String filename = pdfFiles.getFileName();
+                        File file = new File(dir +"/"+ filename);
                         Intent target = new Intent(Intent.ACTION_VIEW);
                         target.setDataAndType(Uri.fromFile(file),"application/pdf");
                         target.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
@@ -651,28 +655,23 @@ public class EcgActivity extends Activity {
                         }
                     }
                 });
-                textView.setVisibility(View.GONE);
+
+                textView.setVisibility(View.GONE);   // hide no files found text
 
                 searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                     @Override
                     public boolean onQueryTextSubmit(String query) {
-                        query = query + ".pdf";
-                        if (namesOfFiles.contains(query)) {
-                            listAdapter.getFilter().filter(query);
-                        }
-                        else {
-                            displayToast("No exact match found...");
-                        }
                         return false;
                     }
                     @Override
                     public boolean onQueryTextChange(String newText) {
-                        //displayToast(newText);
+                        String text = newText;
+                        listViewAdapter.filter(text);
                         return false;
                     }
                 });
             }
-            else {
+            else {  // show no files found text
                 listView.setVisibility(View.GONE);
                 searchView.setVisibility(View.GONE);
                 TextView infoTextView = new TextView(this);
