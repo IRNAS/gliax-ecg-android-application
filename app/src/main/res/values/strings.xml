@@ -45,10 +45,10 @@
     <string name="advanced_set_btn">ADVANCED SETTINGS</string>
     <string name="new_btn">NEW</string>
 
-    <string name="x_speed_text">PAPER SPEED:</string>
+    <string name="x_speed_text">Paper speed:</string>
     <string name="x_speed_25">25 mm/s</string>
     <string name="x_speed_50">50 mm/s</string>
-    <string name="save_loc_text">SAVE LOCATION FOLDER NAME:</string>
+    <string name="save_loc_text">Save location folder name:</string>
     <string name="save_loc_hint">Insert folder name</string>
     <string name="switch_text">Auto print on save:</string>
     <string name="about_btn">ABOUT</string>
