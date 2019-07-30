@@ -24,6 +24,7 @@
 <resources>
     <!-- Simple strings. -->
     <string name="app_name">GliaECG</string>
+    <string name="alert_name">Alert</string>
     <string name="confirm_btn">OK</string>
 
     <string name="ecg_layout">ecg_layout</string>

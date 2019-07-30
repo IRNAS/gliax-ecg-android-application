@@ -38,6 +38,7 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -91,6 +92,7 @@ import java.util.concurrent.Executors;
 import java.util.zip.DataFormatException;
 
 import static android.R.attr.background;
+import static android.R.attr.content;
 import static android.R.attr.id;
 import static android.content.ContentValues.TAG;
 import static android.content.Intent.ACTION_POWER_CONNECTED;
@@ -298,8 +300,13 @@ public class EcgActivity extends Activity {
         customTable = CreateDevicesTable();
         FindUsbDevice();
         resumeECG();
-
-        intentFilter = new IntentFilter(ACTION_POWER_CONNECTED);
+        /*
+        if (!BatteryDetectReceiver.isCharging(this)) {  // TODO  move this
+            Intent intent1 = new Intent(this, AlertActivity.class);
+            intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            this.startActivity(intent1);
+        }
+        */
         registerReceiver(batteryDetect, intentFilter);
     }
 
@@ -312,7 +319,9 @@ public class EcgActivity extends Activity {
         turnEcgOnOrOff(ECG_OFF);
         CloseConnectionToUsbDevice();
 
-        unregisterReceiver(batteryDetect);
+        if (batteryDetect != null) {
+            unregisterReceiver(batteryDetect);
+        }
     }
 
     @Override
