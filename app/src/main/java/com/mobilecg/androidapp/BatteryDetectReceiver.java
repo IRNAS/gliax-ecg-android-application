@@ -18,10 +18,10 @@ public class BatteryDetectReceiver extends BroadcastReceiver {
             Toast.makeText(context, "Tablet is being charged...", Toast.LENGTH_SHORT).show();
         }
         else {
-            // TODO display this alert activity only if ECG is actually connected
-            Intent intent1 = new Intent(context, AlertActivity.class);
-            intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(intent1);
+            // display this alert only if ECG is actually connected
+            if (States.isEcgConnected()) {
+                context.sendBroadcast(new Intent("DISPLAY_BAT_ALERT"));
+            }
         }
     }
 

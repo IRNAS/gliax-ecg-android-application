@@ -53,6 +53,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -90,14 +91,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.zip.DataFormatException;
-
-import static android.R.attr.background;
-import static android.R.attr.content;
-import static android.R.attr.id;
-import static android.content.ContentValues.TAG;
-import static android.content.Intent.ACTION_POWER_CONNECTED;
-import static android.content.Intent.ACTION_POWER_DISCONNECTED;
-import static com.mobilecg.androidapp.PopUps.GetSelectedXspeed;
 
 /**
  * Reading data from ECG board over USB
@@ -157,7 +150,8 @@ public class EcgActivity extends Activity {
     private ListView listView;
     private SearchView searchView;
 
-    BatteryDetectReceiver batteryDetect;
+    private BatteryDetectReceiver batteryDetect;
+    private static AlertDialog batteryAlert;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -208,7 +202,7 @@ public class EcgActivity extends Activity {
         mView.queueEvent(new Runnable() {
             @Override
             public void run() {
-                //EcgJNI.init(getAssets(), PopUps.GetSelectedMainsFreq());
+                //EcgJNI.init(getAssets(), States.GetSelectedMainsFreq());
                 EcgJNI.init(getAssets(), 50);
                 EcgJNI.initNDK(debugFilePath);
             }
@@ -293,28 +287,26 @@ public class EcgActivity extends Activity {
     protected void onResume() {
         //Log.d(TAG, "run event - onResume");
         super.onResume();
-        hideNavAndStatusBar();
+        hideNavAndStatusBar(getWindow());
         // resume reading from usb
         intentFilter = new IntentFilter(ACTION_USB_PERMISSION);
         registerReceiver(usbReceiver,intentFilter);
         customTable = CreateDevicesTable();
         FindUsbDevice();
-        resumeECG();
-        /*
-        if (!BatteryDetectReceiver.isCharging(this)) {  // TODO  move this
-            Intent intent1 = new Intent(this, AlertActivity.class);
-            intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            this.startActivity(intent1);
+        if (!States.isEcgRunning()) {
+            resumeECG();
         }
-        */
         registerReceiver(batteryDetect, intentFilter);
+        registerReceiver(batteryAlertReceiver, new IntentFilter("DISPLAY_BAT_ALERT"));
     }
 
     @Override
     protected void onPause() {
         //Log.d(TAG, "run event - onPause");
         super.onPause();
-        pauseECG();
+        if (States.isEcgRunning()) {
+            pauseECG();
+        }
         unregisterReceiver(usbReceiver);
         turnEcgOnOrOff(ECG_OFF);
         CloseConnectionToUsbDevice();
@@ -322,6 +314,10 @@ public class EcgActivity extends Activity {
         if (batteryDetect != null) {
             unregisterReceiver(batteryDetect);
         }
+        if (batteryAlert != null && batteryAlert.isShowing()) {
+            batteryAlert.dismiss();
+        }
+        unregisterReceiver(batteryAlertReceiver);
     }
 
     @Override
@@ -359,10 +355,10 @@ public class EcgActivity extends Activity {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
-    public void hideNavAndStatusBar() {
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    public static void hideNavAndStatusBar(Window window) {     // TODO move to the end of the file
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         // Hide both the navigation bar and the status bar.
-        View decorView = getWindow().getDecorView();
+        View decorView = window.getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
         decorView.setSystemUiVisibility(uiOptions);
     }
@@ -382,6 +378,7 @@ public class EcgActivity extends Activity {
             render_paused = false;
             pause_resume_btn.setText(R.string.menu_button_1);
         }
+        States.setEcgRunning(true);
     }
 
     private void pauseECG() {
@@ -400,10 +397,39 @@ public class EcgActivity extends Activity {
             pause_resume_btn.setText(R.string.menu_button_1_alt);
             render_paused = true;
         }
+        States.setEcgRunning(false);
     }
 
     @Override
     public void onBackPressed() {}  // disable back button
+
+    public void displayBatteryAlert(Context context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage("Tablet is powering ECG!");
+        builder.setTitle("Battery Alert");
+        builder.setCancelable(true);
+        builder.setIcon(android.R.drawable.ic_dialog_alert);
+        builder.setPositiveButton(R.string.confirm_btn, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) { }
+        });
+
+        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                hideNavAndStatusBar(getWindow());
+            }
+        });
+
+        batteryAlert = builder.create();
+        // hide nav and status bar
+        Window dialogWindow = batteryAlert.getWindow();
+        dialogWindow.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        View decorView = dialogWindow.getDecorView();
+        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+        decorView.setSystemUiVisibility(uiOptions);
+        batteryAlert.show();
+    }
 
     private void showPrintAlertDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -412,13 +438,13 @@ public class EcgActivity extends Activity {
             @Override
             public void onClick(DialogInterface dialog, int which) {    // print press
                 // TODO call print function
-                hideNavAndStatusBar();
+                hideNavAndStatusBar(getWindow());
             }
         });
         builder.setNegativeButton(R.string.cancel_btn, new DialogInterface.OnClickListener() {  // cancel press
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                hideNavAndStatusBar();
+                hideNavAndStatusBar(getWindow());
             }
         });
 
@@ -451,7 +477,7 @@ public class EcgActivity extends Activity {
         });
         AlertDialog dialog = builder.create();
         dialog.show();
-        hideNavAndStatusBar();
+        hideNavAndStatusBar(getWindow());
     }
 
     private void saveMeasurement() {
@@ -470,7 +496,7 @@ public class EcgActivity extends Activity {
         }
     }
 
-    private void inputPatientData() {   // TODO move to PopUps.java
+    private void inputPatientData() {   // TODO move to States.java
         pauseECG();
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = getLayoutInflater().inflate(R.layout.input_data_popup, null);
@@ -490,7 +516,7 @@ public class EcgActivity extends Activity {
         alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
-                hideNavAndStatusBar();
+                hideNavAndStatusBar(getWindow());
                 resumeECG();
             }
         });
@@ -524,7 +550,7 @@ public class EcgActivity extends Activity {
                 patient.setPatientData(name, surname, birth, id);
                  // TODO move to screenshot click function
                 alertDialog.dismiss();
-                hideNavAndStatusBar();
+                hideNavAndStatusBar(getWindow());
                 resumeECG();
             }
         });
@@ -562,7 +588,7 @@ public class EcgActivity extends Activity {
         alertDialog.show();
     }
 
-    private void advancedSettings() {   // TODO move to PopUps.java
+    private void advancedSettings() {   // TODO move to States.java
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = getLayoutInflater().inflate(R.layout.advanced_popup, null);
 
@@ -804,6 +830,8 @@ public class EcgActivity extends Activity {
                 serialPort = null;
                 return;
             }
+
+            States.setEcgConnected(true);
             turnEcgOnOrOff(ECG_ON);
             onDeviceStateChange();
 
@@ -825,6 +853,7 @@ public class EcgActivity extends Activity {
                 Log.e(TAG, "Error closing connection - " + e.getMessage(), e);
             }
         }
+        States.setEcgConnected(false);
     }
 
     private void onDeviceStateChange() {
@@ -834,11 +863,16 @@ public class EcgActivity extends Activity {
 
     private void startIoManager() {
         if (serialPort != null) {
-            //Log.d(TAG, "Starting io manager ..");
+            Log.d(TAG, "Starting io manager ..");
             EcgJNI.onDeviceConnected();
             serialIoManager = new SerialInputOutputManager(serialPort, mListener);
             mExecutor.submit(serialIoManager);
-            displayToast("ECG device OK, waiting for data...");
+            //displayToast("ECG device OK, waiting for data..."); // TODO move it somewhere else
+
+            // ecg has been started up, check if tablet is being charged
+            if (States.isEcgConnected() && !BatteryDetectReceiver.isCharging(this)) {
+                displayBatteryAlert(this);
+            }
         }
     }
 
@@ -879,6 +913,27 @@ public class EcgActivity extends Activity {
         }
     };
 
+    private void turnEcgOnOrOff(int newState) {
+        if (States.isEcgConnected()) {
+            try {
+                // check ecg device state with readLatch
+                boolean ecgOn = serialPort.readLatch();
+                Log.d(TAG, "ECG is currently on: " + String.valueOf(ecgOn));
+                if (newState == ECG_ON && !ecgOn) {
+                    serialPort.writeLatch(ECG_ON);
+                } else if (newState == ECG_OFF && ecgOn) {
+                    serialPort.writeLatch(ECG_OFF);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                displayToast("Error when changing state of ECG device!");
+            }
+        }
+        else {
+            Log.d(TAG, "Error when turning ecg off or on: device is not connected!");
+        }
+    }
+
     private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) { // TODO handle usb detached and attached events
@@ -895,20 +950,10 @@ public class EcgActivity extends Activity {
         }
     };
 
-    private void turnEcgOnOrOff(int newState) {
-        try {
-            // check ecg device state with readLatch
-            boolean ecgOn = serialPort.readLatch();
-            Log.d(TAG, "ECG is currently on: " + String.valueOf(ecgOn));
-            if (newState == ECG_ON && !ecgOn)  {
-                serialPort.writeLatch(ECG_ON);
-            }
-            else if (newState == ECG_OFF && ecgOn) {
-                serialPort.writeLatch(ECG_OFF);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            displayToast("Error when changing state of ECG device!");
+    private final BroadcastReceiver batteryAlertReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            displayBatteryAlert(context);
         }
-    }
+    };
 }
