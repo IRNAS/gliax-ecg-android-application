@@ -139,7 +139,6 @@ void EcgArea::rescale(){
     speed_warning_label.drawText("PAPER SPEED: default");
 }
 
-
 void EcgArea::constructLayout() {
     //LOGD("HEH: EcgArea::constructLayout");
     resetContent();
@@ -150,7 +149,6 @@ void EcgArea::constructLayout() {
         constructLayoutRhythm();
     }
 }
-
 
 void EcgArea::constructLayoutNormal(){
     //LOGD("HEH: EcgArea::constructLayoutNormal");

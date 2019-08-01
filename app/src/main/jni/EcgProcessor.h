@@ -22,6 +22,15 @@
 #define ANDROIDAPP_ECGPROCESSOR_H
 
 #include "../res/Common/SignalConditioning/EcgFilters.hpp"
+#include "../../../../../../AppData/Local/Android/Sdk/ndk-bundle/sources/cxx-stl/llvm-libc++/libcxx/include/ctime"
+
+#define PULSE_THRESHOLD 0.5 // Pulse detection threshold
+// Number of beats required for initial pulse detection.
+#define PULSE_INITIAL_BEATS 3
+// Pulse reset threshold.
+#define PULSE_RESET_THRESHOLD 500.0
+// Pulse timeout (in ms). If no pulse detected for this time, reset readings
+#define PULSE_RESET_TIMEOUT 5000
 
 class EcgProcessor {
     private:
@@ -35,6 +44,13 @@ class EcgProcessor {
         float samplingFrequency;
         int pulseCurrentBPM;
 
+        // Pulse detection state.
+        enum {
+            PULSE_IDLE = 0,
+            PULSE_FALLING = 1,
+            PULSE_RISING = 2,
+        };
+
     public:
         float getSamplingFrequency();
         static EcgProcessor &instance();
@@ -42,6 +58,7 @@ class EcgProcessor {
 
         void receivePacket(char *data, int len);
         void writeDebugDataToFile(float *inputBefore, float *inputAfter);
+        static int getCurrentTime();
         static int calculateBPM(float input);
 };
 

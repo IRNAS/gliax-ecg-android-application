@@ -40,9 +40,7 @@ public class States {
         ECG_RUNNING = state;
     }
 
-    public static void setEcgConnected(boolean ecgConnected) {
-        ECG_CONNECTED = ecgConnected;
-    }
+    public static void setEcgConnected(boolean ecgConnected) { ECG_CONNECTED = ecgConnected; }
 
     /*
     private void inputPatientData() {
