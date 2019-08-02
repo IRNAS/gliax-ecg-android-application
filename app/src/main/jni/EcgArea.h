@@ -53,11 +53,8 @@ class EcgArea: public DrawableGroup{
         TextDrawer devLabel;
         TextDrawer speed_warning_label;
         TextDrawer disconnectedLabel;
-        //TextDrawer outOfRangeLabels[ECG_CURVE_COUNT];
-
-        //Rectangle pause_button;
-        //TextDrawer pause_label;
-        //int* pause_size;
+        TextDrawer bpm_label;
+        TextDrawer bpm_num;
 
         Curve ecgCurves[ECG_CURVE_COUNT];
         Curve rhythm;
@@ -106,7 +103,7 @@ public:
         virtual void draw();
         void setPixelDensity(const Vec2<float> &pixelDensity);
 
-        void putData(GLfloat *data, int nChannels, int nPoints, int stride);
+        void putData(GLfloat *data, int nChannels, int nPoints, int stride, int bpm);
         virtual void init(AAssetManager *assetManager, int mains_freq);
 
         void deviceConnected();
@@ -114,8 +111,6 @@ public:
 
         void resetContent();
         void changeLayout();
-
-        //int * getButtonsSize();
 };
 
 

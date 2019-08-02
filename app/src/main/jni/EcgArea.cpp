@@ -22,10 +22,18 @@
 #include "log.h"
 #include "EcgProcessor.h"
 
+#include <stdio.h>
+
 int mains_frequency = 0;
 
 EcgArea::EcgArea():
         pixelDensity(100,100){
+
+    padInCm=0.5;
+    ecgCmPerMv = 2.0;
+    ecgCmPerSec = 2.5;
+    lastSampleFrequency=0;
+    cur_column = 0;
 
     grid.setZOrder(10);
     drawableList.push_back(&grid);
@@ -47,12 +55,7 @@ EcgArea::EcgArea():
 
     drawableList.push_back(&rhythm_circle);
     rhythm_circle.setZOrder(0);
-    /*
-    drawableList.push_back(&pause_button);
-    pause_button.setZOrder(2);
-    pause_button.setSize(BUTTON_SIZE);
-    pause_button.setColor(0.1, 0.2, 0.6);
-    */
+
     for (int a=0; a<ECG_CURVE_COUNT; a++) {
         drawableList.push_back(&labels[a]);
         labels[a]
@@ -65,20 +68,6 @@ EcgArea::EcgArea():
             .setColor(Image::BLACK)
             .setTextSizeMM(3.5);
 
-    /*
-    for (int a=0; a<ECG_CURVE_COUNT; a++) {
-        drawableList.push_back(&outOfRangeLabels[a]);
-        outOfRangeLabels[a]
-                .setColor(Image::BLACK)
-                .setTextSizeMM(3.5);
-    }
-    */
-    /*
-    drawableList.push_back(&pause_label);
-    pause_label
-            .setColor(Image::BLACK)
-            .setTextSizeMM(5.5);
-    */
     drawableList.push_back(&devLabel);
     devLabel
         .setColor(Image::GREY)
@@ -89,16 +78,20 @@ EcgArea::EcgArea():
         .setColor(Image::GREY)
         .setTextSizeMM(3.5);
 
-    padInCm=0.5;
-    ecgCmPerMv = 2.0;
-    ecgCmPerSec = 2.5;
-    lastSampleFrequency=0;
-    cur_column = 0;
-
     drawableList.push_back(&disconnectedLabel);
     disconnectedLabel
             .setColor(Image::GREY)
             .setTextSizeMM(4.5);
+
+    drawableList.push_back(&bpm_label);
+    bpm_label
+        .setColor(Image::TRANSPARENT)
+        .setTextSizeMM(9.5);
+
+    drawableList.push_back(&bpm_num);
+    bpm_num
+        .setColor(Image::TRANSPARENT)
+        .setTextSizeMM(11.5);
 
     deviceDisconnected();
     selected_layout = NORMAL_LAYOUT;
@@ -126,22 +119,30 @@ void EcgArea::rescale(){
     for (int a=0; a<ECG_CURVE_COUNT; a++) {
         ecgCurves[a].setScale(xScale, yScale);
         labels[a].drawText(labelText[a]);
-        //outOfRangeLabels[a].drawText("OUT OF RANGE");
     }
     rhythm.setScale(xScale, yScale);
     rhythm_label.drawText(rhythm_text);
     //availableHeight = labels[1].getYPosition() - labels[0].getYPosition();
 
-    //pause_label.drawText(pause_text);
-
     disconnectedLabel.drawText("DISCONNECTED");
     devLabel.drawText("DEV VERSION " GIT_HASH " - " __DATE__ );
     speed_warning_label.drawText("PAPER SPEED: default");
+
+    bpm_label.drawText("HR ");
+    bpm_num.drawText("---");
 }
 
 void EcgArea::constructLayout() {
     //LOGD("HEH: EcgArea::constructLayout");
     resetContent();
+
+    bpm_label.setPosition((screenSize.w - bpm_label.getWidth() - bpm_num.getWidth())/2, screenSize.h/2 - (bpm_label.getHeight()/2) - 20);
+    bpm_num.setPosition((screenSize.w + bpm_label.getWidth() - bpm_num.getWidth())/2, screenSize.h/2 - (bpm_num.getHeight()/2) - 20);
+
+    disconnectedLabel.setPosition((screenSize.w - disconnectedLabel.getWidth())/2, screenSize.h/2 - disconnectedLabel.getHeight());
+    devLabel.setPosition(10, 0);
+    speed_warning_label.setPosition(screenSize.w - speed_warning_label.getWidth() - 10, 0);
+
     if (selected_layout == NORMAL_LAYOUT) {
         constructLayoutNormal();
     }
@@ -163,8 +164,6 @@ void EcgArea::constructLayoutNormal(){
     */
     c = ECG_COLUMN_COUNT;  // num of columns
     r = (ECG_CURVE_COUNT+c-1)/c + 1;  // num of rows (3 for all 12 signals + 1 for rhythm)
-
-    disconnectedLabel.setPosition((screenSize.w - disconnectedLabel.getWidth())/2, screenSize.h/2 - disconnectedLabel.getHeight());
 
     //int padInPixels=padInCm*pixelDensity.x;
     int padInPixels = 0;
@@ -195,56 +194,45 @@ void EcgArea::constructLayoutNormal(){
         //outOfRangeLabels[a].setPosition(xCoord + 20, yCoord - 0.4*pixelDensity.y);
         //curvePositions[a] = yCoord;
         //timers[a] = 0;
-        if (a == 1 || a == 3 || a > 4) {
-            ecgCurves[a].setVisible(true);
-            labels[a].setVisible(true);
+
+        if (deviceNotConnected) {
+            ecgCurves[a].setVisible(false);
+            labels[a].setVisible(false);
+            rhythm.setVisible(false);
+            rhythm_label.setVisible(false);
         }
-        else if (deviceNotConnected) {
-            ecgCurves[a].setVisible(true);
-            labels[a].setVisible(true);
-            rhythm.setVisible(true);
-            rhythm_label.setVisible(true);
+        else {
+            if (a == 1 || a == 3 || a > 4) {
+                ecgCurves[a].setVisible(true);
+                labels[a].setVisible(true);
+            }
+            else {
+                //labels[a].setVisible(true);
+                //ecgCurves[a].setVisible(true);
+                //rhythm.setVisible(true);
+                //rhythm_label.setVisible(true);
+            }
         }
     }
 
     rhythm.setLength(curveWidth*ECG_COLUMN_COUNT);
-
     const int rhy_x = activeArea.left();
     const int rhy_y = activeArea.top() + 3*yStep + yStep/2;
     rhythm.setPosition(rhy_x, rhy_y);
     rhythm_label.setPosition(rhy_x + 10, rhy_y - 0.8*pixelDensity.y);
     rhy_remains = OK_REMAINS;   // OPTION 2
-    /*
-    for (int b = 0; b < BUTTONS_COUNT; b++) {
-
-    }
-     */
-    //const int button_offset = 85;
-    //const int button_size = BUTTON_SIZE * 8;
-    //pause_button.setPosition(button_offset, screenSize.h - button_offset);
-    //pause_label.setPosition(85 + 160, screenSize.h - 90);
 
     //availableHeight = labels[1].getYPosition() - labels[0].getYPosition();
     //LOGI("Available height: %d\n", availableHeight);
-
-    devLabel.setPosition(10, 0);
-    speed_warning_label.setPosition(screenSize.w - speed_warning_label.getWidth() - 10, 0);
-
-    //pause_size = pause_button.getSize();
 }
 
 void EcgArea::constructLayoutRhythm(){
     //LOGD("HEH: EcgArea::constructLayoutRhythm");
-    int r,c;
+    int r;
     // only displaying 4 signals (I, III, aVL and rhythm)
-    c = 1;
     r = 4;
 
-    disconnectedLabel.setPosition((screenSize.w - disconnectedLabel.getWidth())/2, screenSize.h/2 - disconnectedLabel.getHeight());
-
-    int padInPixels=padInCm*pixelDensity.x;
     int curveWidth=(activeArea.width());
-
     const int yStep = activeArea.height()/r;
     int curRow = 0;
 
@@ -269,21 +257,9 @@ void EcgArea::constructLayoutRhythm(){
     rhythm.setPosition(rhy_x, rhy_y);
     rhythm_label.setPosition(rhy_x + 10, rhy_y - 0.8*pixelDensity.y);
     rhy_remains = OK_REMAINS;   // OPTION 2
-    /*
-    for (int b = 0; b < BUTTONS_COUNT; b++) {
-
-    }
-     */
-    //const int button_offset = 85;
-    //const int button_size = BUTTON_SIZE * 8;
-    //pause_button.setPosition(button_offset, screenSize.h - button_offset);
-    //pause_label.setPosition(85 + 160, screenSize.h - 90);
 
     //availableHeight = labels[1].getYPosition() - labels[0].getYPosition();
     //LOGI("Available height: %d\n", availableHeight);
-
-    devLabel.setPosition(10, 0);
-    speed_warning_label.setPosition(screenSize.w - speed_warning_label.getWidth() - 10, 0);
 }
 
 void EcgArea::contextResized(int w, int h){
@@ -321,9 +297,20 @@ void EcgArea::setPixelDensity(const Vec2<float> &pPixelDensity){
     rescale();
 }
 
-void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride){
+void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride, int bpm){
     //LOGD("HEH: EcgArea::putData");
 
+    // display heart rate
+    char bpm_text[3];
+    if (bpm > 0) {
+        sprintf(bpm_text, "%d", bpm);
+    }
+    else {
+        sprintf(bpm_text, "%s", "---");
+    }
+    bpm_num.drawText(bpm_text);
+
+    // display selected layout
     if (selected_layout == RHYTHM_LAYOUT) {
         for (int a=0; a<ECG_CURVE_COUNT; a++) {
             if (a == 1 || a == 3 || a > 4) {
@@ -397,33 +384,6 @@ void EcgArea::draw(){
     if (lastSampleFrequency!=EcgProcessor::instance().getSamplingFrequency()){
         rescale();
     }
-    /* // Out of range - not used anymore
-    for (int i=0; i<12; i++) {
-        int circlePosition = endpointCircles[i].getYPosition();
-        int offset = 100;    // how much can the signal be outside available space
-        int min = curvePositions[i] - (availableHeight / 2) - offset;
-        int max = curvePositions[i] + (availableHeight / 2) + offset;
-        timers[i]++;
-
-        //LOGI("Drawing Curves - Circle: %d, Curve: %d, Min: %d, Max %d\n", circlePosition, curvePositions[i], min, max);
-
-        if (circlePosition < min || circlePosition > max) {
-            timers[i] = 0;
-            if (ecgCurves[i].getVisible()) {
-                endpointCircles[i].setVisible(false);
-                ecgCurves[i].setVisible(false);
-                outOfRangeLabels[i].setVisible(true);
-            }
-        }
-        else {
-            if (!ecgCurves[i].getVisible() && timers[i] > 50) {
-                endpointCircles[i].setVisible(true);
-                ecgCurves[i].setVisible(true);
-                outOfRangeLabels[i].setVisible(false);
-            }
-        }
-    }
-    */
     DrawableGroup::draw();
     redrawNeeded=false;
 }
@@ -439,18 +399,20 @@ bool EcgArea::isRedrawNeeded(){
 
 void EcgArea::setContentVisible(bool visible){
     //LOGD("HEH: EcgArea::setContentVisible");
+    bpm_label.setVisible(visible);
+    bpm_num.setVisible(visible);
+
     if (selected_layout == NORMAL_LAYOUT) {
         for (int a=0; a<ECG_CURVE_COUNT; a++) {
             endpointCircles[a].setVisible(visible);
             ecgCurves[a].setVisible(visible);
             labels[a].setVisible(visible);
-            //outOfRangeLabels[a].setVisible(false);
         }
         rhythm_circle.setVisible(visible);
         rhythm.setVisible(visible);
         rhythm_label.setVisible(visible);
     }
-    else {/*
+    else {
         endpointCircles[0].setVisible(visible);
         ecgCurves[0].setVisible(visible);
         labels[0].setVisible(visible);
@@ -462,10 +424,8 @@ void EcgArea::setContentVisible(bool visible){
         labels[4].setVisible(visible);
         rhythm_circle.setVisible(visible);
         rhythm.setVisible(visible);
-        rhythm_label.setVisible(visible); */
+        rhythm_label.setVisible(visible);
     }
-    //pause_button.setVisible(visible);
-    //pause_label.setVisible(visible);
 }
 
 void EcgArea::deviceConnected(){
@@ -503,9 +463,3 @@ void EcgArea::changeLayout() {
     }
     contextResized(screenSize.w, screenSize.h);
 }
-
-/*
-int * EcgArea::getButtonsSize() {
-    //return pause_size;
-}
- */

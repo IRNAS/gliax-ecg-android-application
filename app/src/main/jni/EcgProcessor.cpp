@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <GLES2/gl2.h>
 #include <time.h>
+#include <stdlib.h>
 
 #include "EcgArea.h"
 #include "log.h"
@@ -30,7 +31,6 @@
 #include "../res/Common/DataFormat/BitFifo.cpp"
 #include "../res/Common/DataFormat/FlatEcgPredictor.cpp"
 #include "../res/Common/DataFormat/DifferenceEcgCompressor.cpp"
-#include "../../../../../../AppData/Local/Android/Sdk/ndk-bundle/platforms/android-23/arch-arm/usr/include/stdlib.h"
 
 //#define DEBUG
 //#define DEBUGFILE // uncomment this to write signal data to files
@@ -50,8 +50,8 @@ char filePath[64];
 
 // BPM detection variables
 int pulse_state;
-clock_t pulse_current_timestamp;
-clock_t pulse_last_timestamp;
+int pulse_current_timestamp;
+int pulse_last_timestamp;
 int pulse_beats;
 int pulse_present;
 float pulse_previous_value;
@@ -59,7 +59,6 @@ float pulse_current_bpm;
 
 EcgProcessor::EcgProcessor(){
     samplingFrequency=500.0;
-    pulseCurrentBPM = 420;
 
     pulse_state = PULSE_IDLE;
     pulse_current_timestamp = 0;
@@ -164,12 +163,7 @@ void EcgProcessor::receivePacket(char *data, int len){
         EcgProcessor::calculate12Channels(&decompressBuffer[0][a], &decompressBuffer[0][a], DECOMPRESS_BUFFER_STRIDE);
     }
 
-    EcgArea::instance().putData((GLfloat*)decompressBuffer, header->channelCount, filteredSampleNum[0], DECOMPRESS_BUFFER_STRIDE);
-
-    if (pulse_current_bpm > 0) {
-        pulseCurrentBPM = (int)pulse_current_bpm;
-        LOGD("BPM: %d ", pulseCurrentBPM);
-    }
+    EcgArea::instance().putData((GLfloat*)decompressBuffer, header->channelCount, filteredSampleNum[0], DECOMPRESS_BUFFER_STRIDE, (int)pulse_current_bpm);
 }
 
 float EcgProcessor::getSamplingFrequency(){
@@ -252,9 +246,11 @@ int EcgProcessor::calculateBPM(float value) {
         pulse_current_timestamp = 0;
         pulse_last_timestamp = 0;
         pulse_previous_value = 0;
+
         pulse_current_bpm = 0.0;
         pulse_beats = 0;
         pulse_present = 0;
+        //memset(&rolling_mean_pulse, 0, sizeof(rolling_mean_pulse));
         return 0;
     }
 
@@ -263,6 +259,7 @@ int EcgProcessor::calculateBPM(float value) {
         pulse_current_bpm = 0.0;
         pulse_beats = 0;
         pulse_present = 0;
+        //memset(&rolling_mean_pulse, 0, sizeof(rolling_mean_pulse));
     }
 
     switch (pulse_state) {
@@ -287,14 +284,14 @@ int EcgProcessor::calculateBPM(float value) {
             }
             else {
                 // Reached the top.
-                uint32_t beat_duration = pulse_current_timestamp - pulse_last_timestamp;
+                int beat_duration = pulse_current_timestamp - pulse_last_timestamp;
                 pulse_last_timestamp = pulse_current_timestamp;
 
                 // Compute BPM.
                 float raw_bpm = 60000.0 / (float) beat_duration;
                 if (raw_bpm > 10.0 && raw_bpm < 300.0) {
                     pulse_beats++;
-                    //float bpm = filter_mean(&rolling_mean_pulse, raw_bpm, 0);
+                    //float bpm = filter_mean(&rolling_mean_pulse, raw_bpm, 0); // TODO
                     float bpm = raw_bpm;
                     if (pulse_beats > PULSE_INITIAL_BEATS) {
                         pulse_current_bpm = bpm;

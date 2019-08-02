@@ -22,9 +22,9 @@
 #define ANDROIDAPP_ECGPROCESSOR_H
 
 #include "../res/Common/SignalConditioning/EcgFilters.hpp"
-#include "../../../../../../AppData/Local/Android/Sdk/ndk-bundle/sources/cxx-stl/llvm-libc++/libcxx/include/ctime"
 
-#define PULSE_THRESHOLD 0.5 // Pulse detection threshold
+// Pulse detection threshold
+#define PULSE_THRESHOLD 0.5
 // Number of beats required for initial pulse detection.
 #define PULSE_INITIAL_BEATS 3
 // Pulse reset threshold.
@@ -42,7 +42,6 @@ class EcgProcessor {
         int pga;
         float currScale;
         float samplingFrequency;
-        int pulseCurrentBPM;
 
         // Pulse detection state.
         enum {
