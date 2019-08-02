@@ -57,6 +57,9 @@ int pulse_present;
 float pulse_previous_value;
 float pulse_current_bpm;
 
+// rolling mean filter define
+RollingMean filterRM;
+
 EcgProcessor::EcgProcessor(){
     samplingFrequency=500.0;
 
@@ -67,6 +70,8 @@ EcgProcessor::EcgProcessor(){
     pulse_present = 0;
     pulse_previous_value = 0.0;
     pulse_current_bpm = 0.0;
+
+    filterRM = RollingMean();
 
     #ifdef DEBUGFILE
         strcpy(filePath, EcgArea::instance().internalStoragePath);
@@ -250,7 +255,7 @@ int EcgProcessor::calculateBPM(float value) {
         pulse_current_bpm = 0.0;
         pulse_beats = 0;
         pulse_present = 0;
-        //memset(&rolling_mean_pulse, 0, sizeof(rolling_mean_pulse));
+        filterRM.resetFilter();
         return 0;
     }
 
@@ -259,7 +264,7 @@ int EcgProcessor::calculateBPM(float value) {
         pulse_current_bpm = 0.0;
         pulse_beats = 0;
         pulse_present = 0;
-        //memset(&rolling_mean_pulse, 0, sizeof(rolling_mean_pulse));
+        filterRM.resetFilter();
     }
 
     switch (pulse_state) {
@@ -291,8 +296,8 @@ int EcgProcessor::calculateBPM(float value) {
                 float raw_bpm = 60000.0 / (float) beat_duration;
                 if (raw_bpm > 10.0 && raw_bpm < 300.0) {
                     pulse_beats++;
-                    //float bpm = filter_mean(&rolling_mean_pulse, raw_bpm, 0); // TODO
-                    float bpm = raw_bpm;
+                    float bpm = filterRM.filterData(raw_bpm, 0);
+                    //float bpm = raw_bpm;
                     if (pulse_beats > PULSE_INITIAL_BEATS) {
                         pulse_current_bpm = bpm;
                         pulse_beats = PULSE_INITIAL_BEATS;

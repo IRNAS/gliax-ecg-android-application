@@ -22,6 +22,7 @@
 #define ANDROIDAPP_ECGPROCESSOR_H
 
 #include "../res/Common/SignalConditioning/EcgFilters.hpp"
+#include "RollingMean.h"
 
 // Pulse detection threshold
 #define PULSE_THRESHOLD 0.5
@@ -50,7 +51,7 @@ class EcgProcessor {
             PULSE_RISING = 2,
         };
 
-    public:
+public:
         float getSamplingFrequency();
         static EcgProcessor &instance();
         static void calculate12Channels(float* input, float* output, int stride = 1);
@@ -60,6 +61,5 @@ class EcgProcessor {
         static int getCurrentTime();
         static int calculateBPM(float input);
 };
-
 
 #endif //ANDROIDAPP_ECGPROCESSOR_H
