@@ -168,7 +168,7 @@ void EcgProcessor::receivePacket(char *data, int len){
         EcgProcessor::calculate12Channels(&decompressBuffer[0][a], &decompressBuffer[0][a], DECOMPRESS_BUFFER_STRIDE);
     }
 
-    EcgArea::instance().putData((GLfloat*)decompressBuffer, header->channelCount, filteredSampleNum[0], DECOMPRESS_BUFFER_STRIDE, (int)pulse_current_bpm);
+    EcgArea::instance().putData((GLfloat*)decompressBuffer, header->channelCount, filteredSampleNum[0], DECOMPRESS_BUFFER_STRIDE, (int)pulse_current_bpm, EcgProcessor::getCurrentTime());
 }
 
 float EcgProcessor::getSamplingFrequency(){

@@ -41,7 +41,6 @@ public class EcgJNI {
      public static native void onDeviceConnected();
      public static native void onDeviceDisconnected();
      public static native void initNDK(String msg);
-     public static native void onSettingsChanged(int x_speed);
+     public static native void ChangeSpeed(float x_speed);
      public static native void changeLayout();
-     //public static native int[] getButtonCoords();
 }

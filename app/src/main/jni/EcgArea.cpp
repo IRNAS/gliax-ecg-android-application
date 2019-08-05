@@ -77,7 +77,7 @@ EcgArea::EcgArea():
     drawableList.push_back(&speed_warning_label);
     speed_warning_label
         .setColor(Image::GREY)
-        .setTextSizeMM(3.5);
+        .setTextSizeMM(4.5);
 
     drawableList.push_back(&disconnectedLabel);
     disconnectedLabel
@@ -132,7 +132,7 @@ void EcgArea::rescale(){
 
     disconnectedLabel.drawText("DISCONNECTED");
     devLabel.drawText("DEV VERSION " GIT_HASH " - " __DATE__ );
-    speed_warning_label.drawText("PAPER SPEED: default");
+    speed_warning_label.drawText("25 mm/s");
 
     hr_label.drawText("HR ");
     bpm_num.drawText("000");
@@ -306,8 +306,31 @@ void EcgArea::setPixelDensity(const Vec2<float> &pPixelDensity){
     rescale();
 }
 
-void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride, int bpm){
+void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride, int bpm, int cur_time){
     //LOGD("HEH: EcgArea::putData");
+
+    // TODO optimize this
+    if (ecgCmPerSec == 1.25 && cur_time - last_color_change > 1000) {
+        last_color_change = cur_time;
+        if (x_speed_color) {
+            speed_warning_label.setColor(Image::GREY);
+            x_speed_color = 0;
+        }
+        else {
+            speed_warning_label.setColor(Image::RED);
+            x_speed_color = 1;
+        }
+    }
+
+    char speed_text[6];
+    if (ecgCmPerSec == 1.25) {
+        sprintf(speed_text, "%d mm/s", 50);
+    }
+    else {
+        speed_warning_label.setColor(Image::GREY);
+        sprintf(speed_text, "%d mm/s", (int)(ecgCmPerSec*10));
+    }
+    speed_warning_label.drawText(speed_text);
 
     // display heart rate if in range
     char bpm_text[3];
@@ -472,4 +495,8 @@ void EcgArea::changeLayout() {
         selected_layout = NORMAL_LAYOUT;
     }
     contextResized(screenSize.w, screenSize.h);
+}
+
+void EcgArea::setSpeed(float speed) {
+    ecgCmPerSec = speed;
 }

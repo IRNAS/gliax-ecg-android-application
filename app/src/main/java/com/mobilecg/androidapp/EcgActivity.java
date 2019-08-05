@@ -617,8 +617,15 @@ public class EcgActivity extends Activity {
                 //Log.d(TAG, "new save location: " + save_loc);
 
                 int paper_speed = 0;
-                if (rbSpeed25.isChecked()) { paper_speed = 25; }
-                else if (rbSpeed50.isChecked()) { paper_speed = 50; }
+                if (rbSpeed25.isChecked()) {
+                    paper_speed = 25;
+                    EcgJNI.ChangeSpeed(2.5f);
+                }
+                else if (rbSpeed50.isChecked()) {
+                    paper_speed = 50;
+                    // paper speed is faster, but screen drawing actually goes slower
+                    EcgJNI.ChangeSpeed(1.25f);
+                }
                 if (paper_speed != paperSpeed) { paperSpeed = paper_speed; }
                 //Log.d(TAG, "Paper speed: " + paper_speed);
 

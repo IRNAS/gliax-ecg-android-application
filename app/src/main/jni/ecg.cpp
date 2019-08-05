@@ -214,10 +214,11 @@ extern "C" {
     }
 
     JNIEXPORT void JNICALL
-    Java_com_mobilecg_androidapp_EcgJNI_onSettingsChanged(JNIEnv *env, jclass type, jint x_spd) {
+    Java_com_mobilecg_androidapp_EcgJNI_ChangeSpeed(JNIEnv *env, jclass type, jfloat x_speed) {
         (void)env;
         (void)type;
-         //= x_spd;
+        //LOGD("HEH %f", x_speed);
+        EcgArea::instance().setSpeed(x_speed);
     }
 
     JNIEXPORT void JNICALL
@@ -227,17 +228,4 @@ extern "C" {
         gEcg.changeLayout();
         //gEcg.resume();
     }
-
-    /*
-    JNIEXPORT jintArray JNICALL
-    Java_com_mobilecg_androidapp_EcgJNI_getButtonCoords(JNIEnv *env, jclass type) { // TODO handle memory leak - trying different approach
-        (void)env;
-        (void)type;
-        jint * c_array = EcgArea::instance().getButtonsSize();
-        jintArray j_array;
-        j_array = env->NewIntArray(2);
-        env->SetIntArrayRegion(j_array, 0, 2, c_array);
-        return j_array;
-    }
-     */
 }

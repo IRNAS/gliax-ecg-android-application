@@ -89,6 +89,8 @@ class EcgArea: public DrawableGroup{
         int rhy_remains; // OPTION 2
 
         bool deviceNotConnected;
+        int x_speed_color;
+        int last_color_change;
 
         void setContentVisible(bool visible);
 public:
@@ -105,7 +107,7 @@ public:
         virtual void draw();
         void setPixelDensity(const Vec2<float> &pixelDensity);
 
-        void putData(GLfloat *data, int nChannels, int nPoints, int stride, int bpm);
+        void putData(GLfloat *data, int nChannels, int nPoints, int stride, int bpm, int cur_time);
         virtual void init(AAssetManager *assetManager, int mains_freq);
 
         void deviceConnected();
@@ -113,6 +115,8 @@ public:
 
         void resetContent();
         void changeLayout();
+
+        void setSpeed(float speed);
 };
 
 
