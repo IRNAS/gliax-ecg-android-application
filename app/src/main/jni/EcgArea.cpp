@@ -34,6 +34,7 @@ EcgArea::EcgArea():
     ecgCmPerSec = 2.5;
     lastSampleFrequency=0;
     cur_column = 0;
+    bpm_num_width = 0;
 
     grid.setZOrder(10);
     drawableList.push_back(&grid);
@@ -86,6 +87,11 @@ EcgArea::EcgArea():
     drawableList.push_back(&bpm_label);
     bpm_label
         .setColor(Image::TRANSPARENT)
+        .setTextSizeMM(5.5);
+
+    drawableList.push_back(&hr_label);
+    hr_label
+        .setColor(Image::TRANSPARENT)
         .setTextSizeMM(9.5);
 
     drawableList.push_back(&bpm_num);
@@ -128,16 +134,19 @@ void EcgArea::rescale(){
     devLabel.drawText("DEV VERSION " GIT_HASH " - " __DATE__ );
     speed_warning_label.drawText("PAPER SPEED: default");
 
-    bpm_label.drawText("HR ");
-    bpm_num.drawText("---");
+    hr_label.drawText("HR ");
+    bpm_num.drawText("000");
+    bpm_label.drawText(" bpm");
+    bpm_num_width = bpm_num.getWidth();
 }
 
 void EcgArea::constructLayout() {
     //LOGD("HEH: EcgArea::constructLayout");
     resetContent();
 
-    bpm_label.setPosition((screenSize.w - bpm_label.getWidth() - bpm_num.getWidth())/2, screenSize.h/2 - (bpm_label.getHeight()/2) - 20);
-    bpm_num.setPosition((screenSize.w + bpm_label.getWidth() - bpm_num.getWidth())/2, screenSize.h/2 - (bpm_num.getHeight()/2) - 20);
+    hr_label.setPosition((screenSize.w - hr_label.getWidth() - bpm_num_width - bpm_label.getWidth())/2, screenSize.h/2 - (hr_label.getHeight()/2) - 12);
+    bpm_num.setPosition((screenSize.w + hr_label.getWidth() - bpm_num_width - bpm_label.getWidth())/2, screenSize.h/2 - (bpm_num.getHeight()/2) - 20);
+    bpm_label.setPosition((screenSize.w +  hr_label.getWidth() + bpm_num_width - bpm_label.getWidth() + 3)/2, screenSize.h/2 - (bpm_label.getHeight()/2));
 
     disconnectedLabel.setPosition((screenSize.w - disconnectedLabel.getWidth())/2, screenSize.h/2 - disconnectedLabel.getHeight());
     devLabel.setPosition(10, 0);
@@ -300,13 +309,13 @@ void EcgArea::setPixelDensity(const Vec2<float> &pPixelDensity){
 void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride, int bpm){
     //LOGD("HEH: EcgArea::putData");
 
-    // display heart rate
+    // display heart rate if in range
     char bpm_text[3];
-    if (bpm > 0) {
+    if (bpm >= 30 && bpm <= 250) {
         sprintf(bpm_text, "%d", bpm);
     }
     else {
-        sprintf(bpm_text, "%s", "---");
+        sprintf(bpm_text, "%s", " --- ");
     }
     bpm_num.drawText(bpm_text);
 
@@ -399,6 +408,7 @@ bool EcgArea::isRedrawNeeded(){
 
 void EcgArea::setContentVisible(bool visible){
     //LOGD("HEH: EcgArea::setContentVisible");
+    hr_label.setVisible(visible);
     bpm_label.setVisible(visible);
     bpm_num.setVisible(visible);
 

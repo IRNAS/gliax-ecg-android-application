@@ -53,8 +53,10 @@ class EcgArea: public DrawableGroup{
         TextDrawer devLabel;
         TextDrawer speed_warning_label;
         TextDrawer disconnectedLabel;
+        TextDrawer hr_label;
         TextDrawer bpm_label;
         TextDrawer bpm_num;
+        int bpm_num_width;
 
         Curve ecgCurves[ECG_CURVE_COUNT];
         Curve rhythm;
