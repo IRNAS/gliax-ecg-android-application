@@ -120,6 +120,7 @@ public class EcgActivity extends Activity {
     Button patient_btn;
     private boolean render_paused = false;
     private boolean rhythm_screen = false;
+    private boolean screenshotPrepared = false;
 
     private static final String ACTION_USB_PERMISSION = "com.mobileecg.androidapp.USB_PERMISSION";
     private final String TAG = EcgActivity.class.getSimpleName();
@@ -215,8 +216,11 @@ public class EcgActivity extends Activity {
                     resumeECG();
                     rhythm_12lead_btn.setEnabled(true);
                     save_btn.setEnabled(true);
+                    screenshotPrepared = false;
                 }
                 else {
+                    myGLRenderer.takeScreenshot(saveLocation, patient, true);
+                    screenshotPrepared = true;
                     pauseECG();
                     rhythm_12lead_btn.setEnabled(false);
                 }
@@ -225,7 +229,12 @@ public class EcgActivity extends Activity {
         save_btn = (Button)findViewById(R.id.save_btn);    // Save
         save_btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                saveMeasurement();
+                if (screenshotPrepared) {
+                    myGLRenderer.savePreparedScreenshot();
+                }
+                else {
+                    saveMeasurement();
+                }
                 save_btn.setEnabled(false);
                 if (!autoPrint) {   // display alert
                     showPrintAlertDialog();
@@ -484,7 +493,7 @@ public class EcgActivity extends Activity {
     }
 
     private void saveMeasurement() {
-        myGLRenderer.takeScreenshot(saveLocation, patient);
+        myGLRenderer.takeScreenshot(saveLocation, patient, false);
         if (!render_paused) {   // pause ecg
             pauseECG();
             save_btn.setEnabled(false);

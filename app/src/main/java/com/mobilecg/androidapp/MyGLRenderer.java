@@ -25,7 +25,9 @@ import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
 import java.util.Calendar;
 
+import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.opengles.GL10;
 
 public class MyGLRenderer implements GLSurfaceView.Renderer {
@@ -35,8 +37,10 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
     private boolean screenshot = false;
     private boolean screenshotResult = false;
+    private boolean prepareOnly = false;
     private String savePath = null;
     private Patient thisPatient = null;
+    private Bitmap preparedScreenshot = null;
 
     MyGLRenderer(DisplayMetrics display) {
         displayMetrics = display;
@@ -61,42 +65,54 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onDrawFrame(GL10 gl) {
+        //GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);   // TODO check if it fixes screen blinking
+
         EcgJNI.drawFrame();
-        // make screenshot of open gl screen area
         if (screenshot) {
-            Log.d("HEH", "taking screenshot...");
-            int width = glWidth;
-            int height = glHeight;
-            int screenshotSize = width * height;
-            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(screenshotSize * 4);
-            byteBuffer.order(ByteOrder.nativeOrder());
-            gl.glReadPixels(0,0, width, height, GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, byteBuffer);
-            int pixelsBuffer[] = new int[screenshotSize];
-            byteBuffer.asIntBuffer().get(pixelsBuffer);
-
-            Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
-            bitmap.setPixels(pixelsBuffer, screenshotSize - width, -width, 0, 0, width, height);
-
-            short sBuffer[] = new short[screenshotSize];
-            ShortBuffer shortBuffer = ShortBuffer.wrap(sBuffer);
-            bitmap.copyPixelsToBuffer(shortBuffer);
-
-            for (int i = 0; i < screenshotSize; i++) {
-                short v = sBuffer[i];
-                sBuffer[i] = (short) (((v&0x1f) << 11) | (v&0x7e0) | ((v&0xf800) >> 11));
+            Bitmap bitmap = makeScreenshot(gl);
+            if (prepareOnly) {
+                preparedScreenshot = bitmap;
             }
-            shortBuffer.rewind();
-            bitmap.copyPixelsFromBuffer(shortBuffer);
-
-            saveScreenshot(bitmap);
+            else {
+                saveScreenshot(bitmap);
+                preparedScreenshot = null;
+            }
             screenshot = false;
         }
     }
 
-    public void takeScreenshot(String saveLocation, Patient patient) {
+    public void takeScreenshot(String saveLocation, Patient patient, boolean prepare) {
         screenshot = true;
+        prepareOnly = prepare;
         savePath = saveLocation;
         thisPatient = patient;
+    }
+
+    private Bitmap makeScreenshot(GL10 gl) {
+        //Log.d("HEH", "taking screenshot...");
+        int width = glWidth;
+        int height = glHeight;
+        int screenshotSize = width * height;
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(screenshotSize * 4);
+        byteBuffer.order(ByteOrder.nativeOrder());
+        gl.glReadPixels(0,0, width, height, GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, byteBuffer);
+        int pixelsBuffer[] = new int[screenshotSize];
+        byteBuffer.asIntBuffer().get(pixelsBuffer);
+
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+        bitmap.setPixels(pixelsBuffer, screenshotSize - width, -width, 0, 0, width, height);
+
+        short sBuffer[] = new short[screenshotSize];
+        ShortBuffer shortBuffer = ShortBuffer.wrap(sBuffer);
+        bitmap.copyPixelsToBuffer(shortBuffer);
+
+        for (int i = 0; i < screenshotSize; i++) {
+            short v = sBuffer[i];
+            sBuffer[i] = (short) (((v&0x1f) << 11) | (v&0x7e0) | ((v&0xf800) >> 11));
+        }
+        shortBuffer.rewind();
+        bitmap.copyPixelsFromBuffer(shortBuffer);
+        return bitmap;
     }
 
     private void saveScreenshot(Bitmap pic) {
@@ -105,6 +121,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             String measurementTimestamp = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
             String id = thisPatient.getMeasurementId();
             if (id == "") {
+                // TODO fix this
                 id = "000";
             }
             String filename = id + "_" + measurementTimestamp.replace(" ", "-") + ".pdf";
@@ -142,7 +159,8 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             screenshotResult = true;
 
             /*  // DEBUG - to save picture directly
-            File file = new File(dir + filename);
+            String dir = Environment.getExternalStorageDirectory() + File.separator + savePath + File.separator;
+            File file = new File(dir + "test.png");
             FileOutputStream outputStream = new FileOutputStream(file);
             pic.compress(Bitmap.CompressFormat.PNG, 85, outputStream);
             outputStream.flush();
@@ -152,6 +170,16 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         catch (Exception e) {
             e.printStackTrace();
             Log.i("HEH", "Save pdf file error!");
+            screenshotResult = false;
+        }
+    }
+
+    public void savePreparedScreenshot() {
+        if (preparedScreenshot != null) {
+            saveScreenshot(preparedScreenshot);
+        }
+        else {
+            Log.i("HEH", "preparedScreenshot is null!");
         }
     }
 
