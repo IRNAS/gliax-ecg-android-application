@@ -312,16 +312,27 @@ public class EcgActivity extends Activity {
     protected void onPause() {
         //Log.d(TAG, "run event - onPause");
         super.onPause();
+
+        // reset paper speed
         if (States.getPaperSpeed() != 25) {
             States.setPaperSpeed(25);
         }
+        // pause ecg if running
         if (States.isEcgRunning()) {
             pauseECG();
         }
+        else {
+            // if ecg is paused, check if we have unsaved screenshot
+            if (screenshotPrepared) {
+                myGLRenderer.savePreparedScreenshot();
+            }
+        }
+        // disconnect from ecg device
         unregisterReceiver(usbReceiver);
         turnEcgOnOrOff(ECG_OFF);
         CloseConnectionToUsbDevice();
 
+        // unregister receivers
         if (batteryDetect != null) {
             unregisterReceiver(batteryDetect);
         }
@@ -446,6 +457,7 @@ public class EcgActivity extends Activity {
     private void showPrintAlertDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.question_print_measur);
+        builder.setIcon(android.R.drawable.ic_menu_help);
         builder.setPositiveButton(R.string.print_btn, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {    // print press
@@ -477,10 +489,16 @@ public class EcgActivity extends Activity {
     private void showSaveAlertDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.question_save_measur);
+        builder.setIcon(android.R.drawable.ic_dialog_info);
         builder.setPositiveButton(R.string.yes_btn, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                saveMeasurement();
+                if (screenshotPrepared) {
+                    myGLRenderer.savePreparedScreenshot();
+                }
+                else {
+                    saveMeasurement();
+                }
             }
         });
         builder.setNegativeButton(R.string.no_btn, new DialogInterface.OnClickListener() {
