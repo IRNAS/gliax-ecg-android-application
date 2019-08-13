@@ -139,8 +139,7 @@ public class EcgActivity extends Activity {
 
     // patient class
     private Patient patient;
-    // advanced settings values
-    private static int paperSpeed = 25;    // speed is 25 mm/s - TODO display alert if not default speed
+    // advanced settings variables
     private String saveLocation;
     private boolean autoPrint;   // this gets reset between app launches
 
@@ -304,6 +303,9 @@ public class EcgActivity extends Activity {
     protected void onPause() {
         //Log.d(TAG, "run event - onPause");
         super.onPause();
+        if (States.getPaperSpeed() != 25) {
+            States.setPaperSpeed(25);
+        }
         if (States.isEcgRunning()) {
             pauseECG();
         }
@@ -428,6 +430,7 @@ public class EcgActivity extends Activity {
         View decorView = dialogWindow.getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
         decorView.setSystemUiVisibility(uiOptions);
+
         batteryAlert.show();
     }
 
@@ -585,6 +588,11 @@ public class EcgActivity extends Activity {
                 etMeasurementID.setText("");
             }
         });
+
+        // hide keyboard
+        Window dialogWindow = alertDialog.getWindow();
+        dialogWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+
         alertDialog.show();
     }
 
@@ -599,7 +607,7 @@ public class EcgActivity extends Activity {
         etSaveLoc.setText(saveLocation);
         final RadioButton rbSpeed25 = (RadioButton) view.findViewById(R.id.pap_speed_25);
         final RadioButton rbSpeed50 = (RadioButton) view.findViewById(R.id.pap_speed_50);
-        if (paperSpeed == 25) {
+        if (States.getPaperSpeed() == 25) {
             rbSpeed25.setChecked(true);
         }
         else {
@@ -616,18 +624,12 @@ public class EcgActivity extends Activity {
                 if (save_loc != saveLocation && save_loc != "") { saveLocation = save_loc; }
                 //Log.d(TAG, "new save location: " + save_loc);
 
-                int paper_speed = 0;
                 if (rbSpeed25.isChecked()) {
-                    paper_speed = 25;
-                    EcgJNI.ChangeSpeed(2.5f);
+                    States.setPaperSpeed(25);
                 }
                 else if (rbSpeed50.isChecked()) {
-                    paper_speed = 50;
-                    // paper speed is faster, but screen drawing actually goes slower
-                    EcgJNI.ChangeSpeed(1.25f);
+                    States.setPaperSpeed(50);
                 }
-                if (paper_speed != paperSpeed) { paperSpeed = paper_speed; }
-                //Log.d(TAG, "Paper speed: " + paper_speed);
 
                 if (tbAutoSave.isChecked()) { autoPrint = true; }
                 else { autoPrint = false; }
@@ -644,6 +646,10 @@ public class EcgActivity extends Activity {
                 displayToast("GliaECG\nwww.irnas.eu\nVersion: 1.0");
             }
         });
+
+        // hide keyboard
+        Window dialogWindow = alertDialog.getWindow();
+        dialogWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
         alertDialog.show();
     }
@@ -720,6 +726,7 @@ public class EcgActivity extends Activity {
                 infoTextView.setLayoutParams(new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT));
                 infoTextView.setText(getString(R.string.empty_archive));
             }
+
             alertDialog.show();
         }
         else {
@@ -802,7 +809,7 @@ public class EcgActivity extends Activity {
         else {
             enableMainButtons();
             if (usbDriversList.size() > 1)  {
-                //Log.d(TAG, "More than one ECG devices connected. Selecting the first one...");
+                //Log.d(TAG, "More than one ECG device connected. Selecting the first one...");
             }
             usbDriver = usbDriversList.get(0);
             PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
