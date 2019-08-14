@@ -50,7 +50,7 @@ class ecg {
         EcgArea::instance().init(assetManager, freq);
     }
 
-    void surfaceCreated() {
+    void surfaceCreated(JNIEnv* env, jclass clazz, jmethodID mid) {
         LOGI("GL_VERSION: %s", glGetString(GL_VERSION));
         LOGI("GL_VENDOR: %s", glGetString(GL_VENDOR));
         LOGI("GL_RENDERER: %s", glGetString(GL_RENDERER));
@@ -68,6 +68,8 @@ class ecg {
 
         EcgArea::instance().glInit();
         EcgArea::instance().setZOrder(1);
+
+        EcgArea::instance().createJavaFunctionClass(env, clazz, mid);
     }
 
     void surfaceChanged(int w, int h) {
@@ -125,8 +127,13 @@ extern "C" {
     Java_com_mobilecg_androidapp_EcgJNI_surfaceCreated(JNIEnv *env, jclass type) {
         (void)env;
         (void)type;
-        gEcg.surfaceCreated();
         env->GetJavaVM(&cachedJVM);
+
+        jclass rhy_clazz = env->FindClass("com/mobilecg/androidapp/EcgActivity");
+        jmethodID rhy_mid = env->GetStaticMethodID(rhy_clazz, "RhyLayoutFull", "()V");
+
+        gEcg.surfaceCreated(env, rhy_clazz, rhy_mid);
+
     }
 
     JNIEXPORT void JNICALL

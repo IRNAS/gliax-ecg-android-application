@@ -23,7 +23,6 @@ package com.mobilecg.androidapp;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
@@ -38,33 +37,23 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
-import android.os.BatteryManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.SystemClock;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.util.DisplayMetrics;
 
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.SearchView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -84,13 +73,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.zip.DataFormatException;
 
 /**
  * Reading data from ECG board over USB
@@ -104,7 +90,7 @@ public class EcgActivity extends Activity {
 
     private GLSurfaceView mView;
     private DisplayMetrics displayMetrics;
-    private MyGLRenderer myGLRenderer = null;
+    private static MyGLRenderer myGLRenderer = null;
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
     private SerialInputOutputManager serialIoManager;
@@ -115,7 +101,7 @@ public class EcgActivity extends Activity {
     private ProbeTable customTable = null;
 
     Button pause_resume_btn;
-    Button save_btn;
+    Button save_stop_btn;
     Button rhythm_12lead_btn;
     Button patient_btn;
     private boolean render_paused = false;
@@ -139,9 +125,9 @@ public class EcgActivity extends Activity {
     private static final int ECG_ON = 1;
 
     // patient class
-    private Patient patient;
+    private static Patient patient;
     // advanced settings variables
-    private String saveLocation;
+    private static String saveLocation;
     private boolean autoPrint;   // this gets reset between app launches
 
     // Pdf filenames container and search
@@ -158,7 +144,7 @@ public class EcgActivity extends Activity {
     protected void onCreate(Bundle icicle) {
         //Log.d(TAG, "run event - onCreate");
         super.onCreate(icicle);
-        if (debugFileWrite == true) {
+        if (debugFileWrite) {
             debugFilePath = this.getFilesDir().getAbsolutePath();
         }
 
@@ -209,33 +195,29 @@ public class EcgActivity extends Activity {
         });
 
         // Main GUI buttons
-        pause_resume_btn = (Button)findViewById(R.id.pause_btn);   // Pause / resume
+        pause_resume_btn = (Button)findViewById(R.id.pause_btn);   // Pause / Resume
         pause_resume_btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (render_paused) {
                     resumeECG();
                     rhythm_12lead_btn.setEnabled(true);
-                    save_btn.setEnabled(true);
+                    save_stop_btn.setEnabled(true);
                     screenshotPrepared = false;
                 }
                 else {
-                    myGLRenderer.takeScreenshot(saveLocation, patient, true);
+                    myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_PREPARE);
                     screenshotPrepared = true;
                     pauseECG();
                     rhythm_12lead_btn.setEnabled(false);
                 }
             }
         });
-        save_btn = (Button)findViewById(R.id.save_btn);    // Save
-        save_btn.setOnClickListener(new View.OnClickListener() {
+        save_stop_btn = (Button)findViewById(R.id.save_btn);    // Save / Stop
+        save_stop_btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                if (screenshotPrepared) {
-                    myGLRenderer.savePreparedScreenshot();
-                }
-                else {
-                    saveMeasurement();
-                }
-                save_btn.setEnabled(false);
+                saveMeasurement();
+
+                save_stop_btn.setEnabled(false);
                 if (!autoPrint) {   // display alert
                     showPrintAlertDialog();
                 }
@@ -250,11 +232,14 @@ public class EcgActivity extends Activity {
                 EcgJNI.changeLayout();
                 if (!rhythm_screen) {   // 12 lead -> rhythm
                     rhythm_12lead_btn.setText(R.string.menu_button_3_alt);
+                    save_stop_btn.setText(R.string.menu_button_2_alt);
                     rhythm_screen = true;
                 }
                 else {  // rhythm -> 12 lead
                     rhythm_12lead_btn.setText(R.string.menu_button_3);
+                    save_stop_btn.setText(R.string.menu_button_2);
                     rhythm_screen = false;
+                    myGLRenderer.deleteManyScreenshots();
                 }
             }
         });
@@ -325,6 +310,7 @@ public class EcgActivity extends Activity {
             // if ecg is paused, check if we have unsaved screenshot
             if (screenshotPrepared) {
                 myGLRenderer.savePreparedScreenshot();
+                displayToast("Current ECG data was auto saved to pdf.");
             }
         }
         // disconnect from ecg device
@@ -347,7 +333,7 @@ public class EcgActivity extends Activity {
         //Log.d(TAG, "run event - onStop");
         super.onStop();
 
-        if (debugFileWrite == true) {
+        if (debugFileWrite) {
             CopyDebugFiles();
         }
         // save file save location
@@ -511,10 +497,18 @@ public class EcgActivity extends Activity {
     }
 
     private void saveMeasurement() {
-        myGLRenderer.takeScreenshot(saveLocation, patient, false);
+        if (screenshotPrepared) {   // after ECG pause saving to file
+            myGLRenderer.savePreparedScreenshot();
+        }
+        else if (rhythm_screen) {    // save all screenshots to file
+            Log.d("HEH", "save all screenshots to file");
+        }
+        else {  // take screenshot and save it to file
+            myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_ONE);
+        }
         if (!render_paused) {   // pause ecg
             pauseECG();
-            save_btn.setEnabled(false);
+            save_stop_btn.setEnabled(false);
         }
         boolean result = myGLRenderer.getScreenshotResult();    // check save file result
         if (result) {
@@ -524,6 +518,11 @@ public class EcgActivity extends Activity {
         else {
             //displayToast("Error when saving to pdf!");    // TODO
         }
+    }
+
+    public static void RhyLayoutFull() {    // this function is being called from native code
+        //Log.d("HEH", "ecg activity function was called.");
+        myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_MANY);
     }
 
     private void inputPatientData() {   // TODO move to States.java
@@ -613,6 +612,8 @@ public class EcgActivity extends Activity {
                 etSurname.setText("");
                 etBirth.setText("");
                 etMeasurementID.setText("");
+
+                myGLRenderer.deleteManyScreenshots();
             }
         });
 
@@ -806,13 +807,13 @@ public class EcgActivity extends Activity {
 
     private void disableMainButtons() {
         pause_resume_btn.setEnabled(false);
-        save_btn.setEnabled(false);
+        save_stop_btn.setEnabled(false);
         rhythm_12lead_btn.setEnabled(false);
     }
 
     private void enableMainButtons() {
         pause_resume_btn.setEnabled(true);
-        save_btn.setEnabled(true);
+        save_stop_btn.setEnabled(true);
         rhythm_12lead_btn.setEnabled(true);
     }
 
@@ -998,3 +999,4 @@ public class EcgActivity extends Activity {
         }
     };
 }
+

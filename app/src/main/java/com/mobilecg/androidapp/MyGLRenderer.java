@@ -20,9 +20,11 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilePermission;
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 import javax.microedition.khronos.egl.EGL10;
@@ -37,10 +39,12 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
     private boolean screenshot = false;
     private boolean screenshotResult = false;
-    private boolean prepareOnly = false;
+    private int screenshotType = States.SHOT_ONE;
     private String savePath = null;
     private Patient thisPatient = null;
     private Bitmap preparedScreenshot = null;
+
+    ArrayList<Bitmap> screenshotArray;
 
     MyGLRenderer(DisplayMetrics display) {
         displayMetrics = display;
@@ -51,6 +55,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         gl.glEnable(gl.GL_LINE_SMOOTH);
         gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST);
         EcgJNI.surfaceCreated();
+        screenshotArray = new ArrayList<>();
     }
 
     @Override
@@ -70,10 +75,13 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         EcgJNI.drawFrame();
         if (screenshot) {
             Bitmap bitmap = makeScreenshot(gl);
-            if (prepareOnly) {
+            if (screenshotType == States.SHOT_PREPARE) {
                 preparedScreenshot = bitmap;
             }
-            else {
+            else if (screenshotType == States.SHOT_MANY) {
+                screenshotArray.add(bitmap);
+            }
+            else {  // screenshotType == States.SHOT_ONE
                 saveScreenshot(bitmap);
                 preparedScreenshot = null;
             }
@@ -81,9 +89,9 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    public void takeScreenshot(String saveLocation, Patient patient, boolean prepare) {
+    public void takeScreenshot(String saveLocation, Patient patient, int shotType) {
         screenshot = true;
-        prepareOnly = prepare;
+        screenshotType = shotType;
         savePath = saveLocation;
         thisPatient = patient;
     }
@@ -187,5 +195,9 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         boolean result = screenshotResult;
         screenshotResult = false;
         return result;
+    }
+
+    public void deleteManyScreenshots() {
+        screenshotArray = new ArrayList<>();
     }
 }

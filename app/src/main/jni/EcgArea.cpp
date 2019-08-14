@@ -354,8 +354,14 @@ void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride, int
                 endpointCircles[a].setPosition(ecgCurves[a].endpointCoordinates());
             }
         }
-        rhythm.put(data + stride*1, nPoints);
+        layout_remains = rhythm.put(data + stride*1, nPoints);
         rhythm_circle.setPosition(rhythm.endpointCoordinates());
+
+        //LOGI("HEH: layout remains: %d", layout_remains);
+        if (layout_remains != OK_REMAINS) {
+            //LOGI("HEH: java call");
+            callJavaFunction.EndOfLayout();
+        }
     }
     else {
         int remains = OK_REMAINS;
@@ -499,4 +505,8 @@ void EcgArea::changeLayout() {
 
 void EcgArea::setSpeed(float speed) {
     ecgCmPerSec = speed;
+}
+
+void EcgArea::createJavaFunctionClass(JNIEnv *env, jclass clazz, jmethodID mid)  {
+    callJavaFunction = CallJavaFunction(env, clazz, mid);
 }

@@ -30,6 +30,7 @@
 #include "Curve.h"
 #include "Circle.h"
 #include "Rectangle.h"
+#include "CallJavaFunction.h"
 
 class EcgArea: public DrawableGroup{
     private:
@@ -87,12 +88,15 @@ class EcgArea: public DrawableGroup{
         static const int ECG_COLUMN_COUNT = 4;
         int cur_column;
         int rhy_remains; // OPTION 2
+        int layout_remains;
 
         bool deviceNotConnected;
         int x_speed_color;
         int last_color_change;
 
         void setContentVisible(bool visible);
+
+        CallJavaFunction callJavaFunction;
 public:
         static EcgArea &instance();
         virtual void contextResized(int w, int h);
@@ -117,6 +121,7 @@ public:
         void changeLayout();
 
         void setSpeed(float speed);
+        void createJavaFunctionClass(JNIEnv *env, jclass clazz, jmethodID mid);
 };
 
 

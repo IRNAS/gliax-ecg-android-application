@@ -23,6 +23,7 @@ package com.mobilecg.androidapp;
 // Wrapper for native library
 
 import android.content.res.AssetManager;
+import android.util.Log;
 
 public class EcgJNI {
 
@@ -43,4 +44,5 @@ public class EcgJNI {
      public static native void initNDK(String msg);
      public static native void ChangeSpeed(float x_speed);
      public static native void changeLayout();
+
 }

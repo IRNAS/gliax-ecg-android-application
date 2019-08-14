@@ -24,8 +24,13 @@ public class States {
     // initial values for operational parameters
     private static boolean ECG_RUNNING = false;
     private static boolean ECG_CONNECTED = false;
+
     private static int PAPER_SPEED = 25;
     //private static int SELECTED_MAINS_FREQ = 0; // mains freq is 50 Hz
+
+    public static int SHOT_ONE = 1;
+    public static int SHOT_MANY = 2;
+    public static int SHOT_PREPARE = 0;
 
     // Getters
     public static boolean isEcgRunning() {

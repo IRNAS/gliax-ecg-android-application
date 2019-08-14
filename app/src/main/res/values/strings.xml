@@ -32,6 +32,7 @@
     <string name="menu_button_1">PAUSE</string>
     <string name="menu_button_1_alt">RESUME</string>
     <string name="menu_button_2">SAVE</string>
+    <string name="menu_button_2_alt">STOP</string>
     <string name="menu_button_3">RHYTHM</string>
     <string name="menu_button_3_alt">12-LEAD</string>
     <string name="menu_button_4">PATIENT</string>
