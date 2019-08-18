@@ -205,7 +205,7 @@ public class EcgActivity extends Activity {
                     screenshotPrepared = false;
                 }
                 else {
-                    String cur_screen = "";
+                    String cur_screen;
                     if (rhythm_screen) {
                         cur_screen = "rhythm";
                     }
@@ -437,13 +437,7 @@ public class EcgActivity extends Activity {
         });
 
         batteryAlert = builder.create();
-        // hide nav and status bar  // TODO uporabi funkcijo
-        Window dialogWindow = batteryAlert.getWindow();
-        dialogWindow.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        View decorView = dialogWindow.getDecorView();
-        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-        decorView.setSystemUiVisibility(uiOptions);
-
+        hideNavAndStatusBar(batteryAlert.getWindow());
         batteryAlert.show();
     }
 
@@ -475,7 +469,7 @@ public class EcgActivity extends Activity {
         });
 
         AlertDialog dialog = builder.create();
-        // hide nav and status bar  // TODO uporabi funkcijo
+        hideNavAndStatusBar(dialog.getWindow());
 
         dialog.setCanceledOnTouchOutside(false);
         dialog.show();
@@ -502,7 +496,7 @@ public class EcgActivity extends Activity {
         });
         AlertDialog dialog = builder.create();
         dialog.show();
-        hideNavAndStatusBar(getWindow());
+        hideNavAndStatusBar(dialog.getWindow());
     }
 
     private void saveMeasurement() {
@@ -510,7 +504,7 @@ public class EcgActivity extends Activity {
             myGLRenderer.savePreparedScreenshot();
         }
         else if (rhythm_screen) {    // save all screenshots to file
-            Log.d("HEH", "save all screenshots to file");
+            //Log.d("HEH", "save all screenshots to file");
             myGLRenderer.saveManyScreenshots();
         }
         else {  // take screenshot and save it to file
@@ -529,7 +523,7 @@ public class EcgActivity extends Activity {
             }
         }
         else {
-            //displayToast("Error when saving to pdf!");    // TODO
+            displayToast("Error when saving to pdf!");
         }
     }
 
@@ -589,6 +583,9 @@ public class EcgActivity extends Activity {
                     }
                 }
                 String id  = etMeasurementID.getText().toString().trim();
+                if (id.length() == 0) {
+                    id = "000";
+                }
                 patient.setPatientData(name, surname, birth, id);
                  // TODO move to screenshot click function
                 alertDialog.dismiss();
