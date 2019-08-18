@@ -248,6 +248,10 @@ public class EcgActivity extends Activity {
                     rhythm_screen = false;
                     myGLRenderer.deleteManyScreenshots();
                 }
+
+                if (render_paused) {
+                    resumeECG();
+                }
             }
         });
         patient_btn = (Button)findViewById(R.id.patient_btn);  // Patient
@@ -366,17 +370,8 @@ public class EcgActivity extends Activity {
         //CloseConnectionToUsbDevice();
     }
 
-    public void displayToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-    }
-
-    public static void hideNavAndStatusBar(Window window) {     // TODO move to the end of the file
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        // Hide both the navigation bar and the status bar.
-        View decorView = window.getDecorView();
-        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-        decorView.setSystemUiVisibility(uiOptions);
-    }
+    @Override
+    public void onBackPressed() {}  // disable back button
 
     private void resumeECG() {
         //Log.d(TAG, "resumeECG function");
@@ -415,8 +410,17 @@ public class EcgActivity extends Activity {
         States.setEcgRunning(false);
     }
 
-    @Override
-    public void onBackPressed() {}  // disable back button
+    public void displayToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+    }
+
+    public static void hideNavAndStatusBar(Window window) {
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        // Hide both the navigation bar and the status bar.
+        View decorView = window.getDecorView();
+        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+        decorView.setSystemUiVisibility(uiOptions);
+    }
 
     public void displayBatteryAlert(Context context) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -587,7 +591,6 @@ public class EcgActivity extends Activity {
                     id = "000";
                 }
                 patient.setPatientData(name, surname, birth, id);
-                 // TODO move to screenshot click function
                 alertDialog.dismiss();
                 hideNavAndStatusBar(getWindow());
                 resumeECG();
@@ -728,6 +731,8 @@ public class EcgActivity extends Activity {
 
                         PdfFiles pdfFiles = namesOfFiles.get(position);
                         String filename = pdfFiles.getFileName();
+                        OpenPdfFile(dir, filename);
+                        /*
                         File file = new File(dir +"/"+ filename);
                         Intent target = new Intent(Intent.ACTION_VIEW);
                         target.setDataAndType(Uri.fromFile(file),"application/pdf");
@@ -739,6 +744,7 @@ public class EcgActivity extends Activity {
                         } catch (ActivityNotFoundException e) {
                             displayToast("No pdf reader is installed!");
                         }
+                        */
                     }
                 });
 
@@ -769,6 +775,20 @@ public class EcgActivity extends Activity {
         }
         else {
             displayToast("Error accessing device storage...");
+        }
+    }
+
+    private void OpenPdfFile(File dir, String filename) {
+        File file = new File(dir +"/"+ filename);
+        Intent target = new Intent(Intent.ACTION_VIEW);
+        target.setDataAndType(Uri.fromFile(file),"application/pdf");
+        target.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+
+        Intent intent = Intent.createChooser(target, "Open File");
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            displayToast("No pdf reader is installed!");
         }
     }
 

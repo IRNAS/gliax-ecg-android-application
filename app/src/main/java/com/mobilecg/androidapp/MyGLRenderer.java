@@ -135,6 +135,9 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         try {
             String measurementTimestamp = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
             String id = thisPatient.getMeasurementId();
+            if (id.equals("")) {
+                id = "000";
+            }
             String filename = id + "_" + ecgType + "_" + measurementTimestamp.replace(" ", "-") + ".pdf";
 
             PdfDocument document = new PdfDocument();
@@ -204,6 +207,9 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
             String measurementTimestamp = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
             String id = thisPatient.getMeasurementId();
+            if (id.equals("")) {
+                id = "000";
+            }
             String filename = id + "_" + ecgType + "_" + measurementTimestamp.replace(" ", "-") + ".pdf";
 
             PdfDocument document = new PdfDocument();
@@ -212,7 +218,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             // prepare patient info to file if exists
             String patientInfo = String.format("No patient data");
             if (!thisPatient.getName().isEmpty() || !thisPatient.getSurname().isEmpty() || !thisPatient.getBirth().isEmpty()) {
-                patientInfo = String.format("Patient: %s %s, %s", thisPatient.getName(), thisPatient.getSurname(), thisPatient.getBirth());
+                patientInfo = String.format("Patient: %s %s  %s", thisPatient.getName(), thisPatient.getSurname(), thisPatient.getBirth());
             }
             int pageCounter = 0;
             int pagesCount = screenshotArray.size();

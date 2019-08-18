@@ -180,7 +180,7 @@ void EcgArea::constructLayoutNormal(){
 
     const int yStep = activeArea.height()/r;
     //const int xStep = curveWidth+padInPixels;
-    const int xStep = curveWidth;   // TODO testing
+    const int xStep = curveWidth;
 
     const int bottomCurves = r % 3;
     const int topCurves = r - bottomCurves;
