@@ -95,6 +95,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     }
 
     public void takeScreenshot(String saveLocation, Patient patient, int shot_type, String ecg_type) {
+        screenshotResult = false;   // reset completion flag
         screenshot = true;
         screenshotType = shot_type;
         savePath = saveLocation;
@@ -134,10 +135,6 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         try {
             String measurementTimestamp = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
             String id = thisPatient.getMeasurementId();
-            if (id == "") {
-                // TODO fix this
-                id = "000";
-            }
             String filename = id + "_" + ecgType + "_" + measurementTimestamp.replace(" ", "-") + ".pdf";
 
             PdfDocument document = new PdfDocument();
@@ -198,14 +195,15 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    public void saveManyScreenshots() { // TODO handle if bitmap array is empty (take new single screenshot)
+    public void saveManyScreenshots() {
         try {
+            if (screenshotArray.isEmpty()) {    // if bitmap array is empty: take new single screenshot
+                takeScreenshot(savePath, thisPatient, States.SHOT_ONE, ecgType);
+                return;
+            }
+
             String measurementTimestamp = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
             String id = thisPatient.getMeasurementId();
-            if (id == "") {
-                // TODO fix this
-                id = "000";
-            }
             String filename = id + "_" + ecgType + "_" + measurementTimestamp.replace(" ", "-") + ".pdf";
 
             PdfDocument document = new PdfDocument();
@@ -253,9 +251,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     }
 
     public boolean getScreenshotResult() {
-        boolean result = screenshotResult;
-        screenshotResult = false;
-        return result;
+        return screenshotResult;
     }
 
     public void deleteManyScreenshots() {
