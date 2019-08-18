@@ -430,7 +430,7 @@ public class EcgActivity extends Activity {
         });
 
         batteryAlert = builder.create();
-        // hide nav and status bar
+        // hide nav and status bar  // TODO uporabi funkcijo
         Window dialogWindow = batteryAlert.getWindow();
         dialogWindow.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         View decorView = dialogWindow.getDecorView();
@@ -468,6 +468,8 @@ public class EcgActivity extends Activity {
         });
 
         AlertDialog dialog = builder.create();
+        // hide nav and status bar  // TODO uporabi funkcijo
+
         dialog.setCanceledOnTouchOutside(false);
         dialog.show();
     }
@@ -502,6 +504,7 @@ public class EcgActivity extends Activity {
         }
         else if (rhythm_screen) {    // save all screenshots to file
             Log.d("HEH", "save all screenshots to file");
+            myGLRenderer.saveManyScreenshots("RHYTHM");
         }
         else {  // take screenshot and save it to file
             myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_ONE);
@@ -514,6 +517,9 @@ public class EcgActivity extends Activity {
         if (result) {
             patient.setSaved(true);
             displayToast("Successfully saved to pdf...");
+            if (rhythm_screen) {    // if rhythm screenshots were saved, delete them
+                myGLRenderer.deleteManyScreenshots();
+            }
         }
         else {
             //displayToast("Error when saving to pdf!");    // TODO

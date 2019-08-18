@@ -43,8 +43,11 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private String savePath = null;
     private Patient thisPatient = null;
     private Bitmap preparedScreenshot = null;
+    private ArrayList<Bitmap> screenshotArray;
 
-    ArrayList<Bitmap> screenshotArray;
+    private int textSize = 50;
+    private int textOffsetX = 10;
+    private int textOffsetY = 10;
 
     MyGLRenderer(DisplayMetrics display) {
         displayMetrics = display;
@@ -132,32 +135,33 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
                 // TODO fix this
                 id = "000";
             }
-            String filename = id + "_" + measurementTimestamp.replace(" ", "-") + ".pdf";
-            int textSize = 50;
+            String filename = id + "_" + measurementTimestamp.replace(" ", "-") + ".pdf";   // TODO add 12 lead to title?
 
             PdfDocument document = new PdfDocument();
-            PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(pic.getWidth(), pic.getHeight() + textSize + 10, 1).create();
-            PdfDocument.Page page = document.startPage(pageInfo);
+            // prepare id and timestamp
+            String title = String.format("ID: %s \t Date: %s", id, measurementTimestamp);
+            // prepare patient info to file if exists
+            String patientInfo = String.format("No patient data");
+            if (!thisPatient.getName().isEmpty() || !thisPatient.getSurname().isEmpty() || !thisPatient.getBirth().isEmpty()) {
+                patientInfo = String.format("Patient: %s %s, %s", thisPatient.getName(), thisPatient.getSurname(), thisPatient.getBirth());
+            }
+            // prepare page number
+            String pageNum = String.format("Page: %s / %s", 1, 1);
 
+            PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(pic.getWidth(), pic.getHeight() + textSize*2 + textOffsetY*2, 1).create();
+            PdfDocument.Page page = document.startPage(pageInfo);
             Canvas canvas = page.getCanvas();
             Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
             //paint.setColor(Color.BLACK);
             paint.setTextSize(textSize);
-            // save id and timestamp
-            String title = String.format("ID: %s \t Date: %s", id, measurementTimestamp);
-            canvas.drawText(title, 10, textSize + 1, paint);
-            // save patient info to file if exists
-            if (thisPatient.getName() == "" && thisPatient.getSurname() == "" && thisPatient.getBirth() == "") {
-                String noPatient = String.format("No patient data");
-                canvas.drawText(noPatient, pic.getWidth() - noPatient.length()*23, textSize + 1, paint);
-            }
-            else {
-                String patientInfo = String.format("Patient: %s %s, %s", thisPatient.getName(), thisPatient.getSurname(), thisPatient.getBirth());
-                canvas.drawText(patientInfo, pic.getWidth() - patientInfo.length()*23, textSize + 1, paint);
-                // TODO handle too long names
-            }
-            // save screenshot to file
-            canvas.drawBitmap(pic,0,textSize + 10,null);
+            // draw title
+            canvas.drawText(title, textOffsetX, textSize + 1, paint);
+            // draw page number
+            canvas.drawText(pageNum, pic.getWidth() - pageNum.length()*23, textSize + 1, paint);
+            // draw screenshot
+            canvas.drawBitmap(pic, 0, textSize + textOffsetY,null);
+            // draw patient info
+            canvas.drawText(patientInfo, textOffsetX, pic.getHeight() + textSize*2 + 2, paint);
             document.finishPage(page);
 
             String dir = Environment.getExternalStorageDirectory() + File.separator + savePath + File.separator;
@@ -188,6 +192,60 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         }
         else {
             Log.i("HEH", "preparedScreenshot is null!");
+        }
+    }
+
+    public void saveManyScreenshots(String ecgType) { // TODO handle if bitmap array is empty (take new single screenshot)
+        try {
+            String measurementTimestamp = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
+            String id = thisPatient.getMeasurementId();
+            if (id == "") {
+                // TODO fix this
+                id = "000";
+            }
+            String filename = id + "_" + ecgType + "_" + measurementTimestamp.replace(" ", "-") + ".pdf";
+
+            PdfDocument document = new PdfDocument();
+            // prepare id and timestamp
+            String title = String.format("ID: %s \t Date: %s", id, measurementTimestamp);
+            // prepare patient info to file if exists
+            String patientInfo = String.format("No patient data");
+            if (!thisPatient.getName().isEmpty() || !thisPatient.getSurname().isEmpty() || !thisPatient.getBirth().isEmpty()) {
+                patientInfo = String.format("Patient: %s %s, %s", thisPatient.getName(), thisPatient.getSurname(), thisPatient.getBirth());
+            }
+            int pageCounter = 0;
+            int pagesCount = screenshotArray.size();
+
+            for (Bitmap pic : screenshotArray) {
+                pageCounter++;
+                PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(pic.getWidth(), pic.getHeight() + textSize*2 + textOffsetY*2, pageCounter+1).create();
+                PdfDocument.Page page = document.startPage(pageInfo);
+                Canvas canvas = page.getCanvas();
+                Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                //paint.setColor(Color.BLACK);
+                paint.setTextSize(textSize);
+                // draw title
+                canvas.drawText(title, textOffsetX, textSize + 1, paint);
+                // draw page number
+                String pageNum = String.format("Page: %s / %s", pageCounter, pagesCount);
+                canvas.drawText(pageNum, pic.getWidth() - pageNum.length()*23, textSize + 1, paint);
+                // draw screenshot
+                canvas.drawBitmap(pic, 0, textSize + textOffsetY,null);
+                // draw patient info
+                canvas.drawText(patientInfo, textOffsetX, pic.getHeight() + textSize*2 + 2, paint);
+                document.finishPage(page);
+            }
+
+            String dir = Environment.getExternalStorageDirectory() + File.separator + savePath + File.separator;
+            File file = new File(dir + filename);
+            document.writeTo(new FileOutputStream(file));
+            document.close();
+            screenshotResult = true;
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            Log.i("HEH", "saveManyScreenshots error!");
+            screenshotResult = false;
         }
     }
 

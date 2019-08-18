@@ -28,9 +28,9 @@ public class States {
     private static int PAPER_SPEED = 25;
     //private static int SELECTED_MAINS_FREQ = 0; // mains freq is 50 Hz
 
+    public static int SHOT_PREPARE = 0;
     public static int SHOT_ONE = 1;
     public static int SHOT_MANY = 2;
-    public static int SHOT_PREPARE = 0;
 
     // Getters
     public static boolean isEcgRunning() {
