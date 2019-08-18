@@ -38,16 +38,18 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private int glWidth;
 
     private boolean screenshot = false;
-    private boolean screenshotResult = false;
     private int screenshotType = States.SHOT_ONE;
-    private String savePath = null;
-    private Patient thisPatient = null;
-    private Bitmap preparedScreenshot = null;
+    private String savePath;
+    private Patient thisPatient;
+    private String ecgType;
+
+    private boolean screenshotResult = false;
+    private Bitmap preparedScreenshot;
     private ArrayList<Bitmap> screenshotArray;
 
     private int textSize = 50;
     private int textOffsetX = 10;
-    private int textOffsetY = 10;
+    private int textOffsetY = 15;
 
     MyGLRenderer(DisplayMetrics display) {
         displayMetrics = display;
@@ -92,11 +94,12 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    public void takeScreenshot(String saveLocation, Patient patient, int shotType) {
+    public void takeScreenshot(String saveLocation, Patient patient, int shot_type, String ecg_type) {
         screenshot = true;
-        screenshotType = shotType;
+        screenshotType = shot_type;
         savePath = saveLocation;
         thisPatient = patient;
+        ecgType = ecg_type;
     }
 
     private Bitmap makeScreenshot(GL10 gl) {
@@ -135,7 +138,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
                 // TODO fix this
                 id = "000";
             }
-            String filename = id + "_" + measurementTimestamp.replace(" ", "-") + ".pdf";   // TODO add 12 lead to title?
+            String filename = id + "_" + ecgType + "_" + measurementTimestamp.replace(" ", "-") + ".pdf";
 
             PdfDocument document = new PdfDocument();
             // prepare id and timestamp
@@ -161,7 +164,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             // draw screenshot
             canvas.drawBitmap(pic, 0, textSize + textOffsetY,null);
             // draw patient info
-            canvas.drawText(patientInfo, textOffsetX, pic.getHeight() + textSize*2 + 2, paint);
+            canvas.drawText(patientInfo, textOffsetX, pic.getHeight() + textSize*2 + textOffsetY, paint);
             document.finishPage(page);
 
             String dir = Environment.getExternalStorageDirectory() + File.separator + savePath + File.separator;
@@ -195,7 +198,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    public void saveManyScreenshots(String ecgType) { // TODO handle if bitmap array is empty (take new single screenshot)
+    public void saveManyScreenshots() { // TODO handle if bitmap array is empty (take new single screenshot)
         try {
             String measurementTimestamp = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
             String id = thisPatient.getMeasurementId();
@@ -232,7 +235,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
                 // draw screenshot
                 canvas.drawBitmap(pic, 0, textSize + textOffsetY,null);
                 // draw patient info
-                canvas.drawText(patientInfo, textOffsetX, pic.getHeight() + textSize*2 + 2, paint);
+                canvas.drawText(patientInfo, textOffsetX, pic.getHeight() + textSize*2 + textOffsetY, paint);
                 document.finishPage(page);
             }
 

@@ -205,7 +205,14 @@ public class EcgActivity extends Activity {
                     screenshotPrepared = false;
                 }
                 else {
-                    myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_PREPARE);
+                    String cur_screen = "";
+                    if (rhythm_screen) {
+                        cur_screen = "rhythm";
+                    }
+                    else {
+                        cur_screen = "12-lead";
+                    }
+                    myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_PREPARE, cur_screen);
                     screenshotPrepared = true;
                     pauseECG();
                     rhythm_12lead_btn.setEnabled(false);
@@ -504,10 +511,10 @@ public class EcgActivity extends Activity {
         }
         else if (rhythm_screen) {    // save all screenshots to file
             Log.d("HEH", "save all screenshots to file");
-            myGLRenderer.saveManyScreenshots("RHYTHM");
+            myGLRenderer.saveManyScreenshots();
         }
         else {  // take screenshot and save it to file
-            myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_ONE);
+            myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_ONE, "12-lead");
         }
         if (!render_paused) {   // pause ecg
             pauseECG();
@@ -528,7 +535,7 @@ public class EcgActivity extends Activity {
 
     public static void RhyLayoutFull() {    // this function is being called from native code
         //Log.d("HEH", "ecg activity function was called.");
-        myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_MANY);
+        myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_MANY, "rhythm"); // TODO optimize this (move parameters away)
     }
 
     private void inputPatientData() {   // TODO move to States.java
