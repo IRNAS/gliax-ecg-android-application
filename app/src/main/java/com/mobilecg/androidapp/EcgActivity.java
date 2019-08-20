@@ -229,7 +229,7 @@ public class EcgActivity extends Activity {
                     showPrintAlertDialog();
                 }
                 else {
-                    // TODO call print function
+                    // call print function
                 }
             }
         });

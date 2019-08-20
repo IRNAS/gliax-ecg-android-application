@@ -2,4 +2,8 @@
 <resources>
     <color name="white">#fff</color>
     <color name="patient_background">#c4c4c4</color>
+    <color name="green_btn">#98fc77</color>
+    <color name="red_btn">#ff5959</color>
+    <color name="blue_btn">#5892fc</color>
+    <color name="orange_btn">#fcc558</color>
 </resources>
