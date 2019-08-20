@@ -135,6 +135,7 @@ public class EcgActivity extends Activity {
     private MyListViewAdapter listViewAdapter;
     private ListView listView;
     private SearchView searchView;
+    private boolean pdf_viewer_opened;  // to avoid autosaving new pdf when opening a file from app
 
     private BatteryDetectReceiver batteryDetect;
     private static AlertDialog batteryAlert;
@@ -222,7 +223,7 @@ public class EcgActivity extends Activity {
         save_stop_btn = (Button)findViewById(R.id.save_btn);    // Save / Stop
         save_stop_btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                saveMeasurement();
+                saveMeasurement(true);
 
                 save_stop_btn.setEnabled(false);
                 if (!autoPrint) {   // display alert
@@ -277,17 +278,6 @@ public class EcgActivity extends Activity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch(requestCode) {
-            case APP_ALLOW_STORAGE:
-                if (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    displayToast("Permission denied for accessing external storage! You won't be able to save pdfs!");
-                }
-                break;
-        }
-    }
-
-    @Override
     protected void onResume() {
         //Log.d(TAG, "run event - onResume");
         super.onResume();
@@ -300,6 +290,7 @@ public class EcgActivity extends Activity {
         if (!States.isEcgRunning()) {
             resumeECG();
         }
+        pdf_viewer_opened = false;
         registerReceiver(batteryDetect, intentFilter);
         registerReceiver(batteryAlertReceiver, new IntentFilter("DISPLAY_BAT_ALERT"));
     }
@@ -316,14 +307,18 @@ public class EcgActivity extends Activity {
         // pause ecg if running
         if (States.isEcgRunning()) {
             pauseECG();
-        }
-        else {
-            // if ecg is paused, check if we have unsaved screenshot
-            if (screenshotPrepared) {
-                myGLRenderer.savePreparedScreenshot();
-                displayToast("Current ECG data was auto saved to pdf.");
+
+            // if we are in rhythm screen, check and save unsaved screenshots
+            if (!pdf_viewer_opened && rhythm_screen && !myGLRenderer.getScreenshotResult()) {
+                displayToast("Autosaving current ECG data...");
+                saveMeasurement(false);
             }
         }
+        else if (!pdf_viewer_opened && screenshotPrepared) {  // if ecg is paused, check if we have unsaved screenshot
+            displayToast("Autosaving current ECG data...");
+            saveMeasurement(false);
+        }
+
         // disconnect from ecg device
         unregisterReceiver(usbReceiver);
         turnEcgOnOrOff(ECG_OFF);
@@ -372,6 +367,17 @@ public class EcgActivity extends Activity {
 
     @Override
     public void onBackPressed() {}  // disable back button
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch(requestCode) {
+            case APP_ALLOW_STORAGE:
+                if (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    displayToast("Permission denied for accessing external storage! You won't be able to save pdfs!");
+                }
+                break;
+        }
+    }
 
     private void resumeECG() {
         //Log.d(TAG, "resumeECG function");
@@ -490,7 +496,7 @@ public class EcgActivity extends Activity {
                     myGLRenderer.savePreparedScreenshot();
                 }
                 else {
-                    saveMeasurement();
+                    saveMeasurement(true);
                 }
             }
         });
@@ -503,7 +509,7 @@ public class EcgActivity extends Activity {
         hideNavAndStatusBar(dialog.getWindow());
     }
 
-    private void saveMeasurement() {
+    private void saveMeasurement(boolean display_message) {
         if (screenshotPrepared) {   // after ECG pause saving to file
             myGLRenderer.savePreparedScreenshot();
         }
@@ -521,8 +527,14 @@ public class EcgActivity extends Activity {
         boolean result = myGLRenderer.getScreenshotResult();    // check save file result
         if (result) {
             patient.setSaved(true);
-            displayToast("Successfully saved to pdf...");
-            if (rhythm_screen) {    // if rhythm screenshots were saved, delete them
+            if (display_message) {
+                displayToast("Successfully saved to pdf...");
+            }
+
+            if (screenshotPrepared) {   // if prepared screenshot was saved, delete it
+                screenshotPrepared = false;
+            }
+            else if (rhythm_screen) {    // if rhythm screenshots were saved, delete them
                 myGLRenderer.deleteManyScreenshots();
             }
         }
@@ -557,6 +569,7 @@ public class EcgActivity extends Activity {
             @Override
             public void onCancel(DialogInterface dialog) {
                 hideNavAndStatusBar(getWindow());
+                save_stop_btn.setEnabled(true);
                 resumeECG();
             }
         });
@@ -732,19 +745,6 @@ public class EcgActivity extends Activity {
                         PdfFiles pdfFiles = namesOfFiles.get(position);
                         String filename = pdfFiles.getFileName();
                         OpenPdfFile(dir, filename);
-                        /*
-                        File file = new File(dir +"/"+ filename);
-                        Intent target = new Intent(Intent.ACTION_VIEW);
-                        target.setDataAndType(Uri.fromFile(file),"application/pdf");
-                        target.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-
-                        Intent intent = Intent.createChooser(target, "Open File");
-                        try {
-                            startActivity(intent);
-                        } catch (ActivityNotFoundException e) {
-                            displayToast("No pdf reader is installed!");
-                        }
-                        */
                     }
                 });
 
@@ -787,8 +787,10 @@ public class EcgActivity extends Activity {
         Intent intent = Intent.createChooser(target, "Open File");
         try {
             startActivity(intent);
+            pdf_viewer_opened = true;
         } catch (ActivityNotFoundException e) {
             displayToast("No pdf reader is installed!");
+            pdf_viewer_opened = false;
         }
     }
 
