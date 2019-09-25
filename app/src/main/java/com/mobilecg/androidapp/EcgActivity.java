@@ -73,6 +73,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -734,6 +735,8 @@ public class EcgActivity extends Activity {
                     PdfFiles pdfFiles = new PdfFiles(fileList[i].getName());
                     namesOfFiles.add(pdfFiles);
                 }
+
+                //Collections.sort(namesOfFiles);   // TODO implement sort by modified date (most recent first)
 
                 listViewAdapter = new MyListViewAdapter(this);
                 listView.setAdapter(listViewAdapter);

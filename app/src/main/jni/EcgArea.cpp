@@ -29,7 +29,7 @@ int mains_frequency = 0;
 EcgArea::EcgArea():
         pixelDensity(100,100){
 
-    padInCm=0.5;
+    padInCm=0.1;
     ecgCmPerMv = 2.0;
     ecgCmPerSec = 2.5;
     lastSampleFrequency=0;
