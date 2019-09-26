@@ -64,7 +64,7 @@ Curve::Curve(): DrawableObject(){
     position.y=100;
     currNumOfPoints=0;
     requiredNumOfPoints=1;
-    clearWidthInPoints=20;  // was set to 100
+    clearWidthInPoints=10;  // was set to 100
     endCoordinates.x=0;
     endCoordinates.y=0;
 
@@ -128,7 +128,7 @@ int Curve::put(GLfloat *data, int n){
     int return_value = OK_REMAINS;
     if ((currWritePos + n) >= requiredNumOfPoints) {
         new_points_count = requiredNumOfPoints - currWritePos;
-        //("TEST: num of points that fit: %d", new_points_count);
+        //LOGI("TEST: num of points that fit: %d", new_points_count);
         return_value = n - new_points_count;
         //LOGI("TEST: num of points that don't fit: %d", return_value);
     }

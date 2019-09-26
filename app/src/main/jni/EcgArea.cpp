@@ -29,7 +29,6 @@ int mains_frequency = 0;
 EcgArea::EcgArea():
         pixelDensity(100,100){
 
-    padInCm=0.1;
     ecgCmPerMv = 2.0;
     ecgCmPerSec = 2.5;
     lastSampleFrequency=0;
@@ -174,7 +173,6 @@ void EcgArea::constructLayoutNormal(){
     c = ECG_COLUMN_COUNT;  // num of columns
     r = (ECG_CURVE_COUNT+c-1)/c + 1;  // num of rows (3 for all 12 signals + 1 for rhythm)
 
-    //int padInPixels=padInCm*pixelDensity.x;
     int padInPixels = 0;
     int curveWidth=(activeArea.width()-(c-1)*padInPixels)/c;
 
@@ -371,49 +369,26 @@ void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride, int
             //LOGI("TEST: remains: %d", remains);
             endpointCircles[cur_column*3 + a].setPosition(ecgCurves[cur_column*3 + a].endpointCoordinates());
         }
+        rhy_remains = rhythm.put(data + stride*1, nPoints);
+        rhythm_circle.setPosition(rhythm.endpointCoordinates());
         //LOGI("TEST: Num of points: %d, remains: %d, col: %d\n", nPoints, remains, cur_column);
-
-        if (rhy_remains == OK_REMAINS || rhy_remains == -1) {
-            rhy_remains = rhythm.put(data + stride*1, nPoints);
-            rhythm_circle.setPosition(rhythm.endpointCoordinates());
-        }
 
         if (remains != OK_REMAINS && remains != -1) {    // switching column of signals
             //LOGI("TEST: curve_cur_position: %d, rhythm_cur_position: %d, rhythm_points: %d\n", curve_cur_position, rhythm_cur_position, rhythm_points);
             cur_column++;
             if (cur_column == ECG_COLUMN_COUNT) {
-                //LOGI("TEST: back to start...");
                 cur_column = 0;
-                // OPTION 2 - reset rhythm drawing to 0
-                rhythm.resetCurrWritePos();
-                rhythm_circle.setPosition(Vec2<int>());
-                /*
-                if (rhy_remains > OK_REMAINS) {
-                    rhythm.put(data + stride*1, rhy_remains);
-                    rhythm_circle.setPosition(rhythm.endpointCoordinates());
-                }
-                 */
                 rhy_remains = OK_REMAINS;
             }
             else {
                 for (int a=0; a<3; a++) {   // put all current points remaining from previous column into next one
-                    ecgCurves[cur_column*3 + a].put(data + stride*(cur_column*3 + a), nPoints);
+                    int remains_2 = ecgCurves[cur_column*3 + a].put(data + stride*(cur_column*3 + a) + nPoints - remains, remains);
                     //ecgCurves[cur_column*3 + a].put(data + stride*1, remains);    // TODO testing
-                    //LOGI("TEST: remains: %d", remains);
+                    LOGI("TEST: change col, remains 2: %d", remains_2);
                     endpointCircles[cur_column*3 + a].setPosition(ecgCurves[cur_column*3 + a].endpointCoordinates());
                 }
             }
-            /*
-            for (int a=0; a<3; a++) {
-                ecgCurves[cur_column*3 + a].resetCurrWritePos();
-            }*/
         }
-        /*
-        if (rhy_remains > OK_REMAINS) {
-            rhythm.put(data + stride*1, rhy_remains);
-            rhythm_circle.setPosition(rhythm.endpointCoordinates());
-        }
-        */
     }
 }
 
