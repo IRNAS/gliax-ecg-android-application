@@ -516,6 +516,7 @@ public class EcgActivity extends Activity {
         }
         else if (rhythm_screen) {    // save all screenshots to file
             //Log.d("HEH", "save all screenshots to file");
+            displayToast("Saving in progress, please wait...");
             myGLRenderer.saveManyScreenshots();
         }
         else {  // take screenshot and save it to file
