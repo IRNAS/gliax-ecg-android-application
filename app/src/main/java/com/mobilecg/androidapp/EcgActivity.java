@@ -140,6 +140,7 @@ public class EcgActivity extends Activity {
 
     private BatteryDetectReceiver batteryDetect;
     private static AlertDialog batteryAlert;
+    private boolean batAlertDisplayed = false;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -444,11 +445,13 @@ public class EcgActivity extends Activity {
             @Override
             public void onDismiss(DialogInterface dialog) {
                 hideNavAndStatusBar(getWindow());
+                batAlertDisplayed = false;
             }
         });
 
         batteryAlert = builder.create();
         hideNavAndStatusBar(batteryAlert.getWindow());
+        batAlertDisplayed = true;
         batteryAlert.show();
     }
 
@@ -469,7 +472,6 @@ public class EcgActivity extends Activity {
                 hideNavAndStatusBar(getWindow());
             }
         });
-
 
         builder.setOnKeyListener(new AlertDialog.OnKeyListener() {  // disable back key press
             @Override
@@ -942,13 +944,14 @@ public class EcgActivity extends Activity {
     private void startIoManager() {
         if (serialPort != null) {
             Log.d(TAG, "Starting io manager ..");
+            displayToast("Starting io manager...");
             EcgJNI.onDeviceConnected();
             serialIoManager = new SerialInputOutputManager(serialPort, mListener);
             mExecutor.submit(serialIoManager);
             //displayToast("ECG device OK, waiting for data..."); // TODO move it somewhere else
 
-            // ecg has been started up, check if tablet is being charged
-            if (States.isEcgConnected() && !BatteryDetectReceiver.isCharging(this)) {
+            // ecg has been started up, check if tablet is being charged and alert has not yet been displayed
+            if (States.isEcgConnected() && !BatteryDetectReceiver.isCharging(this) && !batAlertDisplayed) {
                 displayBatteryAlert(this);
             }
         }
@@ -1031,7 +1034,10 @@ public class EcgActivity extends Activity {
     private final BroadcastReceiver batteryAlertReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            displayBatteryAlert(context);
+            if (!batAlertDisplayed) {
+                displayToast("On receive battery alert");
+                displayBatteryAlert(context);
+            }
         }
     };
 }
