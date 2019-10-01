@@ -384,7 +384,7 @@ void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride, int
                 for (int a=0; a<3; a++) {   // put all current points remaining from previous column into next one
                     int remains_2 = ecgCurves[cur_column*3 + a].put(data + stride*(cur_column*3 + a) + nPoints - remains, remains);
                     //ecgCurves[cur_column*3 + a].put(data + stride*1, remains);    // TODO testing
-                    LOGI("TEST: change col, remains 2: %d", remains_2);
+                    //LOGI("TEST: change col, remains 2: %d", remains_2);
                     endpointCircles[cur_column*3 + a].setPosition(ecgCurves[cur_column*3 + a].endpointCoordinates());
                 }
             }

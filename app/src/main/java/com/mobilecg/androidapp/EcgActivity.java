@@ -735,11 +735,13 @@ public class EcgActivity extends Activity {
             if (fileList != null && fileList.length > 0) {
                 namesOfFiles = new ArrayList<>();
                 for (int i = 0; i < fileList.length; i++) {
-                    PdfFiles pdfFiles = new PdfFiles(fileList[i].getName());
+                    PdfFiles pdfFiles = new PdfFiles(fileList[i].getName(), fileList[i].lastModified());
                     namesOfFiles.add(pdfFiles);
                 }
 
-                //Collections.sort(namesOfFiles);   // TODO implement sort by modified date (most recent first)
+                // sort by modified date, most recent file is on top
+                Collections.sort(namesOfFiles);
+                Collections.reverse(namesOfFiles);
 
                 listViewAdapter = new MyListViewAdapter(this);
                 listView.setAdapter(listViewAdapter);
