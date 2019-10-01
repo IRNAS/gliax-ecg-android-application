@@ -32,6 +32,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
@@ -701,13 +702,37 @@ public class EcgActivity extends Activity {
         btnAbout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                displayToast("GliaECG\nwww.irnas.eu\nVersion: 1.0");
+                //displayToast("GliaECG\nwww.irnas.eu\nVersion: 1.0");
+                showAbout();
             }
         });
 
         // hide keyboard
         Window dialogWindow = alertDialog.getWindow();
         dialogWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+
+        alertDialog.show();
+    }
+
+    private void showAbout() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = getLayoutInflater().inflate(R.layout.about_popup, null);
+
+        builder.setView(view);
+        final AlertDialog alertDialog = builder.create();
+
+        TextView versionTextView = (TextView) view.findViewById(R.id.versionTextView);
+        String versionText = "Version: unknown";
+        try {
+            PackageInfo pInfo = this.getPackageManager().getPackageInfo(getPackageName(), 0);
+            String version = pInfo.versionName;
+            int verCode = pInfo.versionCode;
+            versionText = "App version: " + version + ",  version code: " + verCode;
+
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        versionTextView.setText(versionText);
 
         alertDialog.show();
     }
