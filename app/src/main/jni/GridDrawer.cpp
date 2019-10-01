@@ -24,8 +24,8 @@
 
 //#define POINT_GRID
 
-const Image::Pixel GridDrawer::padColor(0xFF,0xFF,0xE8);
-const Image::Pixel GridDrawer::backgroundColor(0xF8,0xFB,0xEF);
+const Image::Pixel GridDrawer::padColor(0xFF,0xFF,0xFF);
+const Image::Pixel GridDrawer::backgroundColor(0xFF,0xFF,0xFF);
 const Image::Pixel GridDrawer::gridMainColor(0xA4, 0xA4, 0xA4);
 
 #ifdef POINT_GRID
