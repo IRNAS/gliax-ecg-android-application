@@ -287,6 +287,7 @@ public class EcgActivity extends Activity {
         hideNavAndStatusBar(getWindow());
         // resume reading from usb
         intentFilter = new IntentFilter(ACTION_USB_PERMISSION);
+        intentFilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         registerReceiver(usbReceiver,intentFilter);
         customTable = CreateDevicesTable();
         FindUsbDevice();
@@ -1070,6 +1071,11 @@ public class EcgActivity extends Activity {
                     //Log.d(TAG, "Permission denied for accessing ECG device!");
                     displayToast("Permission denied for accessing ECG device! It needs to be granted in order to use this ECG.");
                 }
+            }
+            if(intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_DETACHED)) {
+                displayToast("ECG device has been detached!");
+                States.setEcgConnected(false);
+                finish();
             }
         }
     };
