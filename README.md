@@ -14,7 +14,7 @@ App is using USB protocol to communicate with ECG board (STM32 MCU with TI chip 
 Using modified version of usb-serial-for-android library by mik3y (https://github.com/mik3y/usb-serial-for-android).
 
 ## Instructions for users
-### Installing procedure
+#### Installing procedure
 TBA
-### Using the app
+#### Using the app
 TBA
