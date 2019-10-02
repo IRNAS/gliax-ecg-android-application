@@ -40,7 +40,7 @@
             android:name="com.mobilecg.androidapp.EcgActivity"
             android:configChanges="orientation|keyboardHidden"
             android:screenOrientation="landscape"
-            android:launchMode="singleTask"
+            android:launchMode="singleInstance"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
             <intent-filter>
                 <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
