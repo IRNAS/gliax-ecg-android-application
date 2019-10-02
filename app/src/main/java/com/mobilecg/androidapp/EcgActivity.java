@@ -734,6 +734,22 @@ public class EcgActivity extends Activity {
         }
         versionTextView.setText(versionText);
 
+        Button btnWebsite = (Button) view.findViewById(R.id.website_btn);
+        btnWebsite.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Uri uriUrl = Uri.parse("http://www.irnas.eu");
+                Intent launchBrowser = new Intent(Intent.ACTION_VIEW, uriUrl);
+                launchBrowser.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+                Intent intent = Intent.createChooser(launchBrowser, "Open link");
+                try {
+                    startActivity(intent);
+                } catch (ActivityNotFoundException e) {
+                    displayToast("No browser is installed!");
+                }
+            }
+        });
+
         alertDialog.show();
     }
 

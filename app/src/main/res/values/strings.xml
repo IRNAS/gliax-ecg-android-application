@@ -66,7 +66,8 @@
     <string name="search_text">Search</string>
     <string name="empty_archive">No files found :(</string>
 
-    <string name="irnas_web">www.irnas.eu</string>
+    <string name="irnas_text">Made by Institute IRNAS</string>
+    <string name="visit_web">Visit website</string>
     <string name="license_name">License</string>
 
     <!-- Complex strings -->
@@ -78,7 +79,7 @@
         \nAll our websites and additional documentation are licensed under Creative Commons Attribution-ShareAlike 4 .0 Unported License.
     </string>
     <string name="license_text_2">
-        What this means is that you can use hardware, firmware, software and documentation without paying a royalty and knowing that
+        \nWhat this means is that you can use hardware, firmware, software and documentation without paying a royalty and knowing that
         you\'ll be able to use your version forever. You are also free to make changes but if you share these changes then you have to
         do so on the same conditions that you enjoy.
         \n\nKoruza, GoodEnoughCNC and IRNAS are all names and marks of Institut IRNAS Rače. You may use these names and terms only to
