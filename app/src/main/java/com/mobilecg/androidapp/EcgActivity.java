@@ -684,12 +684,8 @@ public class EcgActivity extends Activity {
                 if (save_loc != saveLocation && save_loc != "") { saveLocation = save_loc; }
                 //Log.d(TAG, "new save location: " + save_loc);
 
-                if (rbSpeed25.isChecked()) {
-                    States.setPaperSpeed(25);
-                }
-                else if (rbSpeed50.isChecked()) {
-                    States.setPaperSpeed(50);
-                }
+                if (rbSpeed25.isChecked()) { States.setPaperSpeed(25); }
+                else if (rbSpeed50.isChecked()) { States.setPaperSpeed(50); }
 
                 if (tbAutoSave.isChecked()) { autoPrint = true; }
                 else { autoPrint = false; }
@@ -703,7 +699,6 @@ public class EcgActivity extends Activity {
         btnAbout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //displayToast("GliaECG\nwww.irnas.eu\nVersion: 1.0");
                 showAbout();
             }
         });
@@ -988,7 +983,7 @@ public class EcgActivity extends Activity {
     private void startIoManager() {
         if (serialPort != null) {
             Log.d(TAG, "Starting io manager ..");
-            displayToast("Starting io manager...");
+            //displayToast("Starting io manager...");
             EcgJNI.onDeviceConnected();
             serialIoManager = new SerialInputOutputManager(serialPort, mListener);
             mExecutor.submit(serialIoManager);
@@ -1061,7 +1056,7 @@ public class EcgActivity extends Activity {
 
     private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
         @Override
-        public void onReceive(Context context, Intent intent) { // TODO handle usb detached and attached events
+        public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (ACTION_USB_PERMISSION.equals(action)) {
                 if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
@@ -1084,7 +1079,7 @@ public class EcgActivity extends Activity {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (!batAlertDisplayed) {
-                displayToast("On receive battery alert");
+                //displayToast("On receive battery alert");
                 displayBatteryAlert(context);
             }
         }
