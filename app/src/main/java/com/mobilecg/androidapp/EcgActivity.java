@@ -278,6 +278,13 @@ public class EcgActivity extends Activity {
 
         patient = new Patient();
         patient.setPatientData(oldName, oldSurname, oldBirth, oldId);
+
+        // install custom exception handler to make the app auto restart after crash
+        Thread.setDefaultUncaughtExceptionHandler(new MyExceptionHandler(this));
+        if (getIntent().getBooleanExtra("crash", false)) {
+            displayToast("App restarted after crash");
+            // TODO allow this only 3 times
+        }
     }
 
     @Override
@@ -470,16 +477,13 @@ public class EcgActivity extends Activity {
         });
         builder.setNegativeButton(R.string.cancel_btn, new DialogInterface.OnClickListener() {  // cancel press
             @Override
-            public void onClick(DialogInterface dialog, int which) {
-                hideNavAndStatusBar(getWindow());
-            }
+            public void onClick(DialogInterface dialog, int which) { }
         });
 
-        builder.setOnKeyListener(new AlertDialog.OnKeyListener() {  // disable back key press
+        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
-            public boolean onKey(DialogInterface arg0, int keyCode, KeyEvent event) {
-                if (keyCode == KeyEvent.KEYCODE_BACK) { }
-                return true;
+            public void onDismiss(DialogInterface dialog) {
+                hideNavAndStatusBar(getWindow());
             }
         });
 

@@ -13,6 +13,8 @@ App is using USB protocol to communicate with ECG board (STM32 MCU with TI chip 
 
 Using modified version of usb-serial-for-android library by mik3y (https://github.com/mik3y/usb-serial-for-android).
 
+To build this app, NDK version 12 is needed (r12b used).
+
 ## Instructions for users
 ### Installing procedure
 TBA
