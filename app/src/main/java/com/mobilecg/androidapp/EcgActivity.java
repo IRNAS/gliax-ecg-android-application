@@ -554,7 +554,7 @@ public class EcgActivity extends Activity {
     }
 
     public static void RhyLayoutFull() {    // this function is being called from native code
-        //Log.d("HEH", "ecg activity function was called.");
+        Log.d("HEH", "ecg activity function was called.");
         myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_MANY, "rhythm"); // TODO optimize this (move parameters away)
     }
 
