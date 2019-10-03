@@ -17,6 +17,16 @@ To build this app, NDK version 12 is needed (r12b used).
 
 ## Instructions for users
 ### Installing procedure
-TBA
+1. Download the latest release file (GliaECG-release-*.*.apk)
+2. Load it directly to Android tablet or on USB drive (plug it into tablet via USB adapter)
+3. Tap the file and click install
+4. Application icon should appear in the android system
+
 ### Using the app
-TBA
+* In order to use this app, the following permissions need to be granted:
+    * USB device access (to be able to connect to ECG board)
+    * Automatically open GliaECG app when ECG board gets connected (to properly setup and terminate communication with it)
+    * Write external storage (used for saving pdf files)
+* Tablet needs to be restarted if the application doesn't start drawing signals (HR 000 bpm appears on screen). This can happen if the USB connection stopped working when signals were being drawn
+* Advanced settings can be reached by pressing Patient button
+* About button is located on the settings popup
