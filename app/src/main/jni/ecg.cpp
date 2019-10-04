@@ -69,7 +69,7 @@ class ecg {
         EcgArea::instance().glInit();
         EcgArea::instance().setZOrder(1);
 
-        EcgArea::instance().createJavaFunctionClass(env, clazz, mid);
+        //EcgArea::instance().createJavaFunctionClass(env, clazz, mid);
     }
 
     void surfaceChanged(int w, int h) {
@@ -109,6 +109,10 @@ class ecg {
 
     void changeLayout() {
         EcgArea::instance().changeLayout();
+    }
+
+    int getRhyStatus() {
+        return EcgArea::instance().getRhyScreenFull();
     }
 };
 
@@ -234,5 +238,12 @@ extern "C" {
         (void)type;
         gEcg.changeLayout();
         //gEcg.resume();
+    }
+
+    JNIEXPORT jint JNICALL
+    Java_com_mobilecg_androidapp_EcgJNI_getRhyFull(JNIEnv* env, jclass type) {
+        (void)env;
+        (void)type;
+        return gEcg.getRhyStatus();
     }
 }

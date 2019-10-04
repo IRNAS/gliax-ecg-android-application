@@ -79,6 +79,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -141,9 +143,13 @@ public class EcgActivity extends Activity {
     private SearchView searchView;
     private boolean pdf_viewer_opened;  // to avoid autosaving new pdf when opening a file from app
 
+    // variables to detect battery charge changes
     private BatteryDetectReceiver batteryDetect;
     private static AlertDialog batteryAlert;
     private boolean batAlertDisplayed = false;
+
+    // timer for autosaving signals to pdf in rhythm screen
+    Timer timer = null;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -252,12 +258,14 @@ public class EcgActivity extends Activity {
                     rhythm_12lead_btn.setText(R.string.menu_button_3_alt);
                     save_stop_btn.setText(R.string.menu_button_2_alt);
                     rhythm_screen = true;
+                    startRhyTimer();
                 }
                 else {  // rhythm -> 12 lead
                     rhythm_12lead_btn.setText(R.string.menu_button_3);
                     save_stop_btn.setText(R.string.menu_button_2);
                     rhythm_screen = false;
                     myGLRenderer.deleteManyScreenshots();
+                    stopRhyTimer();
                 }
 
                 if (render_paused) {
@@ -421,6 +429,9 @@ public class EcgActivity extends Activity {
             render_paused = false;
             pause_resume_btn.setText(R.string.menu_button_1);
         }
+        if (rhythm_screen) {
+            startRhyTimer();
+        }
         States.setEcgRunning(true);
     }
 
@@ -439,6 +450,7 @@ public class EcgActivity extends Activity {
         if (!render_paused) {
             pause_resume_btn.setText(R.string.menu_button_1_alt);
             render_paused = true;
+            stopRhyTimer();
         }
         States.setEcgRunning(false);
     }
@@ -453,6 +465,28 @@ public class EcgActivity extends Activity {
         View decorView = window.getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
         decorView.setSystemUiVisibility(uiOptions);
+    }
+
+    public void startRhyTimer() {
+        timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                int rhy_full = EcgJNI.getRhyFull();
+                //Log.d("HEH", String.valueOf(rhy_full));
+                if (rhy_full == 1) {
+                    myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_MANY, "rhythm");
+                    // TODO optimize this (move parameters away)
+                }
+            }
+        }, 0, 10);   // start immediately, run every 10 ms
+    }
+
+    public void stopRhyTimer() {
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
     }
 
     public void displayBatteryAlert(Context context) {
@@ -570,7 +604,7 @@ public class EcgActivity extends Activity {
 
     public static void RhyLayoutFull() {    // this function is being called from native code
         Log.d("HEH", "ecg activity function was called.");
-        myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_MANY, "rhythm"); // TODO optimize this (move parameters away)
+        //myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_MANY, "rhythm"); // TODO optimize this (move parameters away)
     }
 
     private void inputPatientData() {   // TODO move to States.java

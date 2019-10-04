@@ -100,6 +100,8 @@ EcgArea::EcgArea():
 
     deviceDisconnected();
     selected_layout = NORMAL_LAYOUT;
+
+    rhy_screen_full = 0;
 }
 
 EcgArea &EcgArea::instance(){
@@ -142,6 +144,7 @@ void EcgArea::rescale(){
 void EcgArea::constructLayout() {
     //LOGD("HEH: EcgArea::constructLayout");
     resetContent();
+    rhy_screen_full = 0;
 
     hr_label.setPosition((screenSize.w - hr_label.getWidth() - bpm_num_width - bpm_label.getWidth())/2, screenSize.h/2 - (hr_label.getHeight()/2) - 12);
     bpm_num.setPosition((screenSize.w + hr_label.getWidth() - bpm_num_width - bpm_label.getWidth())/2, screenSize.h/2 - (bpm_num.getHeight()/2) - 20);
@@ -358,7 +361,8 @@ void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride, int
         //LOGI("HEH: layout remains: %d", layout_remains);
         if (layout_remains != OK_REMAINS) {
             //LOGI("HEH: java call");
-            callJavaFunction.EndOfLayout();
+            //callJavaFunction.EndOfLayout();
+            rhy_screen_full = 1;
         }
     }
     else {
@@ -482,6 +486,13 @@ void EcgArea::setSpeed(float speed) {
     ecgCmPerSec = speed;
 }
 
+int EcgArea::getRhyScreenFull() {
+    int state = rhy_screen_full;
+    rhy_screen_full = 0;
+    return state;
+}
+/*
 void EcgArea::createJavaFunctionClass(JNIEnv *env, jclass clazz, jmethodID mid)  {
     callJavaFunction = CallJavaFunction(env, clazz, mid);
 }
+*/

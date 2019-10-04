@@ -96,7 +96,8 @@ class EcgArea: public DrawableGroup{
 
         void setContentVisible(bool visible);
 
-        CallJavaFunction callJavaFunction;
+        //CallJavaFunction callJavaFunction;
+        int rhy_screen_full;
 public:
         static EcgArea &instance();
         virtual void contextResized(int w, int h);
@@ -121,9 +122,8 @@ public:
         void changeLayout();
 
         void setSpeed(float speed);
-        void createJavaFunctionClass(JNIEnv *env, jclass clazz, jmethodID mid);
+        //void createJavaFunctionClass(JNIEnv *env, jclass clazz, jmethodID mid);
+        int getRhyScreenFull();
 };
-
-
 
 #endif //ANDROIDAPP_ECGAREA_H
