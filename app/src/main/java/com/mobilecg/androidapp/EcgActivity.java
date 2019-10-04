@@ -178,6 +178,11 @@ public class EcgActivity extends Activity {
         if (saveLocation.equals("")) {
             saveLocation = defaultSaveLoc;
         }
+        int curScreen = settings.getInt("curScreen", 0);
+        if (curScreen == 1) {
+            rhythm_screen = true;
+        }
+
         /*
         mView.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -285,7 +290,7 @@ public class EcgActivity extends Activity {
             ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE}, APP_ALLOW_STORAGE);
         }
 
-        // read saved data
+        // read saved patient data
         String oldName = settings.getString("patientName", "");
         String oldSurname = settings.getString("patientSurname", "");
         String oldBirth = settings.getString("patientBirth", "");
@@ -388,7 +393,10 @@ public class EcgActivity extends Activity {
         }
         // reset crash counter
         editor.putInt("crashCounter", 0);
-        // save changes
+        // save current screen info
+        int cur_scr = rhythm_screen ? 1 : 0;
+        editor.putInt("curScreen", cur_scr);
+        // apply changes
         editor.apply();
     }
 
@@ -1012,7 +1020,7 @@ public class EcgActivity extends Activity {
         stopIoManager();
         if (serialPort != null) {
             try {
-                Log.d(TAG, "Closing usb connection");
+                //Log.d(TAG, "Closing usb connection");
                 serialPort.purgeHwBuffers(true, false);
                 serialPort.close();
                 //deviceConnection.close();
@@ -1085,7 +1093,7 @@ public class EcgActivity extends Activity {
             try {
                 // check ecg device state with readLatch
                 boolean ecgOn = serialPort.readLatch();
-                Log.d(TAG, "ECG is currently on: " + String.valueOf(ecgOn));
+                //Log.d(TAG, "ECG is currently on: " + String.valueOf(ecgOn));
                 if (newState == ECG_ON && !ecgOn) {
                     serialPort.writeLatch(ECG_ON);
                 } else if (newState == ECG_OFF && ecgOn) {
@@ -1097,7 +1105,7 @@ public class EcgActivity extends Activity {
             }
         }
         else {
-            Log.d(TAG, "Error when turning ecg off or on: device is not connected!");
+            Log.e(TAG, "Error when turning ecg off or on: device is not connected!");
         }
     }
 

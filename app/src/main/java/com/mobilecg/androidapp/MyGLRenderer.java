@@ -184,7 +184,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         }
         catch (Exception e) {
             e.printStackTrace();
-            Log.i("HEH", "Save pdf file error!");
+            //Log.d("HEH", "Save pdf file error!");
             screenshotResult = false;
         }
     }
@@ -194,7 +194,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             saveScreenshot(preparedScreenshot);
         }
         else {
-            Log.i("HEH", "preparedScreenshot is null!");
+            //Log.d("HEH", "preparedScreenshot is null!");
         }
     }
 
@@ -251,7 +251,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         }
         catch (Exception e) {
             e.printStackTrace();
-            Log.i("HEH", "saveManyScreenshots error!");
+            //Log.d("HEH", "saveManyScreenshots error!");
             screenshotResult = false;
         }
     }
