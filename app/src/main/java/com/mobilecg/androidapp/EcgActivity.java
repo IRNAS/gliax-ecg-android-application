@@ -38,8 +38,10 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.util.DisplayMetrics;
 
@@ -170,7 +172,7 @@ public class EcgActivity extends Activity {
         if (saveLocation.equals("")) {
             saveLocation = defaultSaveLoc;
         }
-
+        /*
         mView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -185,7 +187,7 @@ public class EcgActivity extends Activity {
                 return false;
             }
         });
-
+        */
         myGLRenderer = new MyGLRenderer(displayMetrics);
         mView.setRenderer(myGLRenderer);
 
@@ -226,15 +228,20 @@ public class EcgActivity extends Activity {
         save_stop_btn = (Button)findViewById(R.id.save_btn);    // Save / Stop
         save_stop_btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                saveMeasurement(true);
-
-                save_stop_btn.setEnabled(false);
-                if (!autoPrint) {   // display alert
-                    showPrintAlertDialog();
-                }
-                else {
-                    // call print function
-                }
+                displayToast("Saving in progress, please wait...");
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run(){
+                        saveMeasurement(true);
+                        save_stop_btn.setEnabled(false);
+                        if (!autoPrint) {   // display alert
+                            showPrintAlertDialog();
+                        }
+                        else {
+                            // call print function
+                        }
+                    }
+                }, 100);
             }
         });
         rhythm_12lead_btn = (Button)findViewById(R.id.rhythm_btn);    // Rhythm / 12 lead
@@ -533,7 +540,6 @@ public class EcgActivity extends Activity {
         }
         else if (rhythm_screen) {    // save all screenshots to file
             //Log.d("HEH", "save all screenshots to file");
-            displayToast("Saving in progress, please wait...");
             myGLRenderer.saveManyScreenshots();
         }
         else {  // take screenshot and save it to file
@@ -543,7 +549,7 @@ public class EcgActivity extends Activity {
             pauseECG();
             save_stop_btn.setEnabled(false);
         }
-        boolean result = myGLRenderer.getScreenshotResult();    // check save file result
+        boolean result = myGLRenderer.getScreenshotResult();    // check save file result TODO make it with broadcast receiver
         if (result) {
             patient.setSaved(true);
             if (display_message) {
