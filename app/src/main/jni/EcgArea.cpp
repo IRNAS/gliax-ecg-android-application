@@ -491,8 +491,3 @@ int EcgArea::getRhyScreenFull() {
     rhy_screen_full = 0;
     return state;
 }
-/*
-void EcgArea::createJavaFunctionClass(JNIEnv *env, jclass clazz, jmethodID mid)  {
-    callJavaFunction = CallJavaFunction(env, clazz, mid);
-}
-*/

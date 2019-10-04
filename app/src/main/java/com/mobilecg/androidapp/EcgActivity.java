@@ -473,7 +473,7 @@ public class EcgActivity extends Activity {
             @Override
             public void run() {
                 int rhy_full = EcgJNI.getRhyFull();
-                //Log.d("HEH", String.valueOf(rhy_full));
+                //Log.d(TAG, String.valueOf(rhy_full));
                 if (rhy_full == 1) {
                     myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_MANY, "rhythm");
                     // TODO optimize this (move parameters away)
@@ -573,7 +573,7 @@ public class EcgActivity extends Activity {
             myGLRenderer.savePreparedScreenshot();
         }
         else if (rhythm_screen) {    // save all screenshots to file
-            //Log.d("HEH", "save all screenshots to file");
+            //Log.d(TAG, "save all screenshots to file");
             myGLRenderer.saveManyScreenshots();
         }
         else {  // take screenshot and save it to file
@@ -600,11 +600,6 @@ public class EcgActivity extends Activity {
         else {
             displayToast("Error when saving to pdf!");
         }
-    }
-
-    public static void RhyLayoutFull() {    // this function is being called from native code
-        Log.d("HEH", "ecg activity function was called.");
-        //myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_MANY, "rhythm"); // TODO optimize this (move parameters away)
     }
 
     private void inputPatientData() {   // TODO move to States.java
@@ -1035,8 +1030,7 @@ public class EcgActivity extends Activity {
 
     private void startIoManager() {
         if (serialPort != null) {
-            Log.d(TAG, "Starting io manager ..");
-            //displayToast("Starting io manager...");
+            //Log.d(TAG, "Starting io manager ..");
             EcgJNI.onDeviceConnected();
             serialIoManager = new SerialInputOutputManager(serialPort, mListener);
             mExecutor.submit(serialIoManager);

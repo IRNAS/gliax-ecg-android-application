@@ -30,7 +30,6 @@
 #include "Curve.h"
 #include "Circle.h"
 #include "Rectangle.h"
-#include "CallJavaFunction.h"
 
 class EcgArea: public DrawableGroup{
     private:
@@ -96,7 +95,6 @@ class EcgArea: public DrawableGroup{
 
         void setContentVisible(bool visible);
 
-        //CallJavaFunction callJavaFunction;
         int rhy_screen_full;
 public:
         static EcgArea &instance();
@@ -122,7 +120,6 @@ public:
         void changeLayout();
 
         void setSpeed(float speed);
-        //void createJavaFunctionClass(JNIEnv *env, jclass clazz, jmethodID mid);
         int getRhyScreenFull();
 };
 

@@ -23,7 +23,6 @@ package com.mobilecg.androidapp;
 // Wrapper for native library
 
 import android.content.res.AssetManager;
-import android.util.Log;
 
 public class EcgJNI {
 
