@@ -279,11 +279,18 @@ public class EcgActivity extends Activity {
         patient = new Patient();
         patient.setPatientData(oldName, oldSurname, oldBirth, oldId);
 
-        // install custom exception handler to make the app auto restart after crash
-        Thread.setDefaultUncaughtExceptionHandler(new MyExceptionHandler(this));
-        if (getIntent().getBooleanExtra("crash", false)) {
-            displayToast("App restarted after crash");
-            // TODO allow this only 3 times
+        // read how many times the app has crashed (allow max 3 times)
+        int crashCounter = settings.getInt("crashCounter", 0);
+        if (crashCounter < 3) {
+            // install custom exception handler to make the app auto restart after crash
+            Thread.setDefaultUncaughtExceptionHandler(new MyExceptionHandler(this));
+            if (getIntent().getBooleanExtra("crash", false)) {
+                displayToast("App restarted after crash");
+                crashCounter++;
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putInt("crashCounter", crashCounter);
+                editor.apply();
+            }
         }
     }
 
@@ -357,7 +364,6 @@ public class EcgActivity extends Activity {
         SharedPreferences settings = getSharedPreferences(SETTINGS_NAME, 0);
         SharedPreferences.Editor editor = settings.edit();
         editor.putString("saveLocation", saveLocation);
-
         // if current patient was not saved to file and has some data: save it
         if (!patient.getSaved() && (patient.getMeasurementId() != "" || patient.getSurname() != "" || patient.getName() != "" || patient.getBirth() != "")) {
             editor.putString("patientName", patient.getName());
@@ -365,6 +371,9 @@ public class EcgActivity extends Activity {
             editor.putString("patientBirth", patient.getBirth());
             editor.putString("patientId", patient.getMeasurementId());
         }
+        // reset crash counter
+        editor.putInt("crashCounter", 0);
+        // save changes
         editor.apply();
     }
 
