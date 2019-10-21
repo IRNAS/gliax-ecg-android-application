@@ -258,21 +258,22 @@ public class EcgActivity extends Activity {
         rhythm_12lead_btn = (Button)findViewById(R.id.rhythm_btn);    // Rhythm / 12 lead
         rhythm_12lead_btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                EcgJNI.changeLayout();
-                if (!rhythm_screen) {   // 12 lead -> rhythm
-                    rhythm_12lead_btn.setText(R.string.menu_button_3_alt);
-                    save_stop_btn.setText(R.string.menu_button_2_alt);
-                    rhythm_screen = true;
-                    startRhyTimer();
-                }
-                else {  // rhythm -> 12 lead
+                int new_layout = EcgJNI.changeLayout();     // change layout and get new one returned
+                if (new_layout == 0) {      // normal layout is the new one
+                    rhythm_screen = false;
                     rhythm_12lead_btn.setText(R.string.menu_button_3);
                     save_stop_btn.setText(R.string.menu_button_2);
-                    rhythm_screen = false;
-                    myGLRenderer.deleteManyScreenshots();
                     stopRhyTimer();
+                    myGLRenderer.deleteManyScreenshots();
+                }
+                else if (new_layout == 1) { // rhythm layout is the new one
+                    rhythm_screen = true;
+                    rhythm_12lead_btn.setText(R.string.menu_button_3_alt);
+                    save_stop_btn.setText(R.string.menu_button_2_alt);
+                    startRhyTimer();
                 }
 
+                // restart ecg drawing
                 if (render_paused) {
                     resumeECG();
                 }

@@ -154,11 +154,13 @@ void EcgArea::constructLayout() {
     devLabel.setPosition(10, 0);
     speed_warning_label.setPosition(screenSize.w - speed_warning_label.getWidth() - 10, 0);
 
-    if (selected_layout == NORMAL_LAYOUT) {
-        constructLayoutNormal();
-    }
-    else if (selected_layout == RHYTHM_LAYOUT) {
-        constructLayoutRhythm();
+    if (!deviceNotConnected) {
+        if (selected_layout == NORMAL_LAYOUT) {
+            constructLayoutNormal();
+        }
+        else if (selected_layout == RHYTHM_LAYOUT) {
+            constructLayoutRhythm();
+        }
     }
 }
 
@@ -200,28 +202,11 @@ void EcgArea::constructLayoutNormal(){
         const int yCoord=activeArea.top() + y*yStep + yStep/2;
 
         ecgCurves[a].setPosition(xCoord, yCoord);
-        labels[a].setPosition(xCoord + 10, yCoord - 0.8*pixelDensity.y);
-        //outOfRangeLabels[a].setPosition(xCoord + 20, yCoord - 0.4*pixelDensity.y);
-        //curvePositions[a] = yCoord;
-        //timers[a] = 0;
+        labels[a].setPosition(xCoord + 10, (float)(yCoord - 0.8*pixelDensity.y));
 
-        if (deviceNotConnected) {
-            ecgCurves[a].setVisible(false);
-            labels[a].setVisible(false);
-            rhythm.setVisible(false);
-            rhythm_label.setVisible(false);
-        }
-        else {
-            if (a == 1 || a == 3 || a > 4) {
-                ecgCurves[a].setVisible(true);
-                labels[a].setVisible(true);
-            }
-            else {
-                //labels[a].setVisible(true);
-                //ecgCurves[a].setVisible(true);
-                //rhythm.setVisible(true);
-                //rhythm_label.setVisible(true);
-            }
+        if (!ecgCurves[a].getVisible()) {
+            ecgCurves[a].setVisible(true);
+            labels[a].setVisible(true);
         }
     }
 
@@ -229,11 +214,13 @@ void EcgArea::constructLayoutNormal(){
     const int rhy_x = activeArea.left();
     const int rhy_y = activeArea.top() + 3*yStep + yStep/2;
     rhythm.setPosition(rhy_x, rhy_y);
-    rhythm_label.setPosition(rhy_x + 10, rhy_y - 0.8*pixelDensity.y);
-    rhy_remains = OK_REMAINS;   // OPTION 2
+    rhythm_label.setPosition(rhy_x + 10, (float)(rhy_y - 0.8*pixelDensity.y));
+    rhy_remains = OK_REMAINS;
 
-    //availableHeight = labels[1].getYPosition() - labels[0].getYPosition();
-    //LOGI("Available height: %d\n", availableHeight);
+    if (!rhythm.getVisible()) {
+        rhythm.setVisible(true);
+        rhythm_label.setVisible(true);
+    }
 }
 
 void EcgArea::constructLayoutRhythm(){
@@ -257,7 +244,7 @@ void EcgArea::constructLayoutRhythm(){
             const int yCoord=activeArea.top() + curRow*yStep + yStep/2;
             curRow++;
             ecgCurves[a].setPosition(xCoord, yCoord);
-            labels[a].setPosition(xCoord + 10, yCoord - 0.8*pixelDensity.y);
+            labels[a].setPosition(xCoord + 10, (float)(yCoord - 0.8*pixelDensity.y));
         }
     }
 
@@ -265,11 +252,13 @@ void EcgArea::constructLayoutRhythm(){
     const int rhy_x = activeArea.left();
     const int rhy_y = activeArea.top() + 3*yStep + yStep/2;
     rhythm.setPosition(rhy_x, rhy_y);
-    rhythm_label.setPosition(rhy_x + 10, rhy_y - 0.8*pixelDensity.y);
-    rhy_remains = OK_REMAINS;   // OPTION 2
+    rhythm_label.setPosition(rhy_x + 10, (float)(rhy_y - 0.8*pixelDensity.y));
+    rhy_remains = OK_REMAINS;
 
-    //availableHeight = labels[1].getYPosition() - labels[0].getYPosition();
-    //LOGI("Available height: %d\n", availableHeight);
+    if (!rhythm.getVisible()) {
+        rhythm.setVisible(true);
+        rhythm_label.setVisible(true);
+    }
 }
 
 void EcgArea::contextResized(int w, int h){
@@ -290,7 +279,7 @@ void EcgArea::contextResized(int w, int h){
 
 int EcgArea::calculateUnalignedArea(int size, float dpcm){
     //LOGD("HEH: EcgArea::calculateUnalignedArea");
-    int unalignedPixels=(((float)size) / dpcm);
+    int unalignedPixels=(int)(size / dpcm);
     return size-(int)(unalignedPixels*dpcm);
 }
 
@@ -360,8 +349,6 @@ void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride, int
 
         //LOGI("HEH: layout remains: %d", layout_remains);
         if (layout_remains != OK_REMAINS) {
-            //LOGI("HEH: java call");
-            //callJavaFunction.EndOfLayout();
             rhy_screen_full = 1;
         }
     }
@@ -369,8 +356,11 @@ void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride, int
         int remains = OK_REMAINS;
         for (int a=0; a<3; a++) {
             remains = ecgCurves[cur_column*3 + a].put(data + stride*(cur_column*3 + a), nPoints);
-            //remains = ecgCurves[cur_column*3 + a].put(data + stride*1, nPoints);    // TODO testing
+
+            // following two lines are used for testing
+            //remains = ecgCurves[cur_column*3 + a].put(data + stride*1, nPoints);
             //LOGI("TEST: remains: %d", remains);
+
             endpointCircles[cur_column*3 + a].setPosition(ecgCurves[cur_column*3 + a].endpointCoordinates());
         }
         rhy_remains = rhythm.put(data + stride*1, nPoints);
@@ -386,9 +376,12 @@ void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride, int
             }
             else {
                 for (int a=0; a<3; a++) {   // put all current points remaining from previous column into next one
-                    int remains_2 = ecgCurves[cur_column*3 + a].put(data + stride*(cur_column*3 + a) + nPoints - remains, remains);
-                    //ecgCurves[cur_column*3 + a].put(data + stride*1, remains);    // TODO testing
+                    ecgCurves[cur_column*3 + a].put(data + stride*(cur_column*3 + a) + nPoints - remains, remains);
+
+                    // following two lines are used for testing
+                    //int remains_2 = ecgCurves[cur_column*3 + a].put(data + stride*1 + nPoints - remains, remains);
                     //LOGI("TEST: change col, remains 2: %d", remains_2);
+
                     endpointCircles[cur_column*3 + a].setPosition(ecgCurves[cur_column*3 + a].endpointCoordinates());
                 }
             }
@@ -480,6 +473,10 @@ void EcgArea::changeLayout() {
         selected_layout = NORMAL_LAYOUT;
     }
     contextResized(screenSize.w, screenSize.h);
+}
+
+int EcgArea::getCurrentLayout() {
+    return selected_layout;
 }
 
 void EcgArea::setSpeed(float speed) {

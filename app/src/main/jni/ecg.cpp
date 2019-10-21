@@ -109,6 +109,10 @@ class ecg {
         EcgArea::instance().changeLayout();
     }
 
+    int getCurrentLayout() {
+        return EcgArea::instance().getCurrentLayout();
+    }
+
     int getRhyStatus() {
         return EcgArea::instance().getRhyScreenFull();
     }
@@ -225,12 +229,13 @@ extern "C" {
         EcgArea::instance().setSpeed(x_speed);
     }
 
-    JNIEXPORT void JNICALL
+    JNIEXPORT jint JNICALL
     Java_com_mobilecg_androidapp_EcgJNI_changeLayout(JNIEnv *env, jclass type) {
         (void)env;
         (void)type;
         gEcg.changeLayout();
         //gEcg.resume();
+        return gEcg.getCurrentLayout();
     }
 
     JNIEXPORT jint JNICALL

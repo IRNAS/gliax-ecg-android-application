@@ -118,6 +118,7 @@ public:
 
         void resetContent();
         void changeLayout();
+        int getCurrentLayout();
 
         void setSpeed(float speed);
         int getRhyScreenFull();
