@@ -113,7 +113,7 @@ void EcgArea::init(AAssetManager *assetManager, int mains_freq){
     //LOGD("HEH: EcgArea::init");
     redraw();
     DrawableGroup::init(assetManager);
-    mains_frequency = mains_freq;
+    mains_frequency = mains_freq;   //TODO remove?
 }
 
 void EcgArea::rescale(){
@@ -408,7 +408,7 @@ bool EcgArea::isRedrawNeeded(){
 }
 
 void EcgArea::setContentVisible(bool visible){
-    //LOGD("HEH: EcgArea::setContentVisible");
+    LOGD("TEST: EcgArea::setContentVisible");
     hr_label.setVisible(visible);
     bpm_label.setVisible(visible);
     bpm_num.setVisible(visible);

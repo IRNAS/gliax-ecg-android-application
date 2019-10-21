@@ -530,7 +530,7 @@ public class EcgActivity extends Activity {
         builder.setPositiveButton(R.string.print_btn, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {    // print press
-                // TODO call print function
+                // call print function
                 hideNavAndStatusBar(getWindow());
             }
         });
