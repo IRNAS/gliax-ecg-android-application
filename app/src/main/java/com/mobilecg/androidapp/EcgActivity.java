@@ -42,6 +42,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.provider.SyncStateContract;
 import android.support.v4.app.ActivityCompat;
 import android.util.DisplayMetrics;
 
@@ -90,7 +91,7 @@ import java.util.concurrent.Executors;
  * Using modified version of usb-serial-for-android library by mik3y (https://github.com/mik3y/usb-serial-for-android)
  */
 
-public class EcgActivity extends Activity {
+public class EcgActivity extends Activity{
 
     private boolean debugFileWrite = false; // set this to true to write signal data to files (do it also in EcgProcessor.cpp file)
 
@@ -98,6 +99,7 @@ public class EcgActivity extends Activity {
     private DisplayMetrics displayMetrics;
     private static MyGLRenderer myGLRenderer = null;
 
+    private static BroadcastReceiver disconnectBR;
     private static ExecutorService mExecutor;
     private SerialInputOutputManager serialIoManager;
     private UsbManager usbManager = null;
@@ -313,6 +315,13 @@ public class EcgActivity extends Activity {
                 editor.apply();
             }
         }
+
+        disconnectBR = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                    DisconnectFromUsbDevice();
+            }
+        };
     }
 
     @Override
@@ -358,19 +367,7 @@ public class EcgActivity extends Activity {
             saveMeasurement(false);
         }
 
-        // disconnect from ecg device
-        unregisterReceiver(usbReceiver);
-        turnEcgOnOrOff(ECG_OFF);
-        CloseConnectionToUsbDevice();
-
-        // unregister receivers
-        if (batteryDetect != null) {
-            unregisterReceiver(batteryDetect);
-        }
-        if (batteryAlert != null && batteryAlert.isShowing()) {
-            batteryAlert.dismiss();
-        }
-        unregisterReceiver(batteryAlertReceiver);
+        DisconnectFromUsbDevice();
     }
 
     @Override
@@ -993,7 +990,7 @@ public class EcgActivity extends Activity {
         serialPort = usbDriver.getPorts().get(0);
         if (serialPort != null) {
             try {
-                // TODO disconnectBroadcastReceiver? (SerialSocket.java line 45)
+                registerReceiver(disconnectBR, new IntentFilter(States.INTENT_ACTION_DISCONNECT));
                 serialPort.open(deviceConnection);
                 serialPort.setParameters(BAUD_RATE, DATA_BITS, STOP_BITS, PARITY);
                 onDeviceStateChange();
@@ -1012,6 +1009,23 @@ public class EcgActivity extends Activity {
         else {
             Log.e(TAG, " Opening device port failed.");
         }
+    }
+
+    private void DisconnectFromUsbDevice() {
+        // disconnect from ecg device
+        unregisterReceiver(usbReceiver);
+        turnEcgOnOrOff(ECG_OFF);
+        CloseConnectionToUsbDevice();
+
+        // unregister receivers
+        if (batteryDetect != null) {
+            unregisterReceiver(batteryDetect);
+        }
+        if (batteryAlert != null && batteryAlert.isShowing()) {
+            batteryAlert.dismiss();
+        }
+        unregisterReceiver(batteryAlertReceiver);
+        unregisterReceiver(disconnectBR);
     }
 
     private void CloseConnectionToUsbDevice() {

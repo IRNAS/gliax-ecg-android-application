@@ -32,6 +32,9 @@ public class States {
     public static int SHOT_ONE = 1;
     public static int SHOT_MANY = 2;
 
+    // disconnect broadcast receiver
+    public static final String INTENT_ACTION_DISCONNECT = BuildConfig.APPLICATION_ID + ".Disconnect";
+
     // Getters
     public static boolean isEcgRunning() {
         return ECG_RUNNING;
