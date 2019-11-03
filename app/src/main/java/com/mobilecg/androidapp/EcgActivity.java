@@ -98,7 +98,7 @@ public class EcgActivity extends Activity {
     private DisplayMetrics displayMetrics;
     private static MyGLRenderer myGLRenderer = null;
 
-    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+    private static ExecutorService mExecutor;
     private SerialInputOutputManager serialIoManager;
     private UsbManager usbManager = null;
     private UsbDeviceConnection deviceConnection = null;
@@ -115,8 +115,8 @@ public class EcgActivity extends Activity {
     private boolean screenshotPrepared = false;
 
     private static final String ACTION_USB_PERMISSION = "com.mobileecg.androidapp.USB_PERMISSION";
-    private final String TAG = EcgActivity.class.getSimpleName();
-    //private final String TAG = "HEH";
+    //private final String TAG = EcgActivity.class.getSimpleName();
+    private final String TAG = "HEH";
     private static final String SETTINGS_NAME = "EcgPrefsFile";
     private IntentFilter intentFilter = null;
     private String debugFilePath = "";
@@ -993,9 +993,12 @@ public class EcgActivity extends Activity {
         serialPort = usbDriver.getPorts().get(0);
         if (serialPort != null) {
             try {
+                // TODO disconnectBroadcastReceiver? (SerialSocket.java line 45)
                 serialPort.open(deviceConnection);
                 serialPort.setParameters(BAUD_RATE, DATA_BITS, STOP_BITS, PARITY);
-
+                onDeviceStateChange();
+                States.setEcgConnected(true);
+                turnEcgOnOrOff(ECG_ON);
             } catch (IOException e) {
                 Log.e(TAG, "Error setting up device: " + e.getMessage(), e);
                 try {
@@ -1004,13 +1007,7 @@ public class EcgActivity extends Activity {
                     // Ignore
                 }
                 serialPort = null;
-                return;
             }
-
-            States.setEcgConnected(true);
-            turnEcgOnOrOff(ECG_ON);
-            onDeviceStateChange();
-
         }
         else {
             Log.e(TAG, " Opening device port failed.");
@@ -1022,12 +1019,16 @@ public class EcgActivity extends Activity {
         if (serialPort != null) {
             try {
                 //Log.d(TAG, "Closing usb connection");
-                serialPort.purgeHwBuffers(true, false);
+                serialPort.purgeHwBuffers(true, false); // TODO maybe disable?
                 serialPort.close();
-                //deviceConnection.close();
             } catch (IOException e) {
                 Log.e(TAG, "Error closing connection - " + e.getMessage(), e);
             }
+            serialPort = null;
+        }
+        if (deviceConnection != null) {
+            deviceConnection.close();
+            deviceConnection = null;
         }
         States.setEcgConnected(false);
     }
@@ -1040,9 +1041,11 @@ public class EcgActivity extends Activity {
     private void startIoManager() {
         if (serialPort != null) {
             //Log.d(TAG, "Starting io manager ..");
-            EcgJNI.onDeviceConnected();
+            mExecutor = Executors.newSingleThreadExecutor();
             serialIoManager = new SerialInputOutputManager(serialPort, mListener);
             mExecutor.submit(serialIoManager);
+
+            EcgJNI.onDeviceConnected();
             //displayToast("ECG device OK, waiting for data..."); // TODO move it somewhere else
 
             // ecg has been started up, check if tablet is being charged and alert has not yet been displayed
@@ -1055,10 +1058,11 @@ public class EcgActivity extends Activity {
     private void stopIoManager() {
         if (serialIoManager != null) {
             //Log.d(TAG, "Stopping io manager ..");
-            EcgJNI.onDeviceDisconnected();
+            serialIoManager.setListener(null);
             serialIoManager.stop();
             serialIoManager = null;
         }
+        EcgJNI.onDeviceDisconnected();
     }
 
     private void updateReceivedData(byte[] data) {
@@ -1075,6 +1079,7 @@ public class EcgActivity extends Activity {
     private final SerialInputOutputManager.Listener mListener = new SerialInputOutputManager.Listener() {
         @Override
         public void onNewData(final byte[] data) {
+            Log.d(TAG, "onNewData");
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -1085,7 +1090,7 @@ public class EcgActivity extends Activity {
 
         @Override
         public void onRunError(Exception e) {
-            //Log.d(TAG, "Runner stopped.");
+            Log.d(TAG, "Runner stopped.");
         }
     };
 
