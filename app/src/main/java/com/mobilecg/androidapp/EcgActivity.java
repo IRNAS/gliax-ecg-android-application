@@ -42,7 +42,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.provider.SyncStateContract;
 import android.support.v4.app.ActivityCompat;
 import android.util.DisplayMetrics;
 
@@ -91,7 +90,7 @@ import java.util.concurrent.Executors;
  * Using modified version of usb-serial-for-android library by mik3y (https://github.com/mik3y/usb-serial-for-android)
  */
 
-public class EcgActivity extends Activity{
+public class EcgActivity extends Activity implements SerialInputOutputManager.Listener{
 
     private boolean debugFileWrite = false; // set this to true to write signal data to files (do it also in EcgProcessor.cpp file)
 
@@ -1056,7 +1055,7 @@ public class EcgActivity extends Activity{
         if (serialPort != null) {
             //Log.d(TAG, "Starting io manager ..");
             mExecutor = Executors.newSingleThreadExecutor();
-            serialIoManager = new SerialInputOutputManager(serialPort, mListener);
+            serialIoManager = new SerialInputOutputManager(serialPort, this);
             mExecutor.submit(serialIoManager);
 
             EcgJNI.onDeviceConnected();
@@ -1090,23 +1089,22 @@ public class EcgActivity extends Activity{
         }
     }
 
-    private final SerialInputOutputManager.Listener mListener = new SerialInputOutputManager.Listener() {
-        @Override
-        public void onNewData(final byte[] data) {
-            Log.d(TAG, "onNewData");
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    updateReceivedData(data);
-                }
-            });
-        }
+    @Override
+    public void onNewData(final byte[] data) {
+        //Log.d(TAG, "onNewData");
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                updateReceivedData(data);
+            }
+        });
+    }
 
-        @Override
-        public void onRunError(Exception e) {
-            Log.d(TAG, "Runner stopped.");
-        }
-    };
+    @Override
+    public void onRunError(Exception e) {
+        Log.d(TAG, "Runner stopped.");
+        DisconnectFromUsbDevice();
+    }
 
     private void turnEcgOnOrOff(int newState) {
         if (States.isEcgConnected()) {
