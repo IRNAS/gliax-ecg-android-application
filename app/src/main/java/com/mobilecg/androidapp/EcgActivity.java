@@ -42,6 +42,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.util.DisplayMetrics;
 
@@ -95,7 +96,6 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
     private boolean debugFileWrite = false; // set this to true to write signal data to files (do it also in EcgProcessor.cpp file)
 
     private GLSurfaceView mView;
-    private DisplayMetrics displayMetrics;
     private static MyGLRenderer myGLRenderer = null;
 
     private static BroadcastReceiver disconnectBR;
@@ -118,7 +118,6 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
     //private final String TAG = EcgActivity.class.getSimpleName();
     private final String TAG = "HEH";
     private static final String SETTINGS_NAME = "EcgPrefsFile";
-    private IntentFilter intentFilter = null;
     private String debugFilePath = "";
     private final int APP_ALLOW_STORAGE = 1;
     private static boolean usbNewStart;
@@ -140,8 +139,6 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
     // Pdf filenames container and search
     public static ArrayList<PdfFiles> namesOfFiles;
     private MyListViewAdapter listViewAdapter;
-    private ListView listView;
-    private SearchView searchView;
     private boolean pdf_viewer_opened;  // to avoid autosaving new pdf when opening a file from app
 
     // variables to detect battery charge changes
@@ -161,7 +158,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
             debugFilePath = this.getFilesDir().getAbsolutePath();
         }
 
-        displayMetrics = new DisplayMetrics();
+        DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 
         setContentView(R.layout.ecg_layout);
@@ -246,7 +243,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
                             showPrintAlertDialog();
                         }
                         else {
-                            // call print function
+                            // prepared for future implementation of printing
                         }
                     }
                 }, 100);
@@ -327,7 +324,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
 
         // resume reading from usb
         usbNewStart = true;
-        intentFilter = new IntentFilter(ACTION_USB_PERMISSION);
+        IntentFilter intentFilter = new IntentFilter(ACTION_USB_PERMISSION);
         intentFilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         registerReceiver(usbReceiver,intentFilter);
         FindUsbDevice();
@@ -462,7 +459,10 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
-    public static void hideNavAndStatusBar(Window window) {
+    public static void hideNavAndStatusBar(@Nullable Window window) {
+        if (window == null) {
+            return;
+        }
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         // Hide both the navigation bar and the status bar.
         View decorView = window.getDecorView();
@@ -478,7 +478,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
                 int rhy_full = EcgJNI.getRhyFull();
                 //Log.d(TAG, String.valueOf(rhy_full));
                 if (rhy_full == 1) {
-                    myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_MANY, "rhythm"); // TODO optimize this (move parameters away)
+                    myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_MANY, "rhythm");
                 }
             }
         }, 0, 10);   // start immediately, run every 10 ms
@@ -701,8 +701,9 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
 
         // hide keyboard
         Window dialogWindow = alertDialog.getWindow();
-        dialogWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-
+        if (dialogWindow != null) {
+            dialogWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        }
         alertDialog.show();
     }
 
@@ -755,7 +756,9 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
 
         // hide keyboard
         Window dialogWindow = alertDialog.getWindow();
-        dialogWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        if (dialogWindow != null) {
+            dialogWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        }
 
         alertDialog.show();
     }
@@ -816,8 +819,8 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
             }
 
             TextView textView = (TextView) view.findViewById(R.id.text_view_empty_archive);
-            listView = (ListView) view.findViewById(R.id.archive_list_view);
-            searchView = (SearchView) view.findViewById(R.id.archive_search_view);
+            ListView listView = (ListView) view.findViewById(R.id.archive_list_view);
+            SearchView searchView = (SearchView) view.findViewById(R.id.archive_search_view);
             File[] fileList = dir.listFiles();
             if (fileList != null && fileList.length > 0) {
                 namesOfFiles = new ArrayList<>();
@@ -1128,7 +1131,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
                     displayToast("Permission denied for accessing ECG device! It needs to be granted in order to use this ECG.");
                 }
             }
-            if(intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_DETACHED)) {
+            if(UsbManager.ACTION_USB_DEVICE_DETACHED.equals(intent.getAction())) {
                 displayToast("ECG device has been detached!");
                 States.setEcgConnected(false);
                 finish();

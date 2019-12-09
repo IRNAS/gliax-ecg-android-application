@@ -32,7 +32,7 @@ class BitFifo {
 		BitFifo(char *buffer, int sizeBytes, int bitsAlreadyInBuffer=0);
 		
 		#ifndef EMBEDDED
-		/* TODO: constructor with dynamic memory allocation. */
+		//to be added: constructor with dynamic memory allocation
 		#endif
 				
 		bool pushByte(uint8_t data);
