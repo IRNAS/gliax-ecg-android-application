@@ -99,13 +99,12 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
     private static MyGLRenderer myGLRenderer = null;
 
     private static BroadcastReceiver disconnectBR;
-    private static ExecutorService mExecutor;
-    private SerialInputOutputManager serialIoManager;
-    private UsbManager usbManager = null;
-    private UsbDeviceConnection deviceConnection = null;
-    private UsbSerialDriver usbDriver = null;
-    private UsbSerialPort serialPort = null;
-    private ProbeTable customTable = null;
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+    private static SerialInputOutputManager serialIoManager;
+    private static UsbManager usbManager = null;
+    private static UsbDeviceConnection deviceConnection = null;
+    private static UsbSerialDriver usbDriver = null;
+    private static UsbSerialPort serialPort = null;
 
     Button pause_resume_btn;
     Button save_stop_btn;
@@ -122,6 +121,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
     private IntentFilter intentFilter = null;
     private String debugFilePath = "";
     private final int APP_ALLOW_STORAGE = 1;
+    private static boolean usbNewStart;
 
     // initial values for usb communication parameters
     private int BAUD_RATE = 115200;
@@ -328,15 +328,17 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         //Log.d(TAG, "run event - onResume");
         super.onResume();
         hideNavAndStatusBar(getWindow());
+
         // resume reading from usb
+        usbNewStart = true;
         intentFilter = new IntentFilter(ACTION_USB_PERMISSION);
         intentFilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         registerReceiver(usbReceiver,intentFilter);
-        customTable = CreateDevicesTable();
         FindUsbDevice();
         if (!States.isEcgRunning()) {
             resumeECG();
         }
+
         pdf_viewer_opened = false;
         registerReceiver(batteryDetect, intentFilter);
         registerReceiver(batteryAlertReceiver, new IntentFilter("DISPLAY_BAT_ALERT"));
@@ -892,15 +894,6 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         }
     }
 
-    private ProbeTable CreateDevicesTable() {
-        ProbeTable probeTable = new ProbeTable();
-        probeTable.addProduct(0x0483, 0x374B, CdcAcmSerialDriver.class);   // add ST-LINK/V2.1 device support
-        probeTable.addProduct(0x0483, 0x3748, CdcAcmSerialDriver.class);   // add ST-LINK/V2.0 device support
-        probeTable.addProduct(0x0483, 0x3744, CdcAcmSerialDriver.class);   // add ST-LINK/V1.0 device support
-        probeTable.addProduct(0x10C4, 0xEA60, Cp21xxSerialDriver.class);   // add UART bridge controller support
-        return probeTable;
-    }
-
     private void CopyDebugFiles() {
         if (isExternalStorageReadable()) {
             File outPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
@@ -956,18 +949,16 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
     }
 
     private void FindUsbDevice() {
-        UsbSerialProber prober = new UsbSerialProber(customTable);
         usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-        List<UsbSerialDriver> usbDriversList = prober.findAllDrivers(usbManager);
+        List<UsbSerialDriver> usbDriversList = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager);
         if (usbDriversList.isEmpty()) {
-            //Log.d(TAG, "Usb device not connected.");
+            Log.e(TAG, "Usb device not connected.");
             disableMainButtons();
-            return;
         }
         else {
             enableMainButtons();
             if (usbDriversList.size() > 1)  {
-                //Log.d(TAG, "More than one ECG device connected. Selecting the first one...");
+                Log.i(TAG, "More than one ECG device connected. Selecting the first one...");
             }
             usbDriver = usbDriversList.get(0);
             PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
@@ -984,7 +975,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         }
         int numOfPorts = usbDriver.getPorts().size();
         if ( numOfPorts > 1) {
-            //Log.d(TAG, "Device has " + numOfPorts + " ports. Selecting the first one...");
+            Log.i(TAG, "Device has " + numOfPorts + " ports. Selecting the first one...");
         }
         serialPort = usbDriver.getPorts().get(0);
         if (serialPort != null) {
@@ -992,8 +983,8 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
                 registerReceiver(disconnectBR, new IntentFilter(States.INTENT_ACTION_DISCONNECT));
                 serialPort.open(deviceConnection);
                 serialPort.setParameters(BAUD_RATE, DATA_BITS, STOP_BITS, PARITY);
-                onDeviceStateChange();
                 States.setEcgConnected(true);
+                onDeviceStateChange();
                 turnEcgOnOrOff(ECG_ON);
             } catch (IOException e) {
                 Log.e(TAG, "Error setting up device: " + e.getMessage(), e);
@@ -1054,12 +1045,10 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
     private void startIoManager() {
         if (serialPort != null) {
             //Log.d(TAG, "Starting io manager ..");
-            mExecutor = Executors.newSingleThreadExecutor();
             serialIoManager = new SerialInputOutputManager(serialPort, this);
             mExecutor.submit(serialIoManager);
 
             EcgJNI.onDeviceConnected();
-            //displayToast("ECG device OK, waiting for data..."); // TODO move it somewhere else
 
             // ecg has been started up, check if tablet is being charged and alert has not yet been displayed
             if (States.isEcgConnected() && !BatteryDetectReceiver.isCharging(this) && !batAlertDisplayed) {
@@ -1080,6 +1069,10 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
 
     private void updateReceivedData(byte[] data) {
         int length = data.length;
+        if (usbNewStart) {
+            displayToast("ECG initialization OK, starting measurement...");
+            usbNewStart = false;
+        }
         //Log.i(TAG, "Read " + length + " bytes");
         try {
             EcgJNI.processEcgData(data, length);
@@ -1102,7 +1095,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
 
     @Override
     public void onRunError(Exception e) {
-        Log.d(TAG, "Runner stopped.");
+        //Log.d(TAG, "Runner stopped.");
         DisconnectFromUsbDevice();
     }
 
