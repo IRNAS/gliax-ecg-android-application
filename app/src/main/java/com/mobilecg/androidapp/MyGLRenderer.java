@@ -199,61 +199,68 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     }
 
     public void saveManyScreenshots() {
-        try {
-            if (screenshotArray.isEmpty()) {    // if bitmap array is empty: take new single screenshot
-                takeScreenshot(savePath, thisPatient, States.SHOT_ONE, ecgType);
-                return;
-            }
+        Thread thread = new Thread(new Runnable() { // run this in separate thread
+            @Override
+            public void run() {
+                try {
+                    if (screenshotArray.isEmpty()) {    // if bitmap array is empty: take new single screenshot
+                        takeScreenshot(savePath, thisPatient, States.SHOT_ONE, ecgType);
+                        return;
+                    }
 
-            String measurementTimestamp = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
-            String id = thisPatient.getMeasurementId();
-            if (id.equals("")) {
-                id = "000";
-            }
-            String filename = id + "_" + ecgType + "_" + measurementTimestamp.replace(" ", "-") + ".pdf";
+                    String measurementTimestamp = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
+                    String id = thisPatient.getMeasurementId();
+                    if (id.equals("")) {
+                        id = "000";
+                    }
+                    String filename = id + "_" + ecgType + "_" + measurementTimestamp.replace(" ", "-") + ".pdf";
 
-            PdfDocument document = new PdfDocument();
-            // prepare id and timestamp
-            String title = String.format("ID: %s \t Date: %s", id, measurementTimestamp);
-            // prepare patient info to file if exists
-            String patientInfo = String.format("No patient data");
-            if (!thisPatient.getName().isEmpty() || !thisPatient.getSurname().isEmpty() || !thisPatient.getBirth().isEmpty()) {
-                patientInfo = String.format("Patient: %s %s  %s", thisPatient.getName(), thisPatient.getSurname(), thisPatient.getBirth());
-            }
-            int pageCounter = 0;
-            int pagesCount = screenshotArray.size();
+                    PdfDocument document = new PdfDocument();
+                    // prepare id and timestamp
+                    String title = String.format("ID: %s \t Date: %s", id, measurementTimestamp);
+                    // prepare patient info to file if exists
+                    String patientInfo = String.format("No patient data");
+                    if (!thisPatient.getName().isEmpty() || !thisPatient.getSurname().isEmpty() || !thisPatient.getBirth().isEmpty()) {
+                        patientInfo = String.format("Patient: %s %s  %s", thisPatient.getName(), thisPatient.getSurname(), thisPatient.getBirth());
+                    }
+                    int pageCounter = 0;
+                    int pagesCount = screenshotArray.size();
 
-            for (Bitmap pic : screenshotArray) {
-                pageCounter++;
-                PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(pic.getWidth(), pic.getHeight() + textSize*2 + textOffsetY*2, pageCounter+1).create();
-                PdfDocument.Page page = document.startPage(pageInfo);
-                Canvas canvas = page.getCanvas();
-                Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-                //paint.setColor(Color.BLACK);
-                paint.setTextSize(textSize);
-                // draw title
-                canvas.drawText(title, textOffsetX, textSize + 1, paint);
-                // draw page number
-                String pageNum = String.format("Page: %s / %s", pageCounter, pagesCount);
-                canvas.drawText(pageNum, pic.getWidth() - pageNum.length()*23, textSize + 1, paint);
-                // draw screenshot
-                canvas.drawBitmap(pic, 0, textSize + textOffsetY,null);
-                // draw patient info
-                canvas.drawText(patientInfo, textOffsetX, pic.getHeight() + textSize*2 + textOffsetY, paint);
-                document.finishPage(page);
-            }
+                    for (Bitmap pic : screenshotArray) {
+                        pageCounter++;
+                        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(pic.getWidth(), pic.getHeight() + textSize*2 + textOffsetY*2, pageCounter+1).create();
+                        PdfDocument.Page page = document.startPage(pageInfo);
+                        Canvas canvas = page.getCanvas();
+                        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                        //paint.setColor(Color.BLACK);
+                        paint.setTextSize(textSize);
+                        // draw title
+                        canvas.drawText(title, textOffsetX, textSize + 1, paint);
+                        // draw page number
+                        String pageNum = String.format("Page: %s / %s", pageCounter, pagesCount);
+                        canvas.drawText(pageNum, pic.getWidth() - pageNum.length()*23, textSize + 1, paint);
+                        // draw screenshot
+                        canvas.drawBitmap(pic, 0, textSize + textOffsetY,null);
+                        // draw patient info
+                        canvas.drawText(patientInfo, textOffsetX, pic.getHeight() + textSize*2 + textOffsetY, paint);
+                        document.finishPage(page);
+                    }
 
-            String dir = Environment.getExternalStorageDirectory() + File.separator + savePath + File.separator;
-            File file = new File(dir + filename);
-            document.writeTo(new FileOutputStream(file));
-            document.close();
-            screenshotResult = true;
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            //Log.d("HEH", "saveManyScreenshots error!");
-            screenshotResult = false;
-        }
+                    String dir = Environment.getExternalStorageDirectory() + File.separator + savePath + File.separator;
+                    File file = new File(dir + filename);
+                    document.writeTo(new FileOutputStream(file));
+                    document.close();
+                    screenshotResult = true;
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                    //Log.d("HEH", "saveManyScreenshots error!");
+                    screenshotResult = false;
+                }
+            }
+        });
+
+        thread.start();
     }
 
     public boolean getScreenshotResult() {
