@@ -891,7 +891,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         }
     }
 
-    private void CopyDebugFiles() {
+    private void CopyDebugFiles() {     // DEBUG
         if (isExternalStorageReadable()) {
             File outPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
             File outFile = new File(outPath, "after_filters.txt");

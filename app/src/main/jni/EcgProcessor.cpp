@@ -202,9 +202,6 @@ void EcgProcessor::calculate12Channels(float *input, float *output, int stride) 
     output[10*stride] = V5;
     output[11*stride] = V6;
 
-    //int time_test = getCurrentTime();
-    //LOGD("time_test: %d ", time_test);
-
     EcgProcessor::calculateBPM(II);
 }
 
