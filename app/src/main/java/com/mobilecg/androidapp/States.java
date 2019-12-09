@@ -60,16 +60,4 @@ public class States {
             EcgJNI.ChangeSpeed((float) speed/10);
         }
     }
-
-    /*
-    public static int GetSelectedMainsFreq() {
-        int selected;
-        switch(SELECTED_MAINS_FREQ) {   // in Hz
-            case 0: selected = 50; break;
-            case 1: selected = 60; break;
-            default: selected = -1;
-        }
-        return selected;
-    }
-    */
 }

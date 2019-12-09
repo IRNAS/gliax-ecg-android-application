@@ -24,8 +24,6 @@
 
 #include <stdio.h>
 
-int mains_frequency = 0;
-
 EcgArea::EcgArea():
         pixelDensity(100,100){
 
@@ -109,11 +107,10 @@ EcgArea &EcgArea::instance(){
     return area;
 }
 
-void EcgArea::init(AAssetManager *assetManager, int mains_freq){
+void EcgArea::init(AAssetManager *assetManager){
     //LOGD("HEH: EcgArea::init");
     redraw();
     DrawableGroup::init(assetManager);
-    mains_frequency = mains_freq;   //TODO remove?
 }
 
 void EcgArea::rescale(){

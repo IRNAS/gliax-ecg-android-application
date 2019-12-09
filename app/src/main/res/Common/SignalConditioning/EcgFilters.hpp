@@ -7,8 +7,6 @@
 
 #include "../../../jni/log.h"
 
-extern int mains_frequency;
-
 class NotchFilter50: public SecondOrderIIR {
 public:
 	NotchFilter50(): SecondOrderIIR(
@@ -45,23 +43,12 @@ class HalfEcgFilter: public IIRFilterChain {
 public:
 	HalfEcgFilter(): IIRFilterChain() {
 		add(&baselineFilter);
-        if (mains_frequency == 50) {    // 50 Hz
-            add(&notchFilter50);
-            LOGD("Mains freq: 50");
-        }
-        else if (mains_frequency == 60) {  // 60 Hz
-            add(&notchFilter60);
-            LOGD("Mains freq: 60");
-        }
-        else {
-            LOGD("Error with mains freq");
-        }
+        add(&notchFilter50);
 		add(&lowPassFilter);
 	}
 private:
 	BaselineFilter baselineFilter;
 	NotchFilter50 notchFilter50;
-    NotchFilter60 notchFilter60;
 	LowPassFilter lowPassFilter;
 };
 

@@ -46,8 +46,8 @@ class ecg {
 
     ecg() {}
 
-    void init(AAssetManager *assetManager, int freq) {
-        EcgArea::instance().init(assetManager, freq);
+    void init(AAssetManager *assetManager) {
+        EcgArea::instance().init(assetManager);
     }
 
     void surfaceCreated() {
@@ -122,10 +122,10 @@ ecg gEcg;
 
 extern "C" {
     JNIEXPORT void JNICALL
-    Java_com_mobilecg_androidapp_EcgJNI_init(JNIEnv *env, jclass type, jobject assetManager, jint mains_freq) {
+    Java_com_mobilecg_androidapp_EcgJNI_init(JNIEnv *env, jclass type, jobject assetManager) {
         (void)type;
         AAssetManager *nativeAssetManager = AAssetManager_fromJava(env, assetManager);
-        gEcg.init(nativeAssetManager, mains_freq);
+        gEcg.init(nativeAssetManager);
         //LOGD("ecgJNI init call");
     }
 

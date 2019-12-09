@@ -199,8 +199,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         mView.queueEvent(new Runnable() {
             @Override
             public void run() {
-                //EcgJNI.init(getAssets(), States.GetSelectedMainsFreq());
-                EcgJNI.init(getAssets(), 50);
+                EcgJNI.init(getAssets());
                 EcgJNI.initNDK(debugFilePath);
             }
         });
@@ -1021,7 +1020,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         if (serialPort != null) {
             try {
                 //Log.d(TAG, "Closing usb connection");
-                serialPort.purgeHwBuffers(true, false); // TODO maybe disable?
+                //serialPort.purgeHwBuffers(true, false);
                 serialPort.close();
             } catch (IOException e) {
                 Log.e(TAG, "Error closing connection - " + e.getMessage(), e);
