@@ -295,8 +295,6 @@ void EcgArea::setPixelDensity(const Vec2<float> &pPixelDensity){
 
 void EcgArea::putData(GLfloat *data, int nChannels, int nPoints, int stride, int bpm, int cur_time){
     //LOGD("HEH: EcgArea::putData");
-
-    // TODO optimize this
     if (ecgCmPerSec == 1.25 && cur_time - last_color_change > 1000) {
         last_color_change = cur_time;
         if (x_speed_color) {

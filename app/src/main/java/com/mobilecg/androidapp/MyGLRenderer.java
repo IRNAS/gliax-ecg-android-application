@@ -78,7 +78,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onDrawFrame(GL10 gl) {
-        //GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);   // TODO check if it fixes screen blinking
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
         EcgJNI.drawFrame();
         if (screenshot) {
