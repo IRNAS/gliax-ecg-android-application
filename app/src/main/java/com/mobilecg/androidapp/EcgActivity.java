@@ -99,7 +99,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
     private static MyGLRenderer myGLRenderer = null;
 
     private static BroadcastReceiver disconnectBR;
-    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+    private static final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
     private static SerialInputOutputManager serialIoManager;
     private static UsbManager usbManager = null;
     private static UsbDeviceConnection deviceConnection = null;
@@ -143,6 +143,8 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
     private ListView listView;
     private SearchView searchView;
     private boolean pdf_viewer_opened;  // to avoid autosaving new pdf when opening a file from app
+    private static final int MAX_CONT_SCREENSHOTS = 50;     // auto save to pdf every 50 continuous screenshots made
+    private static int contScreenshotCounter;
 
     // variables to detect battery charge changes
     private BatteryDetectReceiver batteryDetect;
@@ -342,6 +344,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         pdf_viewer_opened = false;
         registerReceiver(batteryDetect, intentFilter);
         registerReceiver(batteryAlertReceiver, new IntentFilter("DISPLAY_BAT_ALERT"));
+        contScreenshotCounter = 0;
     }
 
     @Override
@@ -482,8 +485,12 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
                 int rhy_full = EcgJNI.getRhyFull();
                 //Log.d(TAG, String.valueOf(rhy_full));
                 if (rhy_full == 1) {
-                    myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_MANY, "rhythm");
-                    // TODO optimize this (move parameters away)
+                    myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_MANY, "rhythm"); // TODO optimize this (move parameters away)
+                    //contScreenshotCounter++;
+                    if (contScreenshotCounter >= MAX_CONT_SCREENSHOTS) {
+                        displayToast("Autosaving current ECG data...");
+                        saveMeasurement(false);
+                    }
                 }
             }
         }, 0, 10);   // start immediately, run every 10 ms
@@ -493,6 +500,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         if (timer != null) {
             timer.cancel();
             timer = null;
+            contScreenshotCounter = 0;
         }
     }
 

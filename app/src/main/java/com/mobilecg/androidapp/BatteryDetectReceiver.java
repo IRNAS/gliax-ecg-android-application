@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.usb.UsbManager;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.util.Log;
@@ -13,8 +14,9 @@ import android.widget.Toast;
 public class BatteryDetectReceiver extends BroadcastReceiver {
 
     @Override
-    public void onReceive(final Context context, Intent intent) { // TODO call getAction
-        if (isCharging(context)) {
+    public void onReceive(final Context context, Intent intent) {
+        String action = intent.getAction();
+        if ("android.intent.action.ACTION_POWER_CONNECTED".equals(action) && isCharging(context)) {
             Toast.makeText(context, "Tablet is being charged...", Toast.LENGTH_SHORT).show();
         }
         else {
@@ -32,5 +34,4 @@ public class BatteryDetectReceiver extends BroadcastReceiver {
         boolean bCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
         return bCharging;
     }
-
 }
