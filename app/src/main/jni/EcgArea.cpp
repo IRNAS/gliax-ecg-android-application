@@ -132,7 +132,7 @@ void EcgArea::rescale(){
     //availableHeight = labels[1].getYPosition() - labels[0].getYPosition();
 
     disconnectedLabel.drawText("DISCONNECTED");
-    devLabel.drawText("VERSION " GIT_HASH " - " __DATE__ );
+    devLabel.drawText("v. " GIT_HASH " - " __DATE__ );
     speed_warning_label.drawText("25 mm/s");
 
     hr_label.drawText("HR ");

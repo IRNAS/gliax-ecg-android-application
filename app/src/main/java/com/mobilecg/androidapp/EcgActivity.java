@@ -143,8 +143,6 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
     private ListView listView;
     private SearchView searchView;
     private boolean pdf_viewer_opened;  // to avoid autosaving new pdf when opening a file from app
-    private static final int MAX_CONT_SCREENSHOTS = 50;     // auto save to pdf every 50 continuous screenshots made
-    private static int contScreenshotCounter;
 
     // variables to detect battery charge changes
     private BatteryDetectReceiver batteryDetect;
@@ -185,8 +183,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         if (curScreen == 1) {
             rhythm_screen = true;
         }
-
-        /*
+        /*  // prepared for future implementation of graph zoom
         mView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -195,9 +192,6 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
                 String test = "X: " + x + " Y: " + y;
                 //Log.d(TAG, "screen height: " + v.getHeight());
                 //Log.d(TAG, test);
-                //EcgJNI.getButtonCoords();
-                //EcgJNI.getButtonCoords();
-                //Log.d(TAG, "button coords: " + test2[0]);
                 return false;
             }
         });
@@ -344,7 +338,6 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         pdf_viewer_opened = false;
         registerReceiver(batteryDetect, intentFilter);
         registerReceiver(batteryAlertReceiver, new IntentFilter("DISPLAY_BAT_ALERT"));
-        contScreenshotCounter = 0;
     }
 
     @Override
@@ -486,11 +479,6 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
                 //Log.d(TAG, String.valueOf(rhy_full));
                 if (rhy_full == 1) {
                     myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_MANY, "rhythm"); // TODO optimize this (move parameters away)
-                    //contScreenshotCounter++;
-                    if (contScreenshotCounter >= MAX_CONT_SCREENSHOTS) {
-                        displayToast("Autosaving current ECG data...");
-                        saveMeasurement(false);
-                    }
                 }
             }
         }, 0, 10);   // start immediately, run every 10 ms
@@ -500,7 +488,6 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         if (timer != null) {
             timer.cancel();
             timer = null;
-            contScreenshotCounter = 0;
         }
     }
 
@@ -589,7 +576,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         }
         else if (rhythm_screen) {    // save all screenshots to file
             //Log.d(TAG, "save all screenshots to file");
-            myGLRenderer.saveManyScreenshots();
+            myGLRenderer.saveManyScreenshots(null);
         }
         else {  // take screenshot and save it to file
             myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_ONE, "12-lead");
@@ -617,7 +604,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         }
     }
 
-    private void inputPatientData() {   // TODO move to States.java
+    private void inputPatientData() {
         pauseECG();
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = getLayoutInflater().inflate(R.layout.input_data_popup, null);
@@ -679,7 +666,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
             }
         });
 
-        Button btnAdvSet = (Button) view.findViewById(R.id.buttonPopUpAdvanced);    // TODO move to xml all button onclick methods
+        Button btnAdvSet = (Button) view.findViewById(R.id.buttonPopUpAdvanced);
         btnAdvSet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -719,7 +706,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         alertDialog.show();
     }
 
-    private void advancedSettings() {   // TODO move to States.java
+    private void advancedSettings() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = getLayoutInflater().inflate(R.layout.advanced_popup, null);
 

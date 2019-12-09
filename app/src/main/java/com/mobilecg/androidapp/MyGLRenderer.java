@@ -13,6 +13,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.print.PrintAttributes;
 import android.print.pdf.PrintedPdfDocument;
+import android.support.annotation.Nullable;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.widget.Toast;
@@ -51,6 +52,8 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private int textOffsetX = 10;
     private int textOffsetY = 15;
 
+    private static final int MAX_CONT_SCREENSHOTS = 50;     // auto save to pdf every 50 continuous screenshots made
+
     MyGLRenderer(DisplayMetrics display) {
         displayMetrics = display;
     }
@@ -85,6 +88,9 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             }
             else if (screenshotType == States.SHOT_MANY) {
                 screenshotArray.add(bitmap);
+                if (screenshotArray.size() >= MAX_CONT_SCREENSHOTS) {
+                    saveManyScreenshots(screenshotArray);
+                }
             }
             else {  // screenshotType == States.SHOT_ONE
                 saveScreenshot(bitmap);
@@ -193,17 +199,19 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         if (preparedScreenshot != null) {
             saveScreenshot(preparedScreenshot);
         }
-        else {
-            //Log.d("HEH", "preparedScreenshot is null!");
-        }
     }
 
-    public void saveManyScreenshots() {
+    public void saveManyScreenshots(@Nullable ArrayList<Bitmap> array) {
+        if (array == null) {
+            array = screenshotArray;
+        }
+        final ArrayList<Bitmap> picsArray = array;
+
         Thread thread = new Thread(new Runnable() { // run this in separate thread
             @Override
             public void run() {
                 try {
-                    if (screenshotArray.isEmpty()) {    // if bitmap array is empty: take new single screenshot
+                    if (picsArray.isEmpty()) {    // if bitmap array is empty: take new single screenshot
                         takeScreenshot(savePath, thisPatient, States.SHOT_ONE, ecgType);
                         return;
                     }
@@ -224,10 +232,11 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
                         patientInfo = String.format("Patient: %s %s  %s", thisPatient.getName(), thisPatient.getSurname(), thisPatient.getBirth());
                     }
                     int pageCounter = 0;
-                    int pagesCount = screenshotArray.size();
+                    int pagesCount = picsArray.size();
 
-                    for (Bitmap pic : screenshotArray) {
+                    for (Bitmap pic : picsArray) {
                         pageCounter++;
+                        Log.d("HEH", "saving nr. " + pageCounter);
                         PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(pic.getWidth(), pic.getHeight() + textSize*2 + textOffsetY*2, pageCounter+1).create();
                         PdfDocument.Page page = document.startPage(pageInfo);
                         Canvas canvas = page.getCanvas();
@@ -251,16 +260,24 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
                     document.writeTo(new FileOutputStream(file));
                     document.close();
                     screenshotResult = true;
+                    Log.d("HEH", "saving finished");
+                    picsArray.clear();
                 }
                 catch (Exception e) {
                     e.printStackTrace();
                     //Log.d("HEH", "saveManyScreenshots error!");
                     screenshotResult = false;
+                    picsArray.clear();
                 }
             }
         });
 
         thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean getScreenshotResult() {
