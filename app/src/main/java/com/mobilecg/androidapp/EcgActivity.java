@@ -93,7 +93,7 @@ import java.util.concurrent.Executors;
 
 public class EcgActivity extends Activity implements SerialInputOutputManager.Listener{
 
-    private boolean debugFileWrite = false; // set this to true to write signal data to files (do it also in EcgProcessor.cpp file)
+    private boolean debugFileWrite = false; // DEBUG to dump signal data to file (turn on also in EcgProcessor.cpp)
 
     private GLSurfaceView mView;
     private static MyGLRenderer myGLRenderer = null;
