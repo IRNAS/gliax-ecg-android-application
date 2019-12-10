@@ -233,11 +233,11 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         save_stop_btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 displayToast("Saving in progress, please wait...");
+                save_stop_btn.setEnabled(false);
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run(){
                         saveMeasurement(true);
-                        save_stop_btn.setEnabled(false);
                         if (!autoPrint) {   // display alert
                             showPrintAlertDialog();
                         }
@@ -269,6 +269,9 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
                 // restart ecg drawing
                 if (render_paused) {
                     resumeECG();
+                }
+                if (!save_stop_btn.isEnabled()) {
+                    save_stop_btn.setEnabled(true);
                 }
             }
         });
@@ -569,7 +572,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         hideNavAndStatusBar(dialog.getWindow());
     }
 
-    private void saveMeasurement(boolean display_message) {
+    private void saveMeasurement(final boolean display_message) {
         if (screenshotPrepared) {   // after ECG pause saving to file
             myGLRenderer.savePreparedScreenshot();
         }
@@ -584,23 +587,29 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
             pauseECG();
             save_stop_btn.setEnabled(false);
         }
-        boolean result = myGLRenderer.getScreenshotResult();    // check save file result TODO make it with broadcast receiver
-        if (result) {
-            patient.setSaved(true);
-            if (display_message) {
-                displayToast("Successfully saved to pdf...");
-            }
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {     // delay for half a second
+                boolean result = myGLRenderer.getScreenshotResult();    // check save file result
+                if (result) {
+                    patient.setSaved(true);
+                    if (display_message) {
+                        displayToast("Successfully saved to pdf...");
+                    }
 
-            if (screenshotPrepared) {   // if prepared screenshot was saved, delete it
-                screenshotPrepared = false;
+                    if (screenshotPrepared) {   // if prepared screenshot was saved, delete it
+                        screenshotPrepared = false;
+                    }
+                    else if (rhythm_screen) {    // if rhythm screenshots were saved, delete them
+                        myGLRenderer.deleteManyScreenshots();
+                    }
+                }
+                else {
+                    displayToast("Error when saving to pdf!");
+                }
             }
-            else if (rhythm_screen) {    // if rhythm screenshots were saved, delete them
-                myGLRenderer.deleteManyScreenshots();
-            }
-        }
-        else {
-            displayToast("Error when saving to pdf!");
-        }
+        }, 500);
     }
 
     private void inputPatientData() {
