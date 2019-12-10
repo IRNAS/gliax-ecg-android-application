@@ -106,7 +106,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         screenshotType = shot_type;
         savePath = saveLocation;
         thisPatient = patient;
-        ecgType = ecg_type;
+        ecgType = ecg_type; // TODO fix this on autosave - all parameters are null
     }
 
     private Bitmap makeScreenshot(GL10 gl) {
@@ -140,9 +140,12 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         // save screenshot to pdf file with added text info
         try {
             String measurementTimestamp = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
-            String id = thisPatient.getMeasurementId();
-            if (id.equals("")) {
-                id = "000";
+            String id = "000";
+            if (thisPatient != null) {
+                id = thisPatient.getMeasurementId();
+                if (id.equals("")) {
+                    id = "000";
+                }
             }
             String filename = id + "_" + ecgType + "_" + measurementTimestamp.replace(" ", "-") + ".pdf";
 
@@ -151,7 +154,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             String title = String.format("ID: %s \t Date: %s", id, measurementTimestamp);
             // prepare patient info to file if exists
             String patientInfo = String.format("No patient data");
-            if (!thisPatient.getName().isEmpty() || !thisPatient.getSurname().isEmpty() || !thisPatient.getBirth().isEmpty()) {
+            if (thisPatient != null && (!thisPatient.getName().isEmpty() || !thisPatient.getSurname().isEmpty() || !thisPatient.getBirth().isEmpty())) {
                 patientInfo = String.format("Patient: %s %s, %s", thisPatient.getName(), thisPatient.getSurname(), thisPatient.getBirth());
             }
             // prepare page number

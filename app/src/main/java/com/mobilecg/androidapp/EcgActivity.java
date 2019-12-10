@@ -296,9 +296,9 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         patient = new Patient();
         patient.setPatientData(oldName, oldSurname, oldBirth, oldId);
 
-        // read how many times the app has crashed (allow max 3 times)
+        // read how many times the app has crashed (allow max once)
         int crashCounter = settings.getInt("crashCounter", 0);
-        if (crashCounter < 3) {
+        if (crashCounter < 1) {
             // install custom exception handler to make the app auto restart after crash
             Thread.setDefaultUncaughtExceptionHandler(new MyExceptionHandler(this));
             if (getIntent().getBooleanExtra("crash", false)) {
