@@ -89,7 +89,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             else if (screenshotType == States.SHOT_MANY) {
                 screenshotArray.add(bitmap);
                 if (screenshotArray.size() >= MAX_CONT_SCREENSHOTS) {
-                    saveManyScreenshots(screenshotArray);
+                    saveManyScreenshots(thisPatient, ecgType);
                 }
             }
             else {  // screenshotType == States.SHOT_ONE
@@ -106,7 +106,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         screenshotType = shot_type;
         savePath = saveLocation;
         thisPatient = patient;
-        ecgType = ecg_type; // TODO fix this on autosave - all parameters are null
+        ecgType = ecg_type;
     }
 
     private Bitmap makeScreenshot(GL10 gl) {
@@ -204,12 +204,13 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    public void saveManyScreenshots(@Nullable ArrayList<Bitmap> array) {
-        if (array == null) {
-            array = screenshotArray;
+    public void saveManyScreenshots(@Nullable Patient patientIn, @Nullable String ecgTypeIn) {
+        if (thisPatient == null || ecgType == null) {
+            thisPatient = patientIn;
+            ecgType = ecgTypeIn;
         }
-        final ArrayList<Bitmap> picsArray = array;
 
+        final ArrayList<Bitmap> picsArray = screenshotArray;    // TODO makes to many screenshots (fake pages?)
         Thread thread = new Thread(new Runnable() { // run this in separate thread
             @Override
             public void run() {

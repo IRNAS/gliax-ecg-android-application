@@ -232,6 +232,9 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         save_stop_btn = (Button)findViewById(R.id.save_btn);    // Save / Stop
         save_stop_btn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                if (rhythm_screen) {
+                    myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_MANY, "rhythm");
+                }
                 displayToast("Saving in progress, please wait...");
                 save_stop_btn.setEnabled(false);
                 new Handler().postDelayed(new Runnable() {
@@ -245,7 +248,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
                             // prepared for future implementation of printing
                         }
                     }
-                }, 100);
+                }, 500);
             }
         });
         rhythm_12lead_btn = (Button)findViewById(R.id.rhythm_btn);    // Rhythm / 12 lead
@@ -578,7 +581,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         }
         else if (rhythm_screen) {    // save all screenshots to file
             //Log.d(TAG, "save all screenshots to file");
-            myGLRenderer.saveManyScreenshots(null);
+            myGLRenderer.saveManyScreenshots(patient, "rhythm");
         }
         else {  // take screenshot and save it to file
             myGLRenderer.takeScreenshot(saveLocation, patient, States.SHOT_ONE, "12-lead");
@@ -1021,7 +1024,12 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
             batteryAlert.dismiss();
         }
         unregisterReceiver(batteryAlertReceiver);
-        unregisterReceiver(disconnectBR);
+        try {
+            unregisterReceiver(disconnectBR);
+        }
+        catch (Exception e) {
+            //ignore, already unregistered
+        }
     }
 
     private void CloseConnectionToUsbDevice() {
