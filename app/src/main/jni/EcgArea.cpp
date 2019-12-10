@@ -201,10 +201,10 @@ void EcgArea::constructLayoutNormal(){
         ecgCurves[a].setPosition(xCoord, yCoord);
         labels[a].setPosition(xCoord + 10, (float)(yCoord - 0.8*pixelDensity.y));
 
-        if (!ecgCurves[a].getVisible()) {
-            ecgCurves[a].setVisible(true);
-            labels[a].setVisible(true);
-        }
+        //if (!ecgCurves[a].getVisible()) {
+        ecgCurves[a].setVisible(true);
+        labels[a].setVisible(true);
+        //}
     }
 
     rhythm.setLength(curveWidth*ECG_COLUMN_COUNT);
@@ -408,30 +408,14 @@ void EcgArea::setContentVisible(bool visible){
     bpm_label.setVisible(visible);
     bpm_num.setVisible(visible);
 
-    if (selected_layout == NORMAL_LAYOUT) {
-        for (int a=0; a<ECG_CURVE_COUNT; a++) {
-            endpointCircles[a].setVisible(visible);
-            ecgCurves[a].setVisible(visible);
-            labels[a].setVisible(visible);
-        }
-        rhythm_circle.setVisible(visible);
-        rhythm.setVisible(visible);
-        rhythm_label.setVisible(visible);
+    for (int a=0; a<ECG_CURVE_COUNT; a++) {
+        endpointCircles[a].setVisible(visible);
+        ecgCurves[a].setVisible(visible);
+        labels[a].setVisible(visible);
     }
-    else {
-        endpointCircles[0].setVisible(visible);
-        ecgCurves[0].setVisible(visible);
-        labels[0].setVisible(visible);
-        endpointCircles[2].setVisible(visible);
-        ecgCurves[2].setVisible(visible);
-        labels[2].setVisible(visible);
-        endpointCircles[4].setVisible(visible);
-        ecgCurves[4].setVisible(visible);
-        labels[4].setVisible(visible);
-        rhythm_circle.setVisible(visible);
-        rhythm.setVisible(visible);
-        rhythm_label.setVisible(visible);
-    }
+    rhythm_circle.setVisible(visible);
+    rhythm.setVisible(visible);
+    rhythm_label.setVisible(visible);
 }
 
 void EcgArea::deviceConnected(){
@@ -467,6 +451,7 @@ void EcgArea::changeLayout() {
     else if (selected_layout == RHYTHM_LAYOUT) {
         selected_layout = NORMAL_LAYOUT;
     }
+    setContentVisible(true);
     contextResized(screenSize.w, screenSize.h);
 }
 

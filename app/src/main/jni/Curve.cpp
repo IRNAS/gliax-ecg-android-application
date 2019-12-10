@@ -235,13 +235,8 @@ const Vec2 <int> Curve::endpointCoordinates(){
 
 void Curve::resetCurrWritePos() {
     currNumOfPoints = requiredNumOfPoints;
-    currWritePos=requiredNumOfPoints;
+    currWritePos = requiredNumOfPoints;
     //endCoordinates.x = requiredNumOfPoints;
     //clear();
     reset = 1;
 }
-/*
-float Curve::getEndCoordinateX() {
-    return endCoordinates.x;
-}
- */
