@@ -248,7 +248,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
                             // prepared for future implementation of printing
                         }
                     }
-                }, 500);
+                }, 100);
             }
         });
         rhythm_12lead_btn = (Button)findViewById(R.id.rhythm_btn);    // Rhythm / 12 lead

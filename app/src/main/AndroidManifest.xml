@@ -41,6 +41,7 @@
             android:configChanges="orientation|keyboardHidden"
             android:screenOrientation="landscape"
             android:launchMode="singleInstance"
+            android:excludeFromRecents="true"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
             <intent-filter>
                 <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />

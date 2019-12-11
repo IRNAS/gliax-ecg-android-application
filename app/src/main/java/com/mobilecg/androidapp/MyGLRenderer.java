@@ -153,7 +153,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             // prepare id and timestamp
             String title = String.format("ID: %s \t Date: %s", id, measurementTimestamp);
             // prepare patient info to file if exists
-            String patientInfo = String.format("No patient data");
+            String patientInfo = "No patient data";
             if (thisPatient != null && (!thisPatient.getName().isEmpty() || !thisPatient.getSurname().isEmpty() || !thisPatient.getBirth().isEmpty())) {
                 patientInfo = String.format("Patient: %s %s, %s", thisPatient.getName(), thisPatient.getSurname(), thisPatient.getBirth());
             }
@@ -210,7 +210,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
             ecgType = ecgTypeIn;
         }
 
-        final ArrayList<Bitmap> picsArray = screenshotArray;    // TODO makes to many screenshots (fake pages?)
+        final ArrayList<Bitmap> picsArray = screenshotArray;
         Thread thread = new Thread(new Runnable() { // run this in separate thread
             @Override
             public void run() {
@@ -231,7 +231,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
                     // prepare id and timestamp
                     String title = String.format("ID: %s \t Date: %s", id, measurementTimestamp);
                     // prepare patient info to file if exists
-                    String patientInfo = String.format("No patient data");
+                    String patientInfo = "No patient data";
                     if (!thisPatient.getName().isEmpty() || !thisPatient.getSurname().isEmpty() || !thisPatient.getBirth().isEmpty()) {
                         patientInfo = String.format("Patient: %s %s  %s", thisPatient.getName(), thisPatient.getSurname(), thisPatient.getBirth());
                     }
