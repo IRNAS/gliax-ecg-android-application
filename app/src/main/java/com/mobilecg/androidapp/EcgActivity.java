@@ -519,6 +519,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
             public void onDismiss(DialogInterface dialog) {
                 hideNavAndStatusBar(getWindow());
                 batAlertDisplayed = false;
+                resumeECG();
             }
         });
 
@@ -1167,6 +1168,7 @@ public class EcgActivity extends Activity implements SerialInputOutputManager.Li
         public void onReceive(Context context, Intent intent) {
             if (!batAlertDisplayed) {
                 //displayToast("On receive battery alert");
+                //pauseECG();   // TODO test it
                 displayBatteryAlert(context);
             }
         }

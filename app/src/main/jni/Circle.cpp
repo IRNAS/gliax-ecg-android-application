@@ -110,9 +110,6 @@ void Circle::setPosition(const Vec2<int> &pos){
     position[1]=pos.y;
 }
 
-int Circle::getYPosition() {
-    return position[1];
-}
 
 void Circle::setSize(float d){
     size=d;

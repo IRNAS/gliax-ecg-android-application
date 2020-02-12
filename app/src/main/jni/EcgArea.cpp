@@ -213,11 +213,6 @@ void EcgArea::constructLayoutNormal(){
 
         ecgCurves[a].setPosition(xCoord, yCoord);
         labels[a].setPosition(xCoord + 10, (float)(yCoord - 0.8*pixelDensity.y));
-
-        //if (!ecgCurves[a].getVisible()) {
-        ecgCurves[a].setVisible(true);
-        labels[a].setVisible(true);
-        //}
     }
 
     rhythm.setLength(curveWidth*ECG_COLUMN_COUNT);
@@ -226,11 +221,6 @@ void EcgArea::constructLayoutNormal(){
     rhythm.setPosition(rhy_x, rhy_y);
     rhythm_label.setPosition(rhy_x + 10, (float)(rhy_y - 0.8*pixelDensity.y));
     rhy_remains = OK_REMAINS;
-
-    if (!rhythm.getVisible()) {
-        rhythm.setVisible(true);
-        rhythm_label.setVisible(true);
-    }
 }
 
 void EcgArea::constructLayoutRhythm(){
@@ -245,8 +235,8 @@ void EcgArea::constructLayoutRhythm(){
 
     for (int a=0; a<ECG_CURVE_COUNT; a++){
         if (a == 1 || a == 3 || a > 4) {
-            ecgCurves[a].setVisible(false);
-            labels[a].setVisible(false);
+            //ecgCurves[a].setVisible(false);
+            //labels[a].setVisible(false);
         }
         else {
             ecgCurves[a].setLength(curveWidth);
@@ -264,11 +254,6 @@ void EcgArea::constructLayoutRhythm(){
     rhythm.setPosition(rhy_x, rhy_y);
     rhythm_label.setPosition(rhy_x + 10, (float)(rhy_y - 0.8*pixelDensity.y));
     rhy_remains = OK_REMAINS;
-
-    if (!rhythm.getVisible()) {
-        rhythm.setVisible(true);
-        rhythm_label.setVisible(true);
-    }
 }
 
 void EcgArea::contextResized(int w, int h){
@@ -422,10 +407,25 @@ void EcgArea::setContentVisible(bool visible){
     bpm_num.setVisible(visible);
 
     for (int a=0; a<ECG_CURVE_COUNT; a++) {
-        endpointCircles[a].setVisible(visible);
-        ecgCurves[a].setVisible(visible);
-        labels[a].setVisible(visible);
+        if (selected_layout == NORMAL_LAYOUT) {
+            endpointCircles[a].setVisible(visible);
+            ecgCurves[a].setVisible(visible);
+            labels[a].setVisible(visible);
+        }
+        else {
+            if (a == 1 || a == 3 || a > 4) {
+                endpointCircles[a].setVisible(!visible);
+                ecgCurves[a].setVisible(!visible);
+                labels[a].setVisible(!visible);
+            }
+            else {
+                endpointCircles[a].setVisible(visible);
+                ecgCurves[a].setVisible(visible);
+                labels[a].setVisible(visible);
+            }
+        }
     }
+
     rhythm_circle.setVisible(visible);
     rhythm.setVisible(visible);
     rhythm_label.setVisible(visible);

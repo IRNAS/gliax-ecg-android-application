@@ -252,4 +252,5 @@ void Curve::resetCurrWritePos() {
     //endCoordinates.x = requiredNumOfPoints;
     //clear();
     reset = 1;
+    // TODO is this really needed?
 }
