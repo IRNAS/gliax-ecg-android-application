@@ -9,7 +9,7 @@ Android app for displaying ECG signals (with other features, such as: pdf saving
 
 Made for tablets, tested on Huawei MediaPad M5 10, running Android (EMUI) 8 and 9.
 
-App is using USB protocol to communicate with ECG board (STM32 MCU with TI chip and SL 2102x converter).
+App is using USB protocol to communicate with ECG board (STM32 MCU with TI chip and SL 2102x converter). ECG board latest firmware and instructions can be found here: https://github.com/IRNAS/gliax-ecg-firmware
 
 Using modified version of usb-serial-for-android library by mik3y (https://github.com/mik3y/usb-serial-for-android).
 
