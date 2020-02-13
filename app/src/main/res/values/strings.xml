@@ -86,5 +86,9 @@
         attribute the appropriate entity as required by the Open Licences referred to above. You may not use them in any other way
         and in particular you may not use them to imply endorsement or authorization of any hardware that you design, make or sell.
     </string>
+    <string name="app_description">
+        Glia is a project with the goal of releasing high quality free/open medical hardware to increase availability to those who need it. \n
+        For more information visit Glia Free Medical hardware webpage: https://glia.org/.
+    </string>
 </resources>
 
